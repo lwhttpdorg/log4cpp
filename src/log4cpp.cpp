@@ -4,8 +4,8 @@
 #include <cstdarg>
 #include <pthread.h>
 #include <iostream>
+#include <sys/stat.h>
 
-#include "utils.hpp"
 #include "log4cpp.hpp"
 
 class LockSingleton
@@ -61,6 +61,22 @@ static std::string to_string(log_level level)
 			break;
 	}
 	return str;
+}
+
+ssize_t vscnprintf(char *buf, ssize_t size, const char *fmt, va_list args)
+{
+	int i = vsnprintf(buf, size, fmt, args);
+	return (i >= size) ? (size - 1) : i;
+}
+
+ssize_t scnprintf(char *buf, ssize_t size, const char *fmt, ...)
+{
+	va_list args;
+	int i;
+	va_start(args, fmt);
+	i = vsnprintf(buf, size, fmt, args);
+	va_end(args);
+	return (i >= size) ? (size - 1) : i;
 }
 
 logger::logger(log_level lv)

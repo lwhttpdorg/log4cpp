@@ -15,7 +15,7 @@ int main()
 	std::thread t2(func_b);
 	for (int i = 0; i < 100; ++i)
 	{
-		main_logger.log_warn("I am main thread %u", pthread_self());
+		main_logger.log_warn("I am main  thread %u", pthread_self());
 	}
 	t1.join();
 	t2.join();

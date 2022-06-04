@@ -5,4 +5,8 @@ set(TARGET_NAME log4cpp)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_library(${TARGET_NAME} SHARED log4cpp.cpp utils.cpp)
+add_library(${TARGET_NAME} SHARED log4cpp.cpp)
+
+if (NOT CMAKE_HOST_UNIX)
+    message(FATAL_ERROR "Only support Linux/Unix!")
+endif ()
