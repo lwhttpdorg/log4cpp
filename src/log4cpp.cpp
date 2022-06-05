@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <iostream>
 #include <sys/stat.h>
+#include <sys/time.h>
 
 #include "log4cpp.hpp"
 
@@ -69,7 +70,7 @@ ssize_t vscnprintf(char *buf, ssize_t size, const char *fmt, va_list args)
 	return (i >= size) ? (size - 1) : i;
 }
 
-ssize_t scnprintf(char *buf, ssize_t size, const char *fmt, ...)
+static ssize_t scnprintf(char *buf, ssize_t size, const char *fmt, ...)
 {
 	va_list args;
 	int i;
@@ -127,13 +128,15 @@ logger::logger(int fd, log_level lv)
 ssize_t logger::get_outset(log_level lv, char *buf, ssize_t len)
 {
 	ssize_t used_len = 0;
-	time_t time_now;
-	time(&time_now);
-	tm *tm_now = localtime(&time_now);
-	used_len += scnprintf(buf + used_len, len - used_len, "%d-%d-%d %02d:%02d:%02d %s ",
-	                      1900 + tm_now->tm_year,
-	                      tm_now->tm_mon + 1,
-	                      tm_now->tm_mday, tm_now->tm_hour, tm_now->tm_min, tm_now->tm_sec, tm_now->tm_zone);
+	timeval tv{};
+	gettimeofday(&tv, nullptr);
+	time_t tm_now = tv.tv_sec;
+	tm *local = localtime(&tm_now);
+	unsigned short ms = tv.tv_usec / 1000;
+	used_len += scnprintf(buf + used_len, len - used_len, "%d-%d-%d %02d:%02d:%02d.%3d %s ",
+	                      1900 + local->tm_year, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min,
+	                      local->tm_sec, ms,
+	                      local->tm_zone);
 	used_len += scnprintf(buf + used_len, len - used_len, "%-05s -- ", to_string(lv).c_str());
 	if (!this->log_prefix.empty())
 	{
