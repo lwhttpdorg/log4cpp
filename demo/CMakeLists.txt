@@ -15,3 +15,7 @@ endif ()
 include_directories(${CMAKE_SOURCE_DIR}/src)
 target_link_directories(${TARGET_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/lib)
 target_link_libraries(${TARGET_NAME} log4cpp)
+
+if (INSTALL_DEMO)
+    install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+endif ()
