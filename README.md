@@ -14,7 +14,14 @@ year-mon-day hh:mm:ss timezone log_level -- [ prefix ]: log body
 ## 特性
  - 仅支持Unix/Linux平台
 ## 使用
-demo文件夹就是一个完整的例子  
+1. ### 编译安装
+```shell
+$ cmake -S . -B build -DINSTALL_DEMO=ON
+$ cd build
+$ make
+$ sudo make install
+```
+1. ### 示例
 头文件:
 ```c++
 #include "log4cpp.hpp"
