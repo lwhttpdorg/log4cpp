@@ -49,14 +49,14 @@ public:
 		return this->level;
 	}
 
-	std::string get_log_prefix()
+	std::string get_prefix()
 	{
-		return this->log_prefix;
+		return this->prefix;
 	}
 
-	void set_log_prefix(std::string prefix)
+	void set_prefix(std::string describe)
 	{
-		this->log_prefix = std::move(prefix);
+		this->prefix = std::move(describe);
 	}
 
 	void log(log_level lv, const char *fmt, ...);
@@ -81,7 +81,7 @@ private:
 private:
 	log_level level;
 	int log_fd;
-	std::string log_prefix;
+	std::string prefix;
 };
 
 #endif //LOG4CPP_LOG4CPP_HPP

@@ -84,7 +84,7 @@ logger::logger(log_level lv)
 {
 	this->level = lv;
 	this->log_fd = STDOUT_FILENO;
-	this->log_prefix = "";
+	this->prefix = "";
 }
 
 logger::logger(const std::string &log_file, log_level lv)
@@ -103,7 +103,7 @@ logger::logger(const std::string &log_file, log_level lv)
 		          << std::endl;
 		this->log_fd = STDOUT_FILENO;
 	}
-	this->log_prefix = "";
+	this->prefix = "";
 }
 
 logger::~logger()
@@ -122,7 +122,7 @@ logger::logger(int fd, log_level lv)
 	{
 		std::cerr << "invalid log fd " << fd << std::endl;
 	}
-	this->log_prefix = "";
+	this->prefix = "";
 }
 
 ssize_t logger::get_outset(log_level lv, char *buf, ssize_t len)
@@ -137,14 +137,20 @@ ssize_t logger::get_outset(log_level lv, char *buf, ssize_t len)
 	                      1900 + local->tm_year, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min,
 	                      local->tm_sec, ms,
 	                      local->tm_zone);
-	used_len += scnprintf(buf + used_len, len - used_len, "%-05s -- ", to_string(lv).c_str());
-	if (!this->log_prefix.empty())
+	used_len += scnprintf(buf + used_len, len - used_len, "%-5s -- ", to_string(lv).c_str());
+	if (!this->prefix.empty())
 	{
-		used_len += scnprintf(buf + used_len, len - used_len, "[%08s]: ", this->log_prefix.c_str());
+		used_len += scnprintf(buf + used_len, len - used_len, "[%10s]: ", this->prefix.c_str());
 	}
 	else
 	{
-		used_len += scnprintf(buf + used_len, len - used_len, "[%08s]: ", " ");
+		/*
+		char thread_name[16];
+		thread_name[0] = '\0';
+		pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
+		used_len += scnprintf(buf + used_len, len - used_len, "[%08s]: ", thread_name);
+		 */
+		used_len += scnprintf(buf + used_len, len - used_len, "[%10u]: ", gettid());
 	}
 	return used_len;
 }
