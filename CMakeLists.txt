@@ -24,7 +24,4 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 endif ()
 
-add_subdirectory(demo)
 add_subdirectory(src)
-
-option(INSTALL_DEMO "install demo" OFF)

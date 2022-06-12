@@ -64,20 +64,20 @@ static std::string to_string(log_level level)
 	return str;
 }
 
-ssize_t vscnprintf(char *buf, ssize_t size, const char *fmt, va_list args)
+size_t vscnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, va_list args)
 {
 	int i = vsnprintf(buf, size, fmt, args);
-	return (i >= size) ? (size - 1) : i;
+	return ((size_t)i >= size) ? (size - 1) : i;
 }
 
-static ssize_t scnprintf(char *buf, ssize_t size, const char *fmt, ...)
+size_t scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...)
 {
 	va_list args;
 	int i;
 	va_start(args, fmt);
 	i = vsnprintf(buf, size, fmt, args);
 	va_end(args);
-	return (i >= size) ? (size - 1) : i;
+	return ((size_t)i >= size) ? (size - 1) : i;
 }
 
 logger::logger(log_level lv)

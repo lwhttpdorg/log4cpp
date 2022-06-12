@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(log4cpp)
+project(liblog4cpp)
 
 set(TARGET_NAME log4cpp)
 

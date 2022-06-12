@@ -22,19 +22,28 @@ $ sudo make install
 ```
 #### b. 用法
 ```c++
-// 输出到文件
-logger demo_logger("./demo.log", log_level::TRACE);
-// 输出到fd, 如stdout
-logger demo_logger(STDOUT_FILENO, log_level::WARN);
-// 设置每条log的前缀标识, 如果未指定则默认使用线程ID, 即gettid()
-demo_logger.set_prefix("demo");
-// 输出log
-// 输出warning级别的log
-demo_logger.log_warn("thread %u: This is a warning...", pthread_self());
-// 输出fatal级别的log
-demo_logger.log_fatal("This is a fatal...");
-// 也可以显示指定log级别
-demo_logger.log(log_level::ERROR, "this is a error log");
+#include "log4cpp.hpp"
+
+int main()
+{
+	logger demo_logger("./demo.log", log_level::TRACE);
+
+	// 输出到文件
+	demo_logger("./demo.log", log_level::TRACE);
+	// 输出到fd, 如stdout
+	demo_logger(STDOUT_FILENO, log_level::WARN);
+	// 设置每条log的前缀标识, 如果未指定则默认使用线程ID, 即gettid()
+	demo_logger.set_prefix("demo");
+
+	// 输出log
+	// 输出warning级别的log
+	demo_logger.log_warn("thread %u: This is a warning...", pthread_self());
+	// 输出fatal级别的log
+	demo_logger.log_fatal("This is a fatal...");
+	// 也可以显示指定log级别
+	demo_logger.log(log_level::ERROR, "this is a error log");
+	return 0;
+}
 ```
 ### 3.3 附加说明
 #### a. 输出格式
