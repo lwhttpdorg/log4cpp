@@ -64,13 +64,13 @@ static std::string to_string(log_level level)
 	return str;
 }
 
-size_t vscnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, va_list args)
+static size_t log4c_vscnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, va_list args)
 {
 	int i = vsnprintf(buf, size, fmt, args);
 	return ((size_t)i >= size) ? (size - 1) : i;
 }
 
-size_t scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...)
+static size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...)
 {
 	va_list args;
 	int i;
@@ -125,22 +125,22 @@ logger::logger(int fd, log_level lv)
 	this->prefix = "";
 }
 
-ssize_t logger::get_outset(log_level lv, char *buf, ssize_t len)
+size_t logger::get_outset(log_level lv, char *__restrict buf, size_t len)
 {
-	ssize_t used_len = 0;
+	size_t used_len = 0;
 	timeval tv{};
 	gettimeofday(&tv, nullptr);
 	time_t tm_now = tv.tv_sec;
 	tm *local = localtime(&tm_now);
 	unsigned short ms = tv.tv_usec / 1000;
-	used_len += scnprintf(buf + used_len, len - used_len, "%d-%d-%d %02d:%02d:%02d.%3d %s ",
-	                      1900 + local->tm_year, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min,
-	                      local->tm_sec, ms,
-	                      local->tm_zone);
-	used_len += scnprintf(buf + used_len, len - used_len, "%-5s -- ", to_string(lv).c_str());
+	used_len += log4c_scnprintf(buf + used_len, len - used_len, "%d-%d-%d %02d:%02d:%02d.%3d %s ",
+	                            1900 + local->tm_year, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min,
+	                            local->tm_sec, ms,
+	                            local->tm_zone);
+	used_len += log4c_scnprintf(buf + used_len, len - used_len, "%-5s -- ", to_string(lv).c_str());
 	if (!this->prefix.empty())
 	{
-		used_len += scnprintf(buf + used_len, len - used_len, "[%10s]: ", this->prefix.c_str());
+		used_len += log4c_scnprintf(buf + used_len, len - used_len, "[%10s]: ", this->prefix.c_str());
 	}
 	else
 	{
@@ -148,26 +148,26 @@ ssize_t logger::get_outset(log_level lv, char *buf, ssize_t len)
 		char thread_name[16];
 		thread_name[0] = '\0';
 		pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
-		used_len += scnprintf(buf + used_len, len - used_len, "[%08s]: ", thread_name);
+		used_len += log4c_scnprintf(buf + used_len, len - used_len, "[%08s]: ", thread_name);
 		 */
-		used_len += scnprintf(buf + used_len, len - used_len, "[%10u]: ", gettid());
+		used_len += log4c_scnprintf(buf + used_len, len - used_len, "[%10u]: ", gettid());
 	}
 	return used_len;
 }
 
-void logger::log(log_level lv, const char *fmt, ...)
+void logger::log(log_level lv, const char *__restrict fmt, ...)
 {
 	if (lv <= this->level)
 	{
 		char buf[LOG_LINE_MAX];
-		ssize_t used_len = 0, buf_len = sizeof(buf);
+		size_t used_len = 0, buf_len = sizeof(buf);
 		buf[0] = '\0';
 		used_len += get_outset(lv, buf, buf_len);
 		va_list args;
 		va_start(args, fmt);
-		used_len += vscnprintf(buf + used_len, buf_len - used_len, fmt, args);
+		used_len += log4c_vscnprintf(buf + used_len, buf_len - used_len, fmt, args);
 		va_end(args);
-		used_len += scnprintf(buf + used_len, buf_len - used_len, "\n");
+		used_len += log4c_scnprintf(buf + used_len, buf_len - used_len, "\n");
 		pthread_spinlock_t lock = LockSingleton::getInstance().spinlock;
 		pthread_spin_lock(&lock);
 		write(this->log_fd, buf, used_len);
@@ -175,16 +175,16 @@ void logger::log(log_level lv, const char *fmt, ...)
 	}
 }
 
-void logger::log(log_level lv, const char *fmt, va_list args)
+void logger::log(log_level lv, const char *__restrict fmt, va_list args)
 {
 	if (lv <= this->level)
 	{
 		char buf[LOG_LINE_MAX];
-		ssize_t used_len = 0, buf_len = sizeof(buf);
+		size_t used_len = 0, buf_len = sizeof(buf);
 		buf[0] = '\0';
 		used_len += get_outset(lv, buf, buf_len);
-		used_len += vscnprintf(buf + used_len, buf_len - used_len, fmt, args);
-		used_len += scnprintf(buf + used_len, buf_len - used_len, "\n");
+		used_len += log4c_vscnprintf(buf + used_len, buf_len - used_len, fmt, args);
+		used_len += log4c_scnprintf(buf + used_len, buf_len - used_len, "\n");
 		pthread_spinlock_t lock = LockSingleton::getInstance().spinlock;
 		pthread_spin_lock(&lock);
 		write(this->log_fd, buf, used_len);
@@ -192,7 +192,7 @@ void logger::log(log_level lv, const char *fmt, va_list args)
 	}
 }
 
-void logger::log_fatal(const char *fmt, ...)
+void logger::log_fatal(const char *__restrict fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -200,7 +200,7 @@ void logger::log_fatal(const char *fmt, ...)
 	va_end(args);
 }
 
-void logger::log_error(const char *fmt, ...)
+void logger::log_error(const char *__restrict fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -208,7 +208,7 @@ void logger::log_error(const char *fmt, ...)
 	va_end(args);
 }
 
-void logger::log_warn(const char *fmt, ...)
+void logger::log_warn(const char *__restrict fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -216,7 +216,7 @@ void logger::log_warn(const char *fmt, ...)
 	va_end(args);
 }
 
-void logger::log_info(const char *fmt, ...)
+void logger::log_info(const char *__restrict fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -224,7 +224,7 @@ void logger::log_info(const char *fmt, ...)
 	va_end(args);
 }
 
-void logger::log_debug(const char *fmt, ...)
+void logger::log_debug(const char *__restrict fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -232,7 +232,7 @@ void logger::log_debug(const char *fmt, ...)
 	va_end(args);
 }
 
-void logger::log_trace(const char *fmt, ...)
+void logger::log_trace(const char *__restrict fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);

@@ -59,24 +59,24 @@ public:
 		this->prefix = std::move(describe);
 	}
 
-	void log(log_level lv, const char *fmt, ...);
+	void log(log_level lv, const char *__restrict fmt, ...);
 
-	void log_fatal(const char *fmt, ...);
+	void log_fatal(const char *__restrict fmt, ...);
 
-	void log_error(const char *fmt, ...);
+	void log_error(const char *__restrict fmt, ...);
 
-	void log_warn(const char *fmt, ...);
+	void log_warn(const char *__restrict fmt, ...);
 
-	void log_info(const char *fmt, ...);
+	void log_info(const char *__restrict fmt, ...);
 
-	void log_debug(const char *fmt, ...);
+	void log_debug(const char *__restrict fmt, ...);
 
-	void log_trace(const char *fmt, ...);
+	void log_trace(const char *__restrict fmt, ...);
 
 private:
-	void log(log_level lv, const char *fmt, va_list args);
+	void log(log_level lv, const char *__restrict fmt, va_list args);
 
-	ssize_t get_outset(log_level lv, char *buf, ssize_t len);
+	size_t get_outset(log_level lv, char *__restrict buf, size_t len);
 
 private:
 	log_level level;
