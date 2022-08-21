@@ -11,7 +11,7 @@ Logger for C++是一个为C++开发的日志项目, 可以将log输出到控制�
 ## 3. 使用
 ### 3.1 编译和安装
 ```shell
-$ cmake -S . -B build -DINSTALL_DEMO=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/log4cpp
+$ cmake -S . -B build -DENABLE_DEMO=ON
 $ cd build
 $ make
 $ sudo make install
