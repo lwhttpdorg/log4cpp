@@ -3,7 +3,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "log4cpp.hpp"
+#include "../include/log4cpp.hpp"
 
 class Log4CppConfiger
 {

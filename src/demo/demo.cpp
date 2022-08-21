@@ -1,5 +1,5 @@
 
-#include "../main/log4cpp.hpp"
+#include "log4cpp.hpp"
 
 int main()
 {

@@ -36,3 +36,9 @@ if (ENABLE_ASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ASAN_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ASAN_FLAGS}")
 endif ()
+
+target_include_directories(log4cpp
+        PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
+        PRIVATE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>)
