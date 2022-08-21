@@ -7,6 +7,7 @@ Logger for C++是一个为C++开发的日志项目, 可以将log输出到控制�
 ## 3. 要求
 1. 支持C++11及以上的C++编译器
 2. 支持pthread的的编译器
+3. CMake 3.11及以上版本
 ## 3. 使用
 ### 3.1 编译和安装
 ```shell
@@ -72,5 +73,6 @@ enum class LogLevel
 2022-6-11 22:58:45.869 CST ERROR -- [  thread b]: This is an error...
 2022-6-11 22:58:45.869 CST FATAL -- [      8982]: This is a fatal...
 ```
-## 4. 许可
+## 4. YAML示例
+## 5. 许可
 本项目使用[GPLv3](LICENSE)许可
