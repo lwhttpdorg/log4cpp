@@ -67,7 +67,7 @@ enum class LogLevel
 };
 ```
 示例:
-```text
+```shell
 2022-8-21 14:13:13.538 CST [            demo]: [TRACE] -- This is a trace: main:8
 2022-8-21 14:13:13.538 CST [            demo]: [INFO ] -- This is a info: main:9
 2022-8-21 14:13:13.538 CST [            demo]: [DEBUG] -- This is a debug: main:10
@@ -77,6 +77,7 @@ enum class LogLevel
 2022-8-21 14:13:13.539 CST [            demo]: [FATAL] -- This is a fatal: main:19
 ```
 ## 4. YAML示例
+[YAML配置文件示例](log4cpp.yml)
 ```yaml
 log4cpp:
   # 输出器, 至少要有一个
