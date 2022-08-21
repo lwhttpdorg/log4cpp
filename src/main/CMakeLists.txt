@@ -23,3 +23,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(yaml_cpp)
 
 target_link_libraries(${TARGET_NAME} yaml-cpp)
+
+if (CMAKE_HOST_UNIX)
+    target_link_libraries(${TARGET_NAME} pthread)
+endif ()
