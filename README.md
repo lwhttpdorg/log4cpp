@@ -49,7 +49,7 @@ int main()
 #### a. 输出格式
 ```text
 # 年-月-日 时:分:秒 时区 log级别 -- [标识前缀]: log正文
-year-mon-day hh:mm:ss timezone LogLevel -- [ prefix ]: log body
+year-mon-day hh:mm:ss timezone [thread name]: [log level] -- log message
 ```
 其中:  
 1. 秒精确到小数点后三位(毫秒)  
@@ -68,9 +68,13 @@ enum class LogLevel
 ```
 示例:
 ```text
-2022-6-11 22:58:45.869 CST WARN  -- [      8975]: This is a warning...
-2022-6-11 22:58:45.869 CST ERROR -- [  thread b]: This is an error...
-2022-6-11 22:58:45.869 CST FATAL -- [      8982]: This is a fatal...
+2022-8-21 14:13:13.538 CST [            demo]: [TRACE] -- This is a trace: main:8
+2022-8-21 14:13:13.538 CST [            demo]: [INFO ] -- This is a info: main:9
+2022-8-21 14:13:13.538 CST [            demo]: [DEBUG] -- This is a debug: main:10
+2022-8-21 14:13:13.538 CST [            demo]: [ERROR] -- This is a error: main:11
+2022-8-21 14:13:13.538 CST [            demo]: [FATAL] -- This is a fatal: main:12
+2022-8-21 14:13:13.538 CST [            demo]: [ERROR] -- This is a error: main:18
+2022-8-21 14:13:13.539 CST [            demo]: [FATAL] -- This is a fatal: main:19
 ```
 ## 4. YAML示例
 ```yaml
