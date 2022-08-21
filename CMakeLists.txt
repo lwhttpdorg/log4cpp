@@ -5,6 +5,7 @@ project(log4cpp)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
+option(ENABLE_DEMO "Enable demo" OFF)
 option(ENABLE_TESTS "Enable test" OFF)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 
