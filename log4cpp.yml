@@ -1,15 +1,23 @@
 log4cpp:
+  # 输出器, 至少要有一个
   outputters:
+    # 控制台输出器
     consoleOutputter:
+      # 级别
       logLevel: trace
+    # 文件输出器
     fileOutputter:
+      # 输出文件路径
       filePath: "/home/nereus/WorkSpace/log4cpp/log/log4cpp.log"
+      # 异步输出, 默认开启, 可提高性能(暂未实现)
       async: true
+      # 追加而不是覆盖, 默认追加(暂未实现)
       append: false
+  # 日志记录器
   loggers:
-    - name: main
-      logLevel: trace
-      outputter:
+    - name: main      # 名称
+      logLevel: trace # 级别
+      outputter: # 输出器, 可配置多个, 见outputters
         - consoleOutputter
 
     - name: test
@@ -17,9 +25,10 @@ log4cpp:
       outputter:
         - consoleOutputter
         - fileOutputter
+  # 根日志记录器, 如果loggers中没有定义, 则使用此配置
   root:
-    pattern: 1
-    logLevel: info
-    outputter:
+    pattern: 1     # 输出格式表达式(暂未实现)
+    logLevel: info # 级别
+    outputter: # 输出器
       - consoleOutputter
       - fileOutputter

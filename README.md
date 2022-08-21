@@ -27,22 +27,21 @@ $ sudo make install
 
 int main()
 {
-	Logger demo_logger("./demo.log", LogLevel::TRACE);
+	// 设置YAML路径, 可选. 默认使用当前路径下的log4cpp.yml
+	LoggerManager::setYamlFilePath("./log4cpp.yml");
+	Logger logger = LoggerManager::getLogger("main");
+	logger.trace("This is a trace: %s:%d", __func__, __LINE__);
+	logger.info("This is a info: %s:%d", __func__, __LINE__);
+	logger.debug("This is a debug: %s:%d", __func__, __LINE__);
+	logger.error("This is a error: %s:%d", __func__, __LINE__);
+	logger.fatal("This is a fatal: %s:%d", __func__, __LINE__);
 
-	// 输出到文件
-	demo_logger("./demo.log", LogLevel::TRACE);
-	// 输出到fd, 如stdout
-	demo_logger(STDOUT_FILENO, LogLevel::WARN);
-	// 设置每条log的前缀标识, 如果未指定则默认使用线程ID, 即gettid()
-	demo_logger.setPrefix("demo");
-
-	// 输出log
-	// 输出warning级别的log
-	demo_logger.warn("thread %u: This is a warning...", pthread_self());
-	// 输出fatal级别的log
-	demo_logger.fatal("This is a fatal...");
-	// 也可以显示指定log级别
-	demo_logger.log(LogLevel::ERROR, "this is a error log");
+	logger = LoggerManager::getLogger("test");
+	logger.trace("This is a trace: %s:%d", __func__, __LINE__);
+	logger.info("This is a info: %s:%d", __func__, __LINE__);
+	logger.debug("This is a debug: %s:%d", __func__, __LINE__);
+	logger.error("This is a error: %s:%d", __func__, __LINE__);
+	logger.fatal("This is a fatal: %s:%d", __func__, __LINE__);
 	return 0;
 }
 ```
@@ -74,5 +73,41 @@ enum class LogLevel
 2022-6-11 22:58:45.869 CST FATAL -- [      8982]: This is a fatal...
 ```
 ## 4. YAML示例
+```yaml
+log4cpp:
+  # 输出器, 至少要有一个
+  outputters:
+    # 控制台输出器
+    consoleOutputter:
+      # 级别
+      logLevel: trace
+    # 文件输出器
+    fileOutputter:
+      # 输出文件路径
+      filePath: "/home/nereus/WorkSpace/log4cpp/log/log4cpp.log"
+      # 异步输出, 默认开启, 可提高性能(暂未实现)
+      async: true
+      # 追加而不是覆盖, 默认追加(暂未实现)
+      append: false
+  # 日志记录器
+  loggers:
+    - name: main      # 名称
+      logLevel: trace # 级别
+      outputter: # 输出器, 可配置多个, 见outputters
+        - consoleOutputter
+
+    - name: test
+      logLevel: error
+      outputter:
+        - consoleOutputter
+        - fileOutputter
+  # 根日志记录器, 如果loggers中没有定义, 则使用此配置
+  root:
+    pattern: 1     # 输出格式表达式(暂未实现)
+    logLevel: info # 级别
+    outputter: # 输出器
+      - consoleOutputter
+      - fileOutputter
+```
 ## 5. 许可
 本项目使用[GPLv3](LICENSE)许可
