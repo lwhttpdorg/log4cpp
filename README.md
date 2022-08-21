@@ -26,22 +26,22 @@ $ sudo make install
 
 int main()
 {
-	logger demo_logger("./demo.log", log_level::TRACE);
+	Logger demo_logger("./demo.log", LogLevel::TRACE);
 
 	// 输出到文件
-	demo_logger("./demo.log", log_level::TRACE);
+	demo_logger("./demo.log", LogLevel::TRACE);
 	// 输出到fd, 如stdout
-	demo_logger(STDOUT_FILENO, log_level::WARN);
+	demo_logger(STDOUT_FILENO, LogLevel::WARN);
 	// 设置每条log的前缀标识, 如果未指定则默认使用线程ID, 即gettid()
-	demo_logger.set_prefix("demo");
+	demo_logger.setPrefix("demo");
 
 	// 输出log
 	// 输出warning级别的log
-	demo_logger.log_warn("thread %u: This is a warning...", pthread_self());
+	demo_logger.warn("thread %u: This is a warning...", pthread_self());
 	// 输出fatal级别的log
-	demo_logger.log_fatal("This is a fatal...");
+	demo_logger.fatal("This is a fatal...");
 	// 也可以显示指定log级别
-	demo_logger.log(log_level::ERROR, "this is a error log");
+	demo_logger.log(LogLevel::ERROR, "this is a error log");
 	return 0;
 }
 ```
@@ -49,14 +49,14 @@ int main()
 #### a. 输出格式
 ```text
 # 年-月-日 时:分:秒 时区 log级别 -- [标识前缀]: log正文
-year-mon-day hh:mm:ss timezone log_level -- [ prefix ]: log body
+year-mon-day hh:mm:ss timezone LogLevel -- [ prefix ]: log body
 ```
 其中:  
 1. 秒精确到小数点后三位(毫秒)  
 2. 标识前缀如果未设置, 默认使用线程ID(通过gettid()获得)
 3. log级别的定义如下:
 ```c++
-enum class log_level
+enum class LogLevel
 {
 	FATAL = 0,
 	ERROR = 1,

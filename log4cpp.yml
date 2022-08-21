@@ -1,0 +1,25 @@
+log4cpp:
+  outputters:
+    consoleOutputter:
+      logLevel: trace
+    fileOutputter:
+      filePath: "/home/nereus/WorkSpace/log4cpp/log/log4cpp.log"
+      async: true
+      append: false
+  loggers:
+    - name: main
+      logLevel: trace
+      outputter:
+        - consoleOutputter
+
+    - name: test
+      logLevel: error
+      outputter:
+        - consoleOutputter
+        - fileOutputter
+  root:
+    pattern: 1
+    logLevel: info
+    outputter:
+      - consoleOutputter
+      - fileOutputter
