@@ -21,7 +21,23 @@ $ sudo make install
 ```c++
 #include "log4cpp.hpp"
 ```
-#### b. 用法
+#### b. CMake
+CMakeLists.txt示例:
+```cmake
+add_executable(${TARGET_NAME} main.cpp)
+
+include(FetchContent)
+FetchContent_Declare(
+        log4cpp
+        GIT_REPOSITORY https://github.com/YukPingFong/log4cpp.git
+        GIT_TAG 10ad61cf2b6e5f69e4843c39e55cdd0bac997411
+)
+
+FetchContent_MakeAvailable(log4cpp)
+
+target_link_libraries(${TARGET_NAME} log4cpp)
+```
+#### c. 用法
 ```c++
 #include "log4cpp.hpp"
 
