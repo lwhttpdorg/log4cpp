@@ -8,7 +8,7 @@ log4cpp:
     # 文件输出器
     fileOutputter:
       # 输出文件路径
-      filePath: "/home/nereus/WorkSpace/log4cpp/log/log4cpp.log"
+      filePath: "log/log4cpp.log"
       # 异步输出, 默认开启, 可提高性能(暂未实现)
       async: true
       # 追加而不是覆盖, 默认追加(暂未实现)
