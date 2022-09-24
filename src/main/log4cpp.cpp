@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #include <sys/prctl.h>
 
-#include "log4cpp.hpp"
+#include "../include/log4cpp.hpp"
 #include "LogConfiger.h"
 
 class LockSingleton

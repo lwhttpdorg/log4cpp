@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <cassert>
 
-#include <yaml-cpp/yaml.h>
+#include "yaml-cpp/yaml.h"
 
 #define LOG_LINE_MAX 512
 

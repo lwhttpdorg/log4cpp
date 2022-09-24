@@ -9,7 +9,7 @@ if (NOT CMAKE_HOST_UNIX)
     message(FATAL_ERROR "Only support Linux/Unix!")
 endif ()
 
-set(INSTALL_HEAD_FILES log4cpp.hpp)
+set(INSTALL_HEAD_FILES ${INCLUDE_DIRECTORIES}/log4cpp.hpp)
 install(FILES ${INSTALL_HEAD_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
@@ -23,3 +23,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(yaml_cpp)
 
 target_link_libraries(${TARGET_NAME} yaml-cpp)
+
+if (CMAKE_HOST_UNIX)
+    target_link_libraries(${TARGET_NAME} pthread)
+endif ()

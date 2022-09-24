@@ -5,6 +5,7 @@ project(log4cpp)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
+option(ENABLE_DEMO "Enable demo" OFF)
 option(ENABLE_TESTS "Enable test" OFF)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 
@@ -35,3 +36,9 @@ if (ENABLE_ASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ASAN_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ASAN_FLAGS}")
 endif ()
+
+target_include_directories(log4cpp
+        PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
+        PRIVATE
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>)
