@@ -1,4 +1,4 @@
-#include "../main/log4cpp.hpp"
+#include "../include/log4cpp.hpp"
 
 int main()
 {
