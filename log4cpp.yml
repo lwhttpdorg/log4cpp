@@ -3,7 +3,7 @@ log4cpp:
     consoleOutputter:
       logLevel: trace
     fileOutputter:
-      filePath: "/home/nereus/WorkSpace/log4cpp/log/log4cpp.log"
+      filePath: "/home/nereus/WorkSpace/github/log4cpp/log/log4cpp.log"
       async: true
       append: false
   loggers:
@@ -11,6 +11,7 @@ log4cpp:
       logLevel: trace
       outputter:
         - consoleOutputter
+        - fileOutputter
 
     - name: test
       logLevel: error

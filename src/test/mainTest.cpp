@@ -12,6 +12,6 @@ int main(int argc, char **argv)
 
 TEST(LogConfigerTest, logConfig)
 {
-	std::string yamlFile = "/home/nereus/WorkSpace/log4cpp/src/test/log4cpp.yml";
+	std::string yamlFile = "/home/nereus/WorkSpace/github/log4cpp/log4cpp.yml";
 	Log4CppConfiger log4CppConfiger;
 }

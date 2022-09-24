@@ -155,6 +155,15 @@ void ConsoleOutputter::log(LogLevel level, const char *fmt, ...)
 
 FileOutputter::FileOutputter(const std::string &file, bool async, bool append)
 {
+	auto pos = file.find_last_of('/');
+	if (pos != std::string::npos)
+	{
+		std::string path = file.substr(0, pos);
+		if (0 != access(path.c_str(), F_OK))
+		{
+			mkdir(path.c_str(), 0755);
+		}
+	}
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 	this->fd = open(file.c_str(), O_RDWR | O_APPEND | O_CLOEXEC | O_CREAT, mode);
 	if (this->fd == -1)
