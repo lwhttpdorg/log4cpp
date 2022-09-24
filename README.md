@@ -116,6 +116,7 @@ log4cpp:
       logLevel: trace # 级别
       outputter: # 输出器, 可配置多个, 见outputters
         - consoleOutputter
+        - fileOutputter
 
     - name: test
       logLevel: error
