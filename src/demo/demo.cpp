@@ -2,7 +2,7 @@
 
 int main()
 {
-	LoggerManager::setYamlFilePath("/home/nereus/WorkSpace/github/log4cpp/log4cpp.yml");
+	LoggerManager::setYamlFilePath("log4cpp.yml");
 	Logger logger = LoggerManager::getLogger("main");
 	logger.trace("This is a trace: %s:%d", __func__, __LINE__);
 	logger.info("This is a info: %s:%d", __func__, __LINE__);

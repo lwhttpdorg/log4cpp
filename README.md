@@ -93,7 +93,7 @@ enum class LogLevel
 2022-8-21 14:13:13.539 CST [            demo]: [FATAL] -- This is a fatal: main:19
 ```
 ## 4. YAML示例
-[YAML配置文件示例](log4cpp.yml)
+[YAML配置文件示例](src/demo/log4cpp.yml)
 ```yaml
 log4cpp:
   # 输出器, 至少要有一个
