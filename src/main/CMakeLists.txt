@@ -5,9 +5,9 @@ set(TARGET_NAME log4cpp)
 
 add_library(${TARGET_NAME} STATIC log4cpp.cpp LogConfiger.cpp)
 
-if (NOT CMAKE_HOST_UNIX)
-    message(FATAL_ERROR "Only support Linux/Unix!")
-endif ()
+#if (NOT CMAKE_HOST_UNIX)
+#    message(FATAL_ERROR "Only support Linux/Unix!")
+#endif ()
 
 set(INSTALL_HEAD_FILES ${INCLUDE_DIRECTORIES}/log4cpp.hpp)
 install(FILES ${INSTALL_HEAD_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
@@ -17,12 +17,16 @@ include(FetchContent)
 FetchContent_Declare(
         yaml_cpp
         GIT_REPOSITORY https://github.com/YukPingFong/yaml-cpp.git
-        GIT_TAG d84e589c73f29f882eb514f6cb7f0d63bdbd517d
+        GIT_TAG cedc0aebf8be192d2311d1fe74e1bc202b9dc240
 )
 
 FetchContent_MakeAvailable(yaml_cpp)
 
-target_link_libraries(${TARGET_NAME} yaml-cpp)
+if ((CMAKE_HOST_WIN32) AND (${CMAKE_BUILD_TYPE} STREQUAL "Debug"))
+    target_link_libraries(${TARGET_NAME} yaml-cpp)
+else ()
+    target_link_libraries(${TARGET_NAME} yaml-cpp)
+endif ()
 
 if (CMAKE_HOST_UNIX)
     target_link_libraries(${TARGET_NAME} pthread)

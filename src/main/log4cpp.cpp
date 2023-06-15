@@ -1,12 +1,22 @@
-#include <unistd.h>
 #include <fcntl.h>
-#include <cstring>
 #include <cstdarg>
 #include <pthread.h>
 #include <iostream>
 #include <sys/stat.h>
 #include <sys/time.h>
+
+#if defined(__linux__)
+#include <cstring>
+#include <unistd.h>
 #include <sys/prctl.h>
+#endif
+
+#if defined(__WIN32)
+
+#include <direct.h>
+#include <processthreadsapi.h>
+
+#endif
 
 #include "../include/log4cpp.hpp"
 #include "LogConfiger.h"
@@ -69,7 +79,7 @@ static std::string to_string(LogLevel level)
 static size_t log4c_vscnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, va_list args)
 {
 	int i = vsnprintf(buf, size, fmt, args);
-	return (static_cast<size_t>(i) >= size)?(size - 1):i;
+	return (static_cast<size_t>(i) >= size) ? (size - 1) : i;
 }
 
 static size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...)
@@ -79,7 +89,7 @@ static size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__r
 	va_start(args, fmt);
 	i = vsnprintf(buf, size, fmt, args);
 	va_end(args);
-	return (static_cast<size_t>(i) >= size)?(size - 1):i;
+	return (static_cast<size_t>(i) >= size) ? (size - 1) : i;
 }
 
 /************************* Outputter *************************/
@@ -87,6 +97,7 @@ ConsoleOutputter::ConsoleOutputter(LogLevel level)
 {
 	this->logLevel = level;
 }
+
 
 size_t Outputter::makePrefix(LogLevel level, char *buf, size_t len)
 {
@@ -96,10 +107,9 @@ size_t Outputter::makePrefix(LogLevel level, char *buf, size_t len)
 	time_t tm_now = tv.tv_sec;
 	tm *local = localtime(&tm_now);
 	unsigned short ms = tv.tv_usec / 1000;
-	used_len += log4c_scnprintf(buf + used_len, len - used_len, "%d-%d-%d %02d:%02d:%02d.%3d %s ",
+	used_len += log4c_scnprintf(buf + used_len, len - used_len, "%04d-%02d-%02d %02d:%02d:%02d:%03d ",
 	                            1900 + local->tm_year, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min,
-	                            local->tm_sec, ms,
-	                            local->tm_zone);
+	                            local->tm_sec, ms);
 	char thread_name[16];
 	thread_name[0] = '\0';
 #ifdef _GNU_SOURCE
@@ -109,7 +119,12 @@ size_t Outputter::makePrefix(LogLevel level, char *buf, size_t len)
 #endif
 	if (thread_name[0] == '\0')
 	{
-		log4c_scnprintf(thread_name, sizeof(thread_name), "%u", gettid());
+#if defined(__WIN32)
+		unsigned long tid = GetCurrentThreadId();
+#elif defined(__linux__)
+		unsigned long tid = gettid();
+#endif
+		log4c_scnprintf(thread_name, sizeof(thread_name), "%u", tid);
 	}
 	used_len += log4c_scnprintf(buf + used_len, len - used_len, "[%16s]: ", thread_name);
 	used_len += log4c_scnprintf(buf + used_len, len - used_len, "[%-5s] -- ", to_string(level).c_str());
@@ -161,11 +176,20 @@ FileOutputter::FileOutputter(const std::string &file, bool async, bool append)
 		std::string path = file.substr(0, pos);
 		if (0 != access(path.c_str(), F_OK))
 		{
+#if defined(__WIN32)
+			_mkdir(path.c_str());
+#elif defined(__linux__)
 			mkdir(path.c_str(), 0755);
+#endif
 		}
 	}
-	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
-	this->fd = open(file.c_str(), O_RDWR | O_APPEND | O_CLOEXEC | O_CREAT, mode);
+#if defined(__WIN32)
+	int openFlags = O_RDWR|O_APPEND|O_CREAT;
+#elif defined(__linux__)
+	int openFlags = O_RDWR|O_APPEND|O_CLOEXEC|O_CREAT;
+#endif
+	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH;
+	this->fd = open(file.c_str(), openFlags, mode);
 	if (this->fd == -1)
 	{
 		std::string what("Can not open log file, ");
@@ -464,7 +488,8 @@ LoggerBuilder::Builder LoggerBuilder::newBuilder()
 Logger LoggerBuilder::getLogger(const std::string &name)
 {
 	auto it = std::find_if(log4CppConfiger.loggers.begin(), log4CppConfiger.loggers.end(),
-	                       [&name](Logger const &logger) { return logger.name == name; });
+	                       [&name](Logger const &logger)
+	                       { return logger.name == name; });
 	if (it != log4CppConfiger.loggers.cend())
 	{
 		Builder builder = LoggerBuilder::newBuilder();
