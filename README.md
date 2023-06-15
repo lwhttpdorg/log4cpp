@@ -29,7 +29,7 @@ add_executable(${TARGET_NAME} main.cpp)
 include(FetchContent)
 FetchContent_Declare(
         log4cpp
-        GIT_REPOSITORY https://github.com/YukPingFong/log4cpp.git
+        GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git
         GIT_TAG 10ad61cf2b6e5f69e4843c39e55cdd0bac997411
 )
 
