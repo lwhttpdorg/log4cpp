@@ -145,9 +145,9 @@ log4cpp:
       # 输出文件路径
       filePath: "log/log4cpp.log"
       # 异步输出, 默认开启, 可提高性能(暂未实现)
-      async: true
+      _async: true
       # 追加而不是覆盖, 默认追加(暂未实现)
-      append: false
+      _append: false
   # 日志记录器
   loggers:
     - name: main      # 名称

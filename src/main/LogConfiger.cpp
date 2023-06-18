@@ -102,8 +102,8 @@ namespace YAML
 		{
 			Node node;
 			node.push_back(outputter.filePath);
-			node.push_back(outputter.async);
-			node.push_back(outputter.append);
+			node.push_back(outputter._async);
+			node.push_back(outputter._append);
 			return node;
 		}
 
@@ -111,8 +111,8 @@ namespace YAML
 		{
 			assert(node.Type() == YAML::NodeType::value::Map);
 			outputter.filePath = node["filePath"].as<std::string>();
-			outputter.async = node["async"].as<bool>();
-			outputter.append = node["append"].as<bool>();
+			outputter._async = node["_async"].as<bool>();
+			outputter._append = node["_append"].as<bool>();
 			return node.Type() == YAML::NodeType::value::Map;
 		}
 	};
@@ -232,11 +232,11 @@ bool Log4CppConfiger::loadYamlConfig(const std::string &yamlFile)
 			{
 				filePath = value.as<std::string>();
 			}
-			else if (name == "async")
+			else if (name == "_async")
 			{
 				async = value.as<bool>();
 			}
-			else if (name == "append")
+			else if (name == "_append")
 			{
 				append = value.as<bool>();
 			}

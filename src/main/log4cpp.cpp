@@ -230,8 +230,8 @@ FileOutputter::FileOutputter(const std::string &file, bool async, bool append) {
         throw std::runtime_error(what);
     }
     this->filePath = file;
-    this->async = async;
-    this->append = append;
+    this->_async = async;
+    this->_append = append;
 }
 
 FileOutputter::~FileOutputter() {
@@ -280,8 +280,8 @@ Logger::Logger() {
     this->fileOutputterEnabled = false;
 }
 
-Logger::Logger(const std::string &name) {
-    this->name = name;
+Logger::Logger(const std::string &logName) {
+    this->name = logName;
     this->logLevel = LogLevel::
     ERROR;
     this->consoleOutputter = nullptr;

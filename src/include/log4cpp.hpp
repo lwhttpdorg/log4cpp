@@ -63,8 +63,8 @@ public:
 
 public:
 	std::string filePath;
-	bool async;
-	bool append;
+	bool _async;
+	bool _append;
 private:
 	int fd;
 };
@@ -93,7 +93,7 @@ class Logger
 public:
 	Logger();
 
-	explicit Logger(const std::string &string);
+	explicit Logger(const std::string &logName);
 
 	void fatal(const char *__restrict fmt, ...);
 
