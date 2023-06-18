@@ -44,7 +44,7 @@ include(FetchContent)
 FetchContent_Declare(
         log4cpp
         GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git
-        GIT_TAG 19b68954b7db80085fb3cd324377fa87aeed8daa
+        GIT_TAG 1b9d7b8fe94810a43914c97d99d0ab93bf4e9934
 )
 
 FetchContent_MakeAvailable(log4cpp)
