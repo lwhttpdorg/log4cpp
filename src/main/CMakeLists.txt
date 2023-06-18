@@ -5,9 +5,13 @@ set(TARGET_NAME log4cpp)
 
 add_library(${TARGET_NAME} STATIC log4cpp.cpp LogConfiger.cpp)
 
-#if (NOT CMAKE_HOST_UNIX)
-#    message(FATAL_ERROR "Only support Linux/Unix!")
-#endif ()
+if (CMAKE_HOST_UNIX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wold-style-cast -Wextra -Wshadow -Wpointer-arith -Wwrite-strings \
+	-Woverloaded-virtual \
+	-Wno-pessimizing-move \
+	-Wno-uninitialized -Wno-unused-parameter -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
+	-Wno-unused-value -pipe")
+endif ()
 
 set(INSTALL_HEAD_FILES ${INCLUDE_DIRECTORIES}/log4cpp.hpp)
 install(FILES ${INSTALL_HEAD_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
