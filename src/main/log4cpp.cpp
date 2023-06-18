@@ -1,32 +1,60 @@
-#include <fcntl.h>
-#include <cstdarg>
-#include <pthread.h>
-#include <iostream>
-#include <sys/stat.h>
-#include <sys/time.h>
-
-#if defined(__linux__)
-#include <cstring>
-#include <unistd.h>
-#include <sys/prctl.h>
+#ifdef _MSC_VER
+#define  _CRT_SECURE_NO_WARNINGS
 #endif
 
-#if defined(__WIN32)
+#include <fcntl.h>
+#include <cstdarg>
+#include <chrono>
+#include <mutex>
+#include <sys/stat.h>
+
+#ifdef _MSC_VER
+#include <windows.h>
+
+#define STDOUT_FILENO _fileno(stdout)
+#define F_OK 0
+
+#endif
+
+#if defined(__WIN32) || defined(_MSC_VER)
 
 #include <direct.h>
+#include <io.h>
 #include <processthreadsapi.h>
 
 #endif
 
+#ifdef _MSC_VER
+#include <windows.h>
+#include <io.h>
+#include <processthreadsapi.h>
+#endif
+
+#if defined(__linux__)
+#include <unistd.h>
+#include <pthread.h>
+#include <sys/time.h>
+#include <sys/prctl.h>
+#endif
+
 #include "../include/log4cpp.hpp"
 #include "LogConfiger.h"
+#include "LogLock.h"
 
 class LockSingleton
 {
 public:
-	static LockSingleton &getInstance()
+	static LockSingleton *getInstance()
 	{
-		static LockSingleton instance;
+		if (instance == nullptr)
+		{
+			mutexLock.lock();
+			if (instance == nullptr)
+			{
+				instance = new LockSingleton();
+			}
+			mutexLock.unlock();
+		}
 		return instance;
 	}
 
@@ -34,20 +62,43 @@ public:
 
 	LockSingleton &operator=(const LockSingleton &) = delete;
 
+	void lock()
+	{
+		_lock.lock();
+	}
+
+	void unlock()
+	{
+		_lock.unlock();
+	}
+
 private:
-	LockSingleton()
-	{
-		pthread_spin_init(&spinlock, PTHREAD_PROCESS_PRIVATE);
-	}
+	LockSingleton() = default;
 
-	virtual ~LockSingleton()
+private:
+	class InnerGarbo
 	{
-		pthread_spin_destroy(&spinlock);
-	}
+	public:
+		virtual ~InnerGarbo()
+		{
+			if (LockSingleton::instance != nullptr)
+			{
+				delete LockSingleton::instance;
+				LockSingleton::instance = nullptr;
+			}
+		}
+	};
 
-public:
-	pthread_spinlock_t spinlock{};
+private:
+	LogLock _lock;
+	static std::mutex mutexLock;
+	static LockSingleton *instance;
+	static InnerGarbo innerGarbo;
 };
+
+LockSingleton::InnerGarbo LockSingleton::innerGarbo;
+std::mutex LockSingleton::mutexLock;
+LockSingleton *LockSingleton::instance = nullptr;
 
 static std::string to_string(LogLevel level)
 {
@@ -102,14 +153,12 @@ ConsoleOutputter::ConsoleOutputter(LogLevel level)
 size_t Outputter::makePrefix(LogLevel level, char *buf, size_t len)
 {
 	size_t used_len = 0;
-	timeval tv{};
-	gettimeofday(&tv, nullptr);
-	time_t tm_now = tv.tv_sec;
+	std::chrono::system_clock::time_point clock_now = std::chrono::system_clock::now();
+	std::time_t tm_now = std::chrono::system_clock::to_time_t(clock_now);
 	tm *local = localtime(&tm_now);
-	unsigned short ms = tv.tv_usec / 1000;
-	used_len += log4c_scnprintf(buf + used_len, len - used_len, "%04d-%02d-%02d %02d:%02d:%02d:%03d ",
+	used_len += log4c_scnprintf(buf + used_len, len - used_len, "%04d-%02d-%02d %02d:%02d:%02d ",
 	                            1900 + local->tm_year, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min,
-	                            local->tm_sec, ms);
+	                            local->tm_sec);
 	char thread_name[16];
 	thread_name[0] = '\0';
 #ifdef _GNU_SOURCE
@@ -119,9 +168,10 @@ size_t Outputter::makePrefix(LogLevel level, char *buf, size_t len)
 #endif
 	if (thread_name[0] == '\0')
 	{
-#if defined(__WIN32)
+#if defined(_MSC_VER) || defined(__WIN32)
 		unsigned long tid = GetCurrentThreadId();
-#elif defined(__linux__)
+#endif
+#ifdef __linux__
 		unsigned long tid = gettid();
 #endif
 		log4c_scnprintf(thread_name, sizeof(thread_name), "%u", tid);
@@ -141,10 +191,10 @@ void ConsoleOutputter::log(LogLevel level, const char *fmt, va_list args)
 		used_len += makePrefix(level, buffer, buf_len);
 		used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
 		used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
-		pthread_spinlock_t lock = LockSingleton::getInstance().spinlock;
-		pthread_spin_lock(&lock);
-		write(STDOUT_FILENO, buffer, used_len);
-		pthread_spin_unlock(&lock);
+		LockSingleton *lock = LockSingleton::getInstance();
+		lock->lock();
+		(void)_write(STDOUT_FILENO, buffer, used_len);
+		lock->unlock();
 	}
 }
 
@@ -161,10 +211,10 @@ void ConsoleOutputter::log(LogLevel level, const char *fmt, ...)
 		used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
 		va_end(args);
 		used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
-		pthread_spinlock_t lock = LockSingleton::getInstance().spinlock;
-		pthread_spin_lock(&lock);
-		write(STDOUT_FILENO, buffer, used_len);
-		pthread_spin_unlock(&lock);
+		LockSingleton *lock = LockSingleton::getInstance();
+		lock->lock();
+		(void)_write(STDOUT_FILENO, buffer, used_len);
+		lock->unlock();
 	}
 }
 
@@ -174,22 +224,27 @@ FileOutputter::FileOutputter(const std::string &file, bool async, bool append)
 	if (pos != std::string::npos)
 	{
 		std::string path = file.substr(0, pos);
-		if (0 != access(path.c_str(), F_OK))
+		if (0 != _access(path.c_str(), F_OK))
 		{
-#if defined(__WIN32)
-			_mkdir(path.c_str());
-#elif defined(__linux__)
+#if defined(_MSC_VER) || defined(__WIN32)
+			(void)_mkdir(path.c_str());
+#endif
+#if defined(__linux__)
 			mkdir(path.c_str(), 0755);
 #endif
 		}
 	}
-#if defined(__WIN32)
+#if defined(_MSC_VER) || defined(__WIN32)
 	int openFlags = O_RDWR|O_APPEND|O_CREAT;
-#elif defined(__linux__)
-	int openFlags = O_RDWR|O_APPEND|O_CLOEXEC|O_CREAT;
+	int mode = _S_IREAD|_S_IWRITE;
+
 #endif
+
+#ifdef __linux__
+	int openFlags = O_RDWR|O_APPEND|O_CLOEXEC|O_CREAT;
 	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH;
-	this->fd = open(file.c_str(), openFlags, mode);
+#endif
+	this->fd = _open(file.c_str(), openFlags, mode);
 	if (this->fd == -1)
 	{
 		std::string what("Can not open log file, ");
@@ -206,7 +261,7 @@ FileOutputter::~FileOutputter()
 {
 	if (this->fd != -1)
 	{
-		close(this->fd);
+		_close(this->fd);
 	}
 }
 
@@ -218,10 +273,10 @@ void FileOutputter::log(LogLevel level, const char *fmt, va_list args)
 	used_len += makePrefix(level, buffer, buf_len);
 	used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
 	used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
-	pthread_spinlock_t lock = LockSingleton::getInstance().spinlock;
-	pthread_spin_lock(&lock);
-	write(this->fd, buffer, used_len);
-	pthread_spin_unlock(&lock);
+	LockSingleton *lock = LockSingleton::getInstance();
+	lock->lock();
+	(void)_write(this->fd, buffer, used_len);
+	lock->unlock();
 }
 
 void FileOutputter::log(LogLevel level, const char *fmt, ...)
@@ -235,16 +290,18 @@ void FileOutputter::log(LogLevel level, const char *fmt, ...)
 	used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
 	va_end(args);
 	used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
-	pthread_spinlock_t lock = LockSingleton::getInstance().spinlock;
-	pthread_spin_lock(&lock);
-	write(this->fd, buffer, used_len);
-	pthread_spin_unlock(&lock);
+	LockSingleton *lock = LockSingleton::getInstance();
+	lock->lock();
+	(void)_write(this->fd, buffer, used_len);
+	lock->unlock();
+	lock->unlock();
 }
 
 /**************************Logger*****************************/
 Logger::Logger()
 {
-	this->logLevel = LogLevel::ERROR;
+	this->logLevel = LogLevel::
+	ERROR;
 	this->consoleOutputter = nullptr;
 	this->fileOutputter = nullptr;
 	this->consoleOutputterEnabled = false;
@@ -254,7 +311,8 @@ Logger::Logger()
 Logger::Logger(const std::string &name)
 {
 	this->name = name;
-	this->logLevel = LogLevel::ERROR;
+	this->logLevel = LogLevel::
+	ERROR;
 	this->consoleOutputter = nullptr;
 	this->fileOutputter = nullptr;
 	this->consoleOutputterEnabled = false;
@@ -298,14 +356,16 @@ void Logger::error(const char *__restrict fmt, ...)
 		{
 			va_list args;
 			va_start(args, fmt);
-			this->consoleOutputter->log(LogLevel::ERROR, fmt, args);
+			this->consoleOutputter->log(LogLevel::
+			                            ERROR, fmt, args);
 			va_end(args);
 		}
 		if (this->fileOutputter != nullptr)
 		{
 			va_list args;
 			va_start(args, fmt);
-			this->fileOutputter->log(LogLevel::ERROR, fmt, args);
+			this->fileOutputter->log(LogLevel::
+			                         ERROR, fmt, args);
 			va_end(args);
 		}
 	}
@@ -441,7 +501,7 @@ std::string LoggerBuilder::yamlFilePath;
 LoggerBuilder::LoggerBuilder()
 {
 	std::string defaultYaml = "./log4cpp.yml";
-	if (-1 != access(defaultYaml.c_str(), F_OK))
+	if (-1 != _access(defaultYaml.c_str(), F_OK))
 	{
 		LoggerBuilder::yamlFilePath = defaultYaml;
 		LoggerBuilder::log4CppConfiger.loadYamlConfig(LoggerBuilder::yamlFilePath);
@@ -450,7 +510,7 @@ LoggerBuilder::LoggerBuilder()
 
 void LoggerBuilder::setYamlFilePath(const std::string &yaml)
 {
-	if (-1 != access(yaml.c_str(), F_OK))
+	if (-1 != _access(yaml.c_str(), F_OK))
 	{
 		LoggerBuilder::yamlFilePath = yaml;
 		LoggerBuilder::log4CppConfiger.loadYamlConfig(LoggerBuilder::yamlFilePath);
@@ -505,7 +565,8 @@ Logger LoggerBuilder::getLogger(const std::string &name)
 		Outputter *fileOutputter = log4CppConfiger.rootLogger.fileOutputter;
 		Builder builder = LoggerBuilder::newBuilder();
 		builder.setName(name);
-		builder.setLogLevel(LogLevel::ERROR);
+		builder.setLogLevel(LogLevel::
+		                    ERROR);
 		builder.setConsoleOutputter(consoleOutputter);
 		builder.setFileOutputter(fileOutputter);
 		return builder.build();
@@ -542,19 +603,11 @@ Logger LoggerBuilder::Builder::build()
 }
 
 /***********************LoggerManager*************************/
-pthread_spinlock_t LoggerManager::spinlock;
 std::unordered_map<std::string, Logger> LoggerManager::loggers;
 LoggerManager::InnerInit LoggerManager::init;
 
-LoggerManager::InnerInit::InnerInit()
-{
-	pthread_spin_init(&LoggerManager::spinlock, 0);
-	std::string yamlFile = "./log4cpp.yml";
-}
-
 LoggerManager::InnerInit::~InnerInit()
 {
-	pthread_spin_destroy(&LoggerManager::spinlock);
 	while (!LoggerManager::loggers.empty())
 	{
 		auto begin = LoggerManager::loggers.begin();
@@ -562,19 +615,21 @@ LoggerManager::InnerInit::~InnerInit()
 	}
 }
 
+static LogLock logMgrLock;
+
 Logger LoggerManager::getLogger(const std::string &name)
 {
 	Logger logger;
 	if (LoggerManager::loggers.find(name) == LoggerManager::loggers.end())
 	{
-		pthread_spin_lock(&LoggerManager::spinlock);
+		logMgrLock.lock();
 		if (LoggerManager::loggers.find(name) == LoggerManager::loggers.end())
 		{
 			Logger tmpLogger = LoggerBuilder::getLogger(name);
 			LoggerManager::loggers.insert({name, tmpLogger});
 		}
 		logger = LoggerManager::loggers.at(name);
-		pthread_spin_unlock(&LoggerManager::spinlock);
+		logMgrLock.unlock();
 	}
 	else
 	{

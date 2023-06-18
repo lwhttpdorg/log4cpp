@@ -1,8 +1,8 @@
-#include <pthread.h>
+#include <thread>
 
 #include "../include/log4cpp.hpp"
 
-void *thread_routine(void *args)
+void thread_routine()
 {
 	Logger logger = LoggerManager::getLogger("test");
 	logger.trace("This is a trace: %s:%d", __func__, __LINE__);
@@ -10,12 +10,11 @@ void *thread_routine(void *args)
 	logger.debug("This is a debug: %s:%d", __func__, __LINE__);
 	logger.error("This is a error: %s:%d", __func__, __LINE__);
 	logger.fatal("This is a fatal: %s:%d", __func__, __LINE__);
-	return nullptr;
 }
 
 int main()
 {
-	LoggerManager::setYamlFilePath("log4cpp.yml");
+	LoggerManager::setYamlFilePath("E:/Documents/WorkSpace/github/log4cpp/src/demo/log4cpp.yml");
 	Logger logger = LoggerManager::getLogger("main");
 	logger.trace("This is a trace: %s:%d", __func__, __LINE__);
 	logger.info("This is a info: %s:%d", __func__, __LINE__);
@@ -24,9 +23,8 @@ int main()
 	logger.error("This is a error: %s:%d", __func__, __LINE__);
 	logger.fatal("This is a fatal: %s:%d", __func__, __LINE__);
 
-	pthread_t th;
-	pthread_create(&th, nullptr, thread_routine, nullptr);
-	pthread_join(th, nullptr);
+	std::thread th(thread_routine);
+	th.join();
 
 	return 0;
 }

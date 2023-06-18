@@ -10,6 +10,11 @@
 
 #define LOG_LINE_MAX 512
 
+#ifdef ERROR
+#undef ERROR
+#endif // ERROR
+
+
 enum class LogLevel
 {
 	FATAL = 0,
@@ -128,20 +133,19 @@ public:
 	static Logger getLogger(const std::string &name);
 
 private:
-	LoggerManager() = default;
+	LoggerManager();
+
+	~LoggerManager();
 
 private:
 	class InnerInit
 	{
 	public:
-		InnerInit();
-
 		~InnerInit();
 	};
 
 private:
 	static InnerInit init;
-	static pthread_spinlock_t spinlock;
 	static std::unordered_map<std::string, Logger> loggers;
 };
 
