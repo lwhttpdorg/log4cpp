@@ -423,8 +423,6 @@ public:
     friend class LoggerManager;
 
 public:
-    static std::string getYamlFilePath();
-
     static void setYamlFilePath(const std::string &yaml);
 
     static Builder newBuilder();
@@ -436,42 +434,26 @@ private:
 
 private:
     static Log4CppConfiger log4CppConfiger;
-    static std::string yamlFilePath;
 };
 
 Log4CppConfiger LoggerBuilder::log4CppConfiger;
-std::string LoggerBuilder::yamlFilePath;
 
 LoggerBuilder::LoggerBuilder() {
     std::string defaultYaml = "./log4cpp.yml";
     if (-1 != access(defaultYaml.c_str(), F_OK)) {
-        LoggerBuilder::yamlFilePath = defaultYaml;
-        LoggerBuilder::log4CppConfiger.loadYamlConfig(LoggerBuilder::yamlFilePath);
+        LoggerBuilder::log4CppConfiger.loadYamlConfig(defaultYaml);
     }
 }
 
 void LoggerBuilder::setYamlFilePath(const std::string &yaml) {
     if (-1 != access(yaml.c_str(), F_OK)) {
-        LoggerBuilder::yamlFilePath = yaml;
-        LoggerBuilder::log4CppConfiger.loadYamlConfig(LoggerBuilder::yamlFilePath);
-        for (Logger &logger: LoggerBuilder::log4CppConfiger.loggers) {
-            if (logger.consoleOutputterEnabled) {
-                logger.consoleOutputter = LoggerBuilder::log4CppConfiger.consoleOutputter;
-            }
-            if (logger.fileOutputterEnabled) {
-                logger.fileOutputter = LoggerBuilder::log4CppConfiger.fileOutputter;
-            }
-        }
+        LoggerBuilder::log4CppConfiger.loadYamlConfig(yaml);
     } else {
         std::string what("Can not open the YAML file, ");
         what.append(strerror(errno));
         what.append("(" + std::to_string(errno) + ")");
         throw std::runtime_error(what);
     }
-}
-
-std::string LoggerBuilder::getYamlFilePath() {
-    return LoggerBuilder::yamlFilePath;
 }
 
 LoggerBuilder::Builder LoggerBuilder::newBuilder() {
@@ -528,6 +510,13 @@ Logger LoggerBuilder::Builder::build() {
 /***********************LoggerManager*************************/
 std::unordered_map<std::string, Logger> LoggerManager::loggers;
 LoggerManager::InnerInit LoggerManager::init;
+
+LoggerManager::InnerInit::InnerInit() {
+    std::string defaultYaml = "./log4cpp.yml";
+    if (-1 != access(defaultYaml.c_str(), F_OK)) {
+        LoggerBuilder::log4CppConfiger.loadYamlConfig(defaultYaml);
+    }
+}
 
 LoggerManager::InnerInit::~InnerInit() {
     while (!LoggerManager::loggers.empty()) {

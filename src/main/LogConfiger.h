@@ -1,5 +1,4 @@
-#ifndef LOG4CPP_LOGCONFIGER_H
-#define LOG4CPP_LOGCONFIGER_H
+#pragma once
 
 #include <yaml-cpp/yaml.h>
 
@@ -22,6 +21,3 @@ public:
 private:
 	void reset();
 };
-
-
-#endif //LOG4CPP_LOGCONFIGER_H
