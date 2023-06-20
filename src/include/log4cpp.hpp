@@ -9,131 +9,136 @@
 
 #define LOG_LINE_MAX 512
 
-#ifdef ERROR
-#undef ERROR
-#endif // ERROR
 
-
-enum class LogLevel {
-    FATAL = 0,
-    ERROR = 1,
-    WARN = 2,
-    INFO = 3,
-    DEBUG = 4,
-    TRACE = 5
+enum class LogLevel
+{
+	FATAL = 0,
+	ERROR = 1,
+	WARN = 2,
+	INFO = 3,
+	DEBUG = 4,
+	TRACE = 5
 };
 
-class Outputter {
+class Outputter
+{
 public:
-    static size_t makePrefix(LogLevel level, char *__restrict buf, size_t len);
+	static size_t makePrefix(LogLevel level, char *__restrict buf, size_t len);
 
-    virtual void log(LogLevel level, const char *__restrict fmt, va_list args) = 0;
+	virtual void log(LogLevel level, const char *__restrict fmt, va_list args) = 0;
 
-    virtual void log(LogLevel level, const char *__restrict fmt, ...) = 0;
+	virtual void log(LogLevel level, const char *__restrict fmt, ...) = 0;
 
-    virtual ~Outputter() = default;
+	virtual ~Outputter() = default;
 };
 
-class ConsoleOutputter : public Outputter {
+class ConsoleOutputter : public Outputter
+{
 public:
-    explicit ConsoleOutputter(LogLevel level = LogLevel::ERROR);
+	explicit ConsoleOutputter(LogLevel level = LogLevel::ERROR);
 
-    void log(LogLevel level, const char *__restrict fmt, va_list args) override;
+	void log(LogLevel level, const char *__restrict fmt, va_list args) override;
 
-    void log(LogLevel level, const char *__restrict fmt, ...) override;
+	void log(LogLevel level, const char *__restrict fmt, ...) override;
 
 public:
-    LogLevel logLevel;
+	LogLevel logLevel;
 };
 
-class FileOutputter : public Outputter {
+class FileOutputter : public Outputter
+{
 public:
-    explicit FileOutputter(const std::string &file, bool async = true, bool append = true);
+	explicit FileOutputter(const std::string &file, bool async = true, bool append = true);
 
-    void log(LogLevel level, const char *__restrict fmt, va_list args) override;
+	void log(LogLevel level, const char *__restrict fmt, va_list args) override;
 
-    void log(LogLevel level, const char *__restrict fmt, ...) override;
+	void log(LogLevel level, const char *__restrict fmt, ...) override;
 
-    ~FileOutputter() override;
+	~FileOutputter() override;
 
 public:
-    std::string filePath;
-    bool _async;
-    bool _append;
+	std::string filePath;
+	bool _async;
+	bool _append;
 private:
-    int fd;
+	int fd;
 };
 
-struct RootLogger {
-    std::string pattern;
-    LogLevel logLevel;
-    bool consoleOutputterEnabled;
-    ConsoleOutputter *consoleOutputter;
-    bool fileOutputterEnabled;
-    FileOutputter *fileOutputter;
+struct RootLogger
+{
+	std::string pattern;
+	LogLevel logLevel;
+	bool consoleOutputterEnabled;
+	ConsoleOutputter *consoleOutputter;
+	bool fileOutputterEnabled;
+	FileOutputter *fileOutputter;
 
-    RootLogger() {
-        this->logLevel = LogLevel::ERROR;
-        this->consoleOutputterEnabled = false;
-        this->consoleOutputter = nullptr;
-        this->fileOutputterEnabled = false;
-        this->fileOutputter = nullptr;
-    }
+	RootLogger()
+	{
+		this->logLevel = LogLevel::ERROR;
+		this->consoleOutputterEnabled = false;
+		this->consoleOutputter = nullptr;
+		this->fileOutputterEnabled = false;
+		this->fileOutputter = nullptr;
+	}
 };
 
-class Logger {
+class Logger
+{
 public:
-    Logger();
+	Logger();
 
-    explicit Logger(const std::string &logName);
+	explicit Logger(const std::string &logName);
 
-    void fatal(const char *__restrict fmt, ...);
+	void fatal(const char *__restrict fmt, ...);
 
-    void error(const char *__restrict fmt, ...);
+	void error(const char *__restrict fmt, ...);
 
-    void warn(const char *__restrict fmt, ...);
+	void warn(const char *__restrict fmt, ...);
 
-    void info(const char *__restrict fmt, ...);
+	void info(const char *__restrict fmt, ...);
 
-    void debug(const char *__restrict fmt, ...);
+	void debug(const char *__restrict fmt, ...);
 
-    void trace(const char *__restrict fmt, ...);
+	void trace(const char *__restrict fmt, ...);
 
-    virtual ~Logger();
+	virtual ~Logger();
 
-    friend struct YAML::convert<Logger>;
+	friend struct YAML::convert<Logger>;
 
-    friend class LoggerBuilder;
+	friend class LoggerBuilder;
 
 //    friend class LoggerManager;
 
-    friend class Log4CppConfiger;
+	friend class Log4CppConfiger;
 
 private:
-    std::string name;
-    LogLevel logLevel;
-    bool consoleOutputterEnabled;
-    Outputter *consoleOutputter;
-    bool fileOutputterEnabled;
-    Outputter *fileOutputter;
+	std::string name;
+	LogLevel logLevel;
+	bool consoleOutputterEnabled;
+	Outputter *consoleOutputter;
+	bool fileOutputterEnabled;
+	Outputter *fileOutputter;
 };
 
 /*********************** LoggerBuilder ***********************/
-class LoggerManager {
+class LoggerManager
+{
 public:
-    static void setYamlFilePath(const std::string &yaml);
+	static void setYamlFilePath(const std::string &yaml);
 
-    static Logger getLogger(const std::string &name);
-
-private:
-    class InnerInit {
-    public:
-        InnerInit();
-
-        ~InnerInit();
-    };
+	static Logger getLogger(const std::string &name);
 
 private:
-    static InnerInit init;
-    static std::unordered_map<std::string, Logger> loggers;
+	class InnerInit
+	{
+	public:
+		InnerInit();
+
+		~InnerInit();
+	};
+
+private:
+	static InnerInit init;
+	static std::unordered_map<std::string, Logger> loggers;
 };
