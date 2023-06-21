@@ -77,16 +77,16 @@ namespace YAML {
         static Node encode(const FileOutputter &outputter) {
             Node node;
             node.push_back(outputter.filePath);
-            node.push_back(outputter._async);
-            node.push_back(outputter._append);
+            node.push_back(outputter.async);
+            node.push_back(outputter.append);
             return node;
         }
 
         static bool decode(const Node &node, FileOutputter &outputter) {
             assert(node.Type() == YAML::NodeType::value::Map);
             outputter.filePath = node["filePath"].as<std::string>();
-            outputter._async = node["_async"].as<bool>();
-            outputter._append = node["_append"].as<bool>();
+            outputter.async = node["async"].as<bool>();
+            outputter.append = node["append"].as<bool>();
             return node.Type() == YAML::NodeType::value::Map;
         }
     };
@@ -186,9 +186,9 @@ bool Log4CppConfiger::loadYamlConfig(const std::string &yamlFile) {
             YAML::Node value = it->second;
             if (name == "filePath") {
                 filePath = value.as<std::string>();
-            } else if (name == "_async") {
+            } else if (name == "async") {
                 async = value.as<bool>();
-            } else if (name == "_append") {
+            } else if (name == "append") {
                 append = value.as<bool>();
             }
         }

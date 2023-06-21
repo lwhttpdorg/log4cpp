@@ -5,7 +5,8 @@ set(TARGET_NAME log4cpp)
 
 add_library(${TARGET_NAME} STATIC log4cpp.cpp LogConfiger.cpp)
 
-if (CMAKE_HOST_UNIX)
+if (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
+    message(STATUS "Compiler is ${CMAKE_C_COMPILER_ID}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wold-style-cast -Wextra -Wshadow -Wpointer-arith -Wwrite-strings \
 	-Woverloaded-virtual \
 	-Wno-pessimizing-move \
@@ -21,7 +22,7 @@ include(FetchContent)
 FetchContent_Declare(
         yaml_cpp
         GIT_REPOSITORY https://github.com/YukPingFong/yaml-cpp.git
-        GIT_TAG cedc0aebf8be192d2311d1fe74e1bc202b9dc240
+        GIT_TAG v0.0.1
 )
 
 FetchContent_MakeAvailable(yaml_cpp)

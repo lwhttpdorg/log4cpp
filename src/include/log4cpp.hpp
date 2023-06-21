@@ -48,7 +48,7 @@ public:
 class FileOutputter : public Outputter
 {
 public:
-	explicit FileOutputter(const std::string &file, bool async = true, bool append = true);
+	explicit FileOutputter(const std::string &file, bool isAsync = true, bool isAppend = true);
 
 	void log(LogLevel level, const char *__restrict fmt, va_list args) override;
 
@@ -58,8 +58,8 @@ public:
 
 public:
 	std::string filePath;
-	bool _async;
-	bool _append;
+	bool async;
+	bool append;
 private:
 	int fd;
 };

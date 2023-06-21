@@ -219,7 +219,7 @@ void ConsoleOutputter::log(LogLevel level, const char *fmt, ...)
 	}
 }
 
-FileOutputter::FileOutputter(const std::string &file, bool async, bool append)
+FileOutputter::FileOutputter(const std::string &file, bool isAsync, bool isAppend)
 {
 	auto pos = file.find_last_of('/');
 	if (pos != std::string::npos)
@@ -254,8 +254,8 @@ FileOutputter::FileOutputter(const std::string &file, bool async, bool append)
 		throw std::runtime_error(what);
 	}
 	this->filePath = file;
-	this->_async = async;
-	this->_append = append;
+	this->async = isAsync;
+	this->append = isAppend;
 }
 
 FileOutputter::~FileOutputter()
