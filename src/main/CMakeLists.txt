@@ -5,8 +5,7 @@ set(TARGET_NAME log4cpp)
 
 add_library(${TARGET_NAME} STATIC log4cpp.cpp LogConfiger.cpp)
 
-if (${CMAKE_C_COMPILER_ID} STREQUAL "GNU")
-    message(STATUS "Compiler is ${CMAKE_C_COMPILER_ID}")
+if ((${CMAKE_C_COMPILER_ID} STREQUAL "GNU") OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wold-style-cast -Wextra -Wshadow -Wpointer-arith -Wwrite-strings \
 	-Woverloaded-virtual \
 	-Wno-pessimizing-move \
