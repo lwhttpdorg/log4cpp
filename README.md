@@ -61,24 +61,24 @@ target_link_libraries(${TARGET_NAME} log4cpp)
 
 void thread_routine()
 {
-	Logger logger = LoggerManager::getLogger("test");
-	logger.trace("This is a trace: %s:%d", __func__, __LINE__);
-	logger.info("This is a info: %s:%d", __func__, __LINE__);
-	logger.debug("This is a debug: %s:%d", __func__, __LINE__);
-	logger.error("This is a error: %s:%d", __func__, __LINE__);
-	logger.fatal("This is a fatal: %s:%d", __func__, __LINE__);
+	log log = logger_manager::get_logger("test");
+	log.trace("This is a trace: %s:%d", __func__, __LINE__);
+	log.info("This is a info: %s:%d", __func__, __LINE__);
+	log.debug("This is a debug: %s:%d", __func__, __LINE__);
+	log.error("This is a error: %s:%d", __func__, __LINE__);
+	log.fatal("This is a fatal: %s:%d", __func__, __LINE__);
 }
 
 int main()
 {
-	LoggerManager::setYamlFilePath("./log4cpp.yml");
-	Logger logger = LoggerManager::getLogger("main");
-	logger.trace("This is a trace: %s:%d", __func__, __LINE__);
-	logger.info("This is a info: %s:%d", __func__, __LINE__);
-	logger.debug("This is a debug: %s:%d", __func__, __LINE__);
-	logger.warn("This is a warning: %s:%d", __func__, __LINE__);
-	logger.error("This is a error: %s:%d", __func__, __LINE__);
-	logger.fatal("This is a fatal: %s:%d", __func__, __LINE__);
+	logger_manager::set_config_file("./log4cpp.json");
+	log log = logger_manager::get_logger("main");
+	log.trace("This is a trace: %s:%d", __func__, __LINE__);
+	log.info("This is a info: %s:%d", __func__, __LINE__);
+	log.debug("This is a debug: %s:%d", __func__, __LINE__);
+	log.warn("This is a warning: %s:%d", __func__, __LINE__);
+	log.error("This is a error: %s:%d", __func__, __LINE__);
+	log.fatal("This is a fatal: %s:%d", __func__, __LINE__);
 
 	std::thread th(thread_routine);
 	th.join();
@@ -104,7 +104,7 @@ year-mon-day hh:mm:ss [thread name/id]: [log level] -- log message
 3. log级别的定义如下:
 
 ```c++
-enum class LogLevel
+enum class log_level
 {
 	FATAL = 0,
 	ERROR = 1,
@@ -130,44 +130,65 @@ enum class LogLevel
 
 ## 4. YAML示例
 
-[YAML配置文件示例](src/demo/log4cpp.yml)
+[YAML配置文件示例](demo/log4cpp.json)
 
-```yaml
-log4cpp:
-  # 输出器, 至少要有一个
-  outputters:
-    # 控制台输出器
-    consoleOutputter:
-      # 级别
-      logLevel: trace
-    # 文件输出器
-    fileOutputter:
-      # 输出文件路径
-      filePath: "log/log4cpp.log"
-      # 异步输出, 默认开启, 可提高性能(暂未实现)
-      async: true
-      # 追加而不是覆盖, 默认追加(暂未实现)
-      append: false
-  # 日志记录器
-  loggers:
-    - name: main      # 名称
-      logLevel: trace # 级别
-      outputter: # 输出器, 可配置多个, 见outputters
-        - consoleOutputter
-        - fileOutputter
-
-    - name: test
-      logLevel: error
-      outputter:
-        - consoleOutputter
-        - fileOutputter
-  # 根日志记录器, 如果loggers中没有定义, 则使用此配置
-  root:
-    pattern: 1     # 输出格式表达式(暂未实现)
-    logLevel: info # 级别
-    outputter: # 输出器
-      - consoleOutputter
-      - fileOutputter
+```json
+{
+  "log4cpp": {
+    // 输出格式
+    "pattern": "${yyyy}-${mm}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}",
+    // 输出器
+    "logOutPut": {
+      // 控制台输出器
+      "consoleOutPut": {
+        "out_stream": "stdout"
+        // 输出流，可以是stdout或stderr
+      },
+      // 文件输出器
+      "fileOutPut": {
+        // 输出文件
+        "file_path": "log/log4cpp.log",
+        // 是否异步输出, 默认false
+        "async": true,
+        // 追加还是覆盖, 默认覆盖
+        "append": false
+      },
+      // TCP输出器
+      "tcpOutPut": {
+        // 监听地址
+        "localAddr": "172.0.0.1",
+        // 监听端口
+        "port": "9443"
+      },
+      // UDP输出器
+      "udpOutPut": {
+        "localAddr": "172.0.0.1",
+        "port": "9443"
+      }
+    },
+    "loggers": [
+      {
+        // logger名称
+        "name": "consoleLogger",
+        // log级别
+        "level": "info",
+        // 使能的输出器
+        "logOutPuts": [
+          "consoleOutPut"
+        ]
+      },
+      {
+        "name": "recordLogger",
+        "level": "error",
+        "logOutPuts": [
+          "fileOutPut",
+          "tcpOutPut",
+          "udpOutPut"
+        ]
+      }
+    ]
+  }
+}
 ```
 
 ## 5. 许可

@@ -2,15 +2,16 @@ cmake_minimum_required(VERSION 3.11)
 
 project(log4cpp)
 
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-option(ENABLE_DEMO "Enable demo" OFF)
-option(ENABLE_TESTS "Enable test" OFF)
-option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+set(INSTALL_HEAD_FILES ${INCLUDE_DIRECTORIES}/log4cpp.hpp)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 11)
+install(FILES ${INSTALL_HEAD_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -march=native -pipe")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -march=native -pipe")
@@ -26,7 +27,17 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 endif ()
 
-add_subdirectory(src)
+if ((${CMAKE_C_COMPILER_ID} STREQUAL "GNU") OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"))
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wold-style-cast -Wextra -Wshadow -Wpointer-arith -Wwrite-strings \
+	-Woverloaded-virtual \
+	-Wno-pessimizing-move \
+	-Wno-uninitialized -Wno-unused-parameter -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
+	-Wno-unused-value -pipe")
+endif ()
+
+option(ENABLE_DEMO "Enable demo" OFF)
+option(ENABLE_TESTS "Enable test" OFF)
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 
 # AddressSanitizer
 if (ENABLE_ASAN)
@@ -34,6 +45,12 @@ if (ENABLE_ASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ASAN_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ASAN_FLAGS}")
 endif ()
+
+if (ENABLE_DEMO)
+    add_subdirectory(demo)
+endif ()
+
+add_subdirectory(src)
 
 target_include_directories(log4cpp
         PUBLIC

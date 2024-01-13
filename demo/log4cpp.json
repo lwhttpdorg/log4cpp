@@ -1,0 +1,62 @@
+{
+  // 输出格式
+  "pattern": "${yyyy}-${mm}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}",
+  // 输出器
+  "logOutPut": {
+    // 控制台输出器
+    "consoleOutPut": {
+      "outStream": "stdout"
+      // 输出流，可以是stdout或stderr
+    },
+    // 文件输出器
+    "fileOutPut": {
+      // 输出文件
+      "filePath": "log/log4cpp.log",
+      // 是否异步输出, 默认false
+      "async": true,
+      // 追加还是覆盖, 默认覆盖
+      "append": false
+    },
+    // TCP输出器
+    "tcpOutPut": {
+      // 监听地址
+      "localAddr": "172.0.0.1",
+      // 监听端口
+      "port": "9443"
+    },
+    // UDP输出器
+    "udpOutPut": {
+      "localAddr": "172.0.0.1",
+      "port": "9443"
+    }
+  },
+  "loggers": [
+    {
+      // logger名称
+      "name": "consoleLogger",
+      // log级别
+      "logLevel": "info",
+      // 使能的输出器
+      "logOutPuts": [
+        "consoleOutPut"
+      ]
+    },
+    {
+      "name": "recordLogger",
+      "logLevel": "error",
+      "logOutPuts": [
+        "fileOutPut",
+        "tcpOutPut",
+        "udpOutPut"
+      ]
+    }
+  ],
+  "rootLogger": {
+    "logLevel": "info",
+    "logOutPuts": [
+      "fileOutPut",
+      "tcpOutPut",
+      "udpOutPut"
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "gtest/gtest.h"
-#include "../main/LogConfiger.h"
+#include "../main/log4cpp_config.h"
 
 
 int main(int argc, char **argv)

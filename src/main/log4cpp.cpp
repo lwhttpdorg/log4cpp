@@ -2,628 +2,292 @@
 #define  _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <fcntl.h>
-#include <cstdarg>
-#include <chrono>
-#include <mutex>
-#include <sys/stat.h>
-
-#ifdef _MSC_VER
-
-#include <windows.h>
-
-#ifdef ERROR
-#undef ERROR
-#endif
-
-#define STDOUT_FILENO _fileno(stdout)
-#define F_OK 0
-
-#endif
-
-#if defined(_WIN32) || defined(_MSC_VER)
-
-#include <direct.h>
-#include <io.h>
-#include <processthreadsapi.h>
-
-#endif
-
-#if defined(__linux__)
-
-#include <unistd.h>
-#include <pthread.h>
-#include <cstring>
-
-#endif
+#include <boost/json.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "../include/log4cpp.hpp"
-#include "LogConfiger.h"
-#include "LogLock.h"
+#include "log4cpp_config.h"
+#include "console_output.h"
+#include "file_output.h"
 
+using namespace log4cpp;
 
-class LockSingleton
+/************************** log_level *****************************/
+const char *LOG_LEVEL_FATAL = "FATAL";
+const char *LOG_LEVEL_ERROR = "ERROR";
+const char *LOG_LEVEL_WARN = "WARN";
+const char *LOG_LEVEL_INFO = "INFO";
+const char *LOG_LEVEL_DEBUG = "DEBUG";
+const char *LOG_LEVEL_TRACE = "TRACE";
+
+std::string log4cpp::to_string(log_level level)
 {
-public:
-	static LockSingleton *getInstance()
-	{
-		if (instance == nullptr)
-		{
-			mutexLock.lock();
-			if (instance == nullptr)
-			{
-				instance = new LockSingleton();
-			}
-			mutexLock.unlock();
-		}
-		return instance;
-	}
-
-	LockSingleton(const LockSingleton &obj) = delete;
-
-	LockSingleton &operator=(const LockSingleton &) = delete;
-
-	void lock()
-	{
-		_lock.lock();
-	}
-
-	void unlock()
-	{
-		_lock.unlock();
-	}
-
-private:
-	LockSingleton() = default;
-
-private:
-	class InnerGarbo
-	{
-	public:
-		virtual ~InnerGarbo()
-		{
-			if (LockSingleton::instance != nullptr)
-			{
-				delete LockSingleton::instance;
-				LockSingleton::instance = nullptr;
-			}
-		}
-	};
-
-private:
-	LogLock _lock;
-	static std::mutex mutexLock;
-	static LockSingleton *instance;
-	static InnerGarbo innerGarbo;
-};
-
-LockSingleton::InnerGarbo LockSingleton::innerGarbo;
-std::mutex LockSingleton::mutexLock;
-LockSingleton *LockSingleton::instance = nullptr;
-
-static std::string to_string(LogLevel level)
-{
-	std::string str;
-	switch (level)
-	{
-		case LogLevel::FATAL:
-			str = "FATAL";
-			break;
-		case LogLevel::ERROR:
-			str = "ERROR";
-			break;
-		case LogLevel::WARN:
-			str = "WARN";
-			break;
-		case LogLevel::INFO:
-			str = "INFO";
-			break;
-		case LogLevel::DEBUG:
-			str = "DEBUG";
-			break;
-		case LogLevel::TRACE:
-			str = "TRACE";
-			break;
-	}
-	return str;
+    std::string str;
+    switch (level)
+    {
+        case log_level::FATAL:
+            str = LOG_LEVEL_FATAL;
+            break;
+        case log_level::ERROR:
+            str = LOG_LEVEL_ERROR;
+            break;
+        case log_level::WARN:
+            str = LOG_LEVEL_WARN;
+            break;
+        case log_level::INFO:
+            str = LOG_LEVEL_INFO;
+            break;
+        case log_level::DEBUG:
+            str = LOG_LEVEL_DEBUG;
+            break;
+        case log_level::TRACE:
+            str = LOG_LEVEL_TRACE;
+            break;
+    }
+    return str;
 }
 
-static size_t log4c_vscnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, va_list args)
+log_level log4cpp::from_string(const std::string &s)
 {
-	int i = vsnprintf(buf, size, fmt, args);
-	return (static_cast<size_t>(i) >= size) ? (size - 1) : i;
+    log_level level;
+    auto tmp = boost::algorithm::to_upper_copy(s);
+    if (tmp == LOG_LEVEL_FATAL)
+    {
+        level = log_level::FATAL;
+    }
+    else if (tmp == LOG_LEVEL_ERROR)
+    {
+        level = log_level::ERROR;
+    }
+    else if (tmp == LOG_LEVEL_WARN)
+    {
+        level = log_level::WARN;
+    }
+    else if (tmp == LOG_LEVEL_INFO)
+    {
+        level = log_level::INFO;
+    }
+    else if (tmp == LOG_LEVEL_DEBUG)
+    {
+        level = log_level::DEBUG;
+    }
+    else if (tmp == LOG_LEVEL_TRACE)
+    {
+        level = log_level::TRACE;
+    }
+    else
+    {
+        throw std::invalid_argument("invalid loglevel: " + s);
+    }
+    return level;
 }
 
-static size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...)
+/**************************log*****************************/
+logger::logger()
 {
-	va_list args;
-	int i;
-	va_start(args, fmt);
-	i = vsnprintf(buf, size, fmt, args);
-	va_end(args);
-	return (static_cast<size_t>(i) >= size) ? (size - 1) : i;
+    this->level = log_level::WARN;
 }
 
-/************************* Outputter *************************/
-ConsoleOutputter::ConsoleOutputter(LogLevel level)
+logger::logger(const std::string &log_name)
 {
-	this->logLevel = level;
+    this->name = log_name;
+    this->level = log_level::WARN;
+}
+
+bool valid_output(const std::vector<std::string> &outputs, std::string &invalid_output_name)
+{
+    bool valid_output = true;
+    for (const std::string &output: outputs)
+    {
+        if ((output != CONSOLE_OUTPUT_NAME) && (output != FILE_OUTPUT_NAME) && (output != TCP_OUTPUT_NAME) &&
+            (output != UDP_OUTPUT_NAME))
+        {
+            valid_output = false;
+            invalid_output_name = output;
+            break;
+        }
+    }
+    return valid_output;
+}
+
+logger::logger(const std::string &log_name, log_level l, const std::vector<std::string> &out)
+{
+    this->name = log_name;
+    this->level = l;
+    this->outputs = new output();
+    std::string invalid_output_name;
+    if (!valid_output(out, invalid_output_name))
+    {
+        throw std::invalid_argument("Unknown logOutPuts: " + invalid_output_name);
+    }
+    for (const std::string &output_name: out)
+    {
+        if (output_name == CONSOLE_OUTPUT_NAME)
+        {
+            this->outputs->set_console_output(new console_output());
+        }
+        else if (output_name == FILE_OUTPUT_NAME)
+        {
+            this->outputs->set_file_output(new file_output());
+        }
+        else
+        {
+            throw std::invalid_argument("invalid logger name: " + output_name);
+        }
+    }
+}
+
+logger::~logger()
+{
+    delete this->outputs;
+}
+
+// logger序列化, boost::json::value_from会调用此函数,
+void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json_value, const logger &obj)
+{
+    boost::json::object json_obj = boost::json::object{{"name",       obj.name},
+                                                       {"logLevel",   to_string(obj.level)},
+                                                       {"logOutPuts", nullptr}};
+    if (obj.outputs != nullptr)
+    {
+        json_obj["logOutPuts"] = boost::json::value_from<>(*obj.outputs);
+    }
+    json_value = json_obj;
+}
+
+// logger反序列化, boost::json::value_to会调用此函数
+logger log4cpp::tag_invoke(boost::json::value_to_tag<logger>, const boost::json::value &json_value)
+{
+    std::vector<std::string> outputs = boost::json::value_to<std::vector<std::string>>(json_value.at("logOutPuts"));
+    log_level level = from_string(boost::json::value_to<std::string>(json_value.at("logLevel")));
+    std::string name;
+    if (json_value.as_object().if_contains("name"))
+    {
+        name = boost::json::value_to<std::string>(json_value.at("name"));
+    }
+    else
+    {
+        name = "root";
+    }
+    return logger{name, level, outputs};
 }
 
 
-size_t Outputter::makePrefix(LogLevel level, char *buf, size_t len)
+void logger::log(log_level _level, const char *fmt, va_list args)
 {
-	size_t used_len = 0;
-	std::chrono::system_clock::time_point clock_now = std::chrono::system_clock::now();
-	std::time_t tm_now = std::chrono::system_clock::to_time_t(clock_now);
-	tm *local = localtime(&tm_now);
-	used_len += log4c_scnprintf(buf + used_len, len - used_len, "%04d-%02d-%02d %02d:%02d:%02d ",
-	                            1900 + local->tm_year, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min,
-	                            local->tm_sec);
-	char thread_name[16];
-	thread_name[0] = '\0';
-#ifdef _GNU_SOURCE
-	pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
-#elif defined(__linux__)
-	prctl(PR_GET_NAME, (unsigned long)thread_name);
-#endif
-	if (thread_name[0] == '\0')
-	{
-#if defined(_MSC_VER) || defined(__WIN32)
-		unsigned long tid = GetCurrentThreadId();
-#endif
-#ifdef __linux__
-		unsigned long tid = gettid();
-#endif
-		log4c_scnprintf(thread_name, sizeof(thread_name), "%u", tid);
-	}
-	used_len += log4c_scnprintf(buf + used_len, len - used_len, "[%16s]: ", thread_name);
-	used_len += log4c_scnprintf(buf + used_len, len - used_len, "[%-5s] -- ", to_string(level).c_str());
-	return used_len;
+    log_output *output = this->outputs->get_console_output();
+    if (output != nullptr)
+    {
+        output->log(_level, fmt, args);
+    }
+    output = this->outputs->get_file_output();
+    if (output != nullptr)
+    {
+        output->log(_level, fmt, args);
+    }
 }
 
-void ConsoleOutputter::log(LogLevel level, const char *fmt, va_list args)
+void logger::fatal(const char *__restrict fmt, ...)
 {
-	if (level <= this->logLevel)
-	{
-		char buffer[LOG_LINE_MAX];
-		size_t used_len = 0, buf_len = sizeof(buffer);
-		buffer[0] = '\0';
-		used_len += makePrefix(level, buffer, buf_len);
-		used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
-		used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
-		LockSingleton *lock = LockSingleton::getInstance();
-		lock->lock();
-		(void)write(STDOUT_FILENO, buffer, used_len);
-		lock->unlock();
-	}
+    if (this->level >= log_level::FATAL)
+    {
+        va_list args;
+        va_start(args, fmt);
+        this->log(log_level::FATAL, fmt, args);
+        va_end(args);
+    }
 }
 
-void ConsoleOutputter::log(LogLevel level, const char *fmt, ...)
+void logger::error(const char *__restrict fmt, ...)
 {
-	if (level <= this->logLevel)
-	{
-		char buffer[LOG_LINE_MAX];
-		size_t used_len = 0, buf_len = sizeof(buffer);
-		buffer[0] = '\0';
-		used_len += makePrefix(level, buffer, buf_len);
-		va_list args;
-		va_start(args, fmt);
-		used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
-		va_end(args);
-		used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
-		LockSingleton *lock = LockSingleton::getInstance();
-		lock->lock();
-		(void)write(STDOUT_FILENO, buffer, used_len);
-		lock->unlock();
-	}
+    if (this->level >= log_level::ERROR)
+    {
+        va_list args;
+        va_start(args, fmt);
+        this->log(log_level::ERROR, fmt, args);
+        va_end(args);
+    }
 }
 
-FileOutputter::FileOutputter(const std::string &file, bool isAsync, bool isAppend)
+void logger::warn(const char *__restrict fmt, ...)
 {
-	auto pos = file.find_last_of('/');
-	if (pos != std::string::npos)
-	{
-		std::string path = file.substr(0, pos);
-		if (0 != access(path.c_str(), F_OK))
-		{
-#if defined(_MSC_VER) || defined(__WIN32)
-			(void)_mkdir(path.c_str());
-#endif
-#if defined(__linux__)
-			mkdir(path.c_str(), 0755);
-#endif
-		}
-	}
-#if defined(_MSC_VER) || defined(__WIN32)
-	int openFlags = O_RDWR|O_APPEND|O_CREAT;
-	int mode = _S_IREAD|_S_IWRITE;
-
-#endif
-
-#ifdef __linux__
-	int openFlags = O_RDWR | O_APPEND | O_CLOEXEC | O_CREAT;
-	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
-#endif
-	this->fd = open(file.c_str(), openFlags, mode);
-	if (this->fd == -1)
-	{
-		std::string what("Can not open log file, ");
-		what.append(strerror(errno));
-		what.append("(" + std::to_string(errno) + ")");
-		throw std::runtime_error(what);
-	}
-	this->filePath = file;
-	this->async = isAsync;
-	this->append = isAppend;
+    if (this->level >= log_level::WARN)
+    {
+        va_list args;
+        va_start(args, fmt);
+        this->log(log_level::WARN, fmt, args);
+        va_end(args);
+    }
 }
 
-FileOutputter::~FileOutputter()
+void logger::info(const char *__restrict fmt, ...)
 {
-	if (this->fd != -1)
-	{
-		close(this->fd);
-	}
+    if (this->level >= log_level::INFO)
+    {
+        va_list args;
+        va_start(args, fmt);
+        this->log(log_level::INFO, fmt, args);
+        va_end(args);
+    }
 }
 
-void FileOutputter::log(LogLevel level, const char *fmt, va_list args)
+void logger::debug(const char *__restrict fmt, ...)
 {
-	char buffer[LOG_LINE_MAX];
-	size_t used_len = 0, buf_len = sizeof(buffer);
-	buffer[0] = '\0';
-	used_len += makePrefix(level, buffer, buf_len);
-	used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
-	used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
-	LockSingleton *lock = LockSingleton::getInstance();
-	lock->lock();
-	(void)write(this->fd, buffer, used_len);
-	lock->unlock();
+    if (this->level >= log_level::DEBUG)
+    {
+
+        va_list args;
+        va_start(args, fmt);
+        this->log(log_level::DEBUG, fmt, args);
+        va_end(args);
+    }
 }
 
-void FileOutputter::log(LogLevel level, const char *fmt, ...)
+void logger::trace(const char *__restrict fmt, ...)
 {
-	char buffer[LOG_LINE_MAX];
-	size_t used_len = 0, buf_len = sizeof(buffer);
-	buffer[0] = '\0';
-	used_len += makePrefix(level, buffer, buf_len);
-	va_list args;
-	va_start(args, fmt);
-	used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
-	va_end(args);
-	used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
-	LockSingleton *lock = LockSingleton::getInstance();
-	lock->lock();
-	(void)write(this->fd, buffer, used_len);
-	lock->unlock();
-	lock->unlock();
+    if (this->level >= log_level::TRACE)
+    {
+        va_list args;
+        va_start(args, fmt);
+        this->log(log_level::TRACE, fmt, args);
+        va_end(args);
+    }
 }
 
-/**************************Logger*****************************/
-Logger::Logger()
+logger::logger(const logger &other)
 {
-	this->logLevel = LogLevel::
-	ERROR;
-	this->consoleOutputter = nullptr;
-	this->fileOutputter = nullptr;
-	this->consoleOutputterEnabled = false;
-	this->fileOutputterEnabled = false;
+    this->name = other.name;
+    this->level = other.level;
+    this->outputs = other.outputs;
 }
 
-Logger::Logger(const std::string &logName)
+logger::logger(logger &&other) noexcept
 {
-	this->name = logName;
-	this->logLevel = LogLevel::
-	ERROR;
-	this->consoleOutputter = nullptr;
-	this->fileOutputter = nullptr;
-	this->consoleOutputterEnabled = false;
-	this->fileOutputterEnabled = false;
+    this->name = other.name;
+    this->level = other.level;
+    this->outputs = other.outputs;
+    other.outputs = nullptr;
 }
 
-Logger::~Logger()
+logger &logger::operator=(const logger &other)
 {
-	this->consoleOutputter = nullptr;
-	this->fileOutputter = nullptr;
-	this->consoleOutputterEnabled = false;
-	this->fileOutputterEnabled = false;
+    if (this != &other)
+    {
+        this->name = other.name;
+        this->level = other.level;
+        this->outputs = other.outputs;
+    }
+    return *this;
 }
 
-void Logger::fatal(const char *__restrict fmt, ...)
+logger &logger::operator=(logger &&other) noexcept
 {
-	if (this->logLevel >= LogLevel::FATAL)
-	{
-		if (this->consoleOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->consoleOutputter->log(LogLevel::FATAL, fmt, args);
-			va_end(args);
-		}
-		if (this->fileOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->fileOutputter->log(LogLevel::FATAL, fmt, args);
-			va_end(args);
-		}
-	}
-}
-
-void Logger::error(const char *__restrict fmt, ...)
-{
-	if (this->logLevel >= LogLevel::ERROR)
-	{
-		if (this->consoleOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->consoleOutputter->log(LogLevel::ERROR, fmt, args);
-			va_end(args);
-		}
-		if (this->fileOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->fileOutputter->log(LogLevel::ERROR, fmt, args);
-			va_end(args);
-		}
-	}
-}
-
-void Logger::warn(const char *__restrict fmt, ...)
-{
-	if (this->logLevel >= LogLevel::WARN)
-	{
-		if (this->consoleOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->consoleOutputter->log(LogLevel::WARN, fmt, args);
-			va_end(args);
-		}
-		if (this->fileOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->fileOutputter->log(LogLevel::WARN, fmt, args);
-			va_end(args);
-		}
-	}
-}
-
-void Logger::info(const char *__restrict fmt, ...)
-{
-	if (this->logLevel >= LogLevel::INFO)
-	{
-		if (this->consoleOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->consoleOutputter->log(LogLevel::INFO, fmt, args);
-			va_end(args);
-		}
-		if (this->fileOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->fileOutputter->log(LogLevel::INFO, fmt, args);
-			va_end(args);
-		}
-	}
-}
-
-void Logger::debug(const char *__restrict fmt, ...)
-{
-	if (this->logLevel >= LogLevel::DEBUG)
-	{
-		if (this->consoleOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->consoleOutputter->log(LogLevel::DEBUG, fmt, args);
-			va_end(args);
-		}
-		if (this->fileOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->fileOutputter->log(LogLevel::DEBUG, fmt, args);
-			va_end(args);
-		}
-	}
-}
-
-void Logger::trace(const char *__restrict fmt, ...)
-{
-	if (this->logLevel >= LogLevel::TRACE)
-	{
-		if (this->consoleOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->consoleOutputter->log(LogLevel::TRACE, fmt, args);
-			va_end(args);
-		}
-		if (this->fileOutputter != nullptr)
-		{
-			va_list args;
-			va_start(args, fmt);
-			this->fileOutputter->log(LogLevel::TRACE, fmt, args);
-			va_end(args);
-		}
-	}
-}
-
-/*********************** LoggerBuilder ***********************/
-class LoggerBuilder
-{
-public:
-	class Builder
-	{
-	public:
-		Builder &setName(const std::string &name);
-
-		Builder &setLogLevel(LogLevel level);
-
-		Builder &setConsoleOutputter(Outputter *consoleOutputter);
-
-		Builder &setFileOutputter(Outputter *fileOutputter);
-
-		Logger build();
-
-	private:
-		Logger logger;
-	};
-
-	friend class LoggerManager;
-
-public:
-	static void setYamlFilePath(const std::string &yaml);
-
-	static Builder newBuilder();
-
-	static Logger getLogger(const std::string &name);
-
-private:
-	LoggerBuilder();
-
-private:
-	static Log4CppConfiger log4CppConfiger;
-};
-
-Log4CppConfiger LoggerBuilder::log4CppConfiger;
-
-LoggerBuilder::LoggerBuilder()
-{
-	std::string defaultYaml = "./log4cpp.yml";
-	if (-1 != access(defaultYaml.c_str(), F_OK))
-	{
-		LoggerBuilder::log4CppConfiger.loadYamlConfig(defaultYaml);
-	}
-}
-
-void LoggerBuilder::setYamlFilePath(const std::string &yaml)
-{
-	if (-1 != access(yaml.c_str(), F_OK))
-	{
-		LoggerBuilder::log4CppConfiger.loadYamlConfig(yaml);
-	}
-	else
-	{
-		std::string what("Can not open the YAML file, ");
-		what.append(strerror(errno));
-		what.append("(" + std::to_string(errno) + ")");
-		throw std::runtime_error(what);
-	}
-}
-
-LoggerBuilder::Builder LoggerBuilder::newBuilder()
-{
-	return LoggerBuilder::Builder{};
-}
-
-Logger LoggerBuilder::getLogger(const std::string &name)
-{
-	auto it = std::find_if(log4CppConfiger.loggers.begin(), log4CppConfiger.loggers.end(),
-	                       [&name](Logger const &logger)
-	                       { return logger.name == name; });
-	if (it != log4CppConfiger.loggers.cend())
-	{
-		Builder builder = LoggerBuilder::newBuilder();
-		builder.setName(name);
-		builder.setLogLevel(it->logLevel);
-		builder.setConsoleOutputter(it->consoleOutputter);
-		builder.setFileOutputter(it->fileOutputter);
-		return builder.build();
-	}
-	else
-	{
-		Outputter *consoleOutputter = log4CppConfiger.rootLogger.consoleOutputter;
-		Outputter *fileOutputter = log4CppConfiger.rootLogger.fileOutputter;
-		Builder builder = LoggerBuilder::newBuilder();
-		builder.setName(name);
-		builder.setLogLevel(LogLevel::ERROR);
-		builder.setConsoleOutputter(consoleOutputter);
-		builder.setFileOutputter(fileOutputter);
-		return builder.build();
-	}
-}
-
-LoggerBuilder::Builder &LoggerBuilder::Builder::setName(const std::string &name)
-{
-	this->logger.name = name;
-	return *this;
-}
-
-LoggerBuilder::Builder &LoggerBuilder::Builder::setLogLevel(LogLevel level)
-{
-	this->logger.logLevel = level;
-	return *this;
-}
-
-LoggerBuilder::Builder &LoggerBuilder::Builder::setConsoleOutputter(Outputter *consoleOutputter)
-{
-	this->logger.consoleOutputter = consoleOutputter;
-	return *this;
-}
-
-LoggerBuilder::Builder &LoggerBuilder::Builder::setFileOutputter(Outputter *fileOutputter)
-{
-	this->logger.fileOutputter = fileOutputter;
-	return *this;
-}
-
-Logger LoggerBuilder::Builder::build()
-{
-	return this->logger;
-}
-
-/***********************LoggerManager*************************/
-std::unordered_map<std::string, Logger> LoggerManager::loggers;
-LoggerManager::InnerInit LoggerManager::init;
-
-LoggerManager::InnerInit::InnerInit()
-{
-	std::string defaultYaml = "./log4cpp.yml";
-	if (-1 != access(defaultYaml.c_str(), F_OK))
-	{
-		LoggerBuilder::log4CppConfiger.loadYamlConfig(defaultYaml);
-	}
-}
-
-LoggerManager::InnerInit::~InnerInit()
-{
-	while (!LoggerManager::loggers.empty())
-	{
-		auto begin = LoggerManager::loggers.begin();
-		LoggerManager::loggers.erase(begin);
-	}
-}
-
-static LogLock logMgrLock;
-
-Logger LoggerManager::getLogger(const std::string &name)
-{
-	Logger logger;
-	if (LoggerManager::loggers.find(name) == LoggerManager::loggers.end())
-	{
-		logMgrLock.lock();
-		if (LoggerManager::loggers.find(name) == LoggerManager::loggers.end())
-		{
-			Logger tmpLogger = LoggerBuilder::getLogger(name);
-			LoggerManager::loggers.insert({name, tmpLogger});
-		}
-		logger = LoggerManager::loggers.at(name);
-		logMgrLock.unlock();
-	}
-	else
-	{
-		logger = LoggerManager::loggers.at(name);
-	}
-	return logger;
-}
-
-void LoggerManager::setYamlFilePath(const std::string &yaml)
-{
-	LoggerBuilder::setYamlFilePath(yaml);
+    if (this != &other)
+    {
+        this->name = other.name;
+        this->level = other.level;
+        this->outputs = other.outputs;
+        other.outputs = nullptr;
+    }
+    return *this;
 }

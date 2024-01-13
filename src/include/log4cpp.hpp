@@ -1,144 +1,111 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <unordered_map>
 #include <cassert>
 
-#include "yaml-cpp/yaml.h"
+#include <boost/json.hpp>
+#include <list>
+#include <vector>
 
-#define LOG_LINE_MAX 512
-
-
-enum class LogLevel
+namespace log4cpp
 {
-	FATAL = 0,
-	ERROR = 1,
-	WARN = 2,
-	INFO = 3,
-	DEBUG = 4,
-	TRACE = 5
-};
+    enum class log_level
+    {
+        FATAL = 0,
+        ERROR = 1,
+        WARN = 2,
+        INFO = 3,
+        DEBUG = 4,
+        TRACE = 5
+    };
 
-class Outputter
-{
-public:
-	static size_t makePrefix(LogLevel level, char *__restrict buf, size_t len);
+    class log_output;
 
-	virtual void log(LogLevel level, const char *__restrict fmt, va_list args) = 0;
+    class output;
 
-	virtual void log(LogLevel level, const char *__restrict fmt, ...) = 0;
+    class logger
+    {
+    public:
+        logger();
 
-	virtual ~Outputter() = default;
-};
+        explicit logger(const std::string &log_name);
 
-class ConsoleOutputter : public Outputter
-{
-public:
-	explicit ConsoleOutputter(LogLevel level = LogLevel::ERROR);
+        logger(const std::string &log_name, log_level l, const std::vector<std::string> &out);
 
-	void log(LogLevel level, const char *__restrict fmt, va_list args) override;
+        logger(const logger &other);
 
-	void log(LogLevel level, const char *__restrict fmt, ...) override;
+        logger(logger &&other) noexcept;
 
-public:
-	LogLevel logLevel;
-};
+        logger &operator=(const logger &other);
 
-class FileOutputter : public Outputter
-{
-public:
-	explicit FileOutputter(const std::string &file, bool isAsync = true, bool isAppend = true);
+        logger &operator=(logger &&other) noexcept;
 
-	void log(LogLevel level, const char *__restrict fmt, va_list args) override;
+        void log(log_level _level, const char *__restrict fmt, va_list args);
 
-	void log(LogLevel level, const char *__restrict fmt, ...) override;
+        void fatal(const char *__restrict fmt, ...);
 
-	~FileOutputter() override;
+        void error(const char *__restrict fmt, ...);
 
-public:
-	std::string filePath;
-	bool async;
-	bool append;
-private:
-	int fd;
-};
+        void warn(const char *__restrict fmt, ...);
 
-struct RootLogger
-{
-	std::string pattern;
-	LogLevel logLevel;
-	bool consoleOutputterEnabled;
-	ConsoleOutputter *consoleOutputter;
-	bool fileOutputterEnabled;
-	FileOutputter *fileOutputter;
+        void info(const char *__restrict fmt, ...);
 
-	RootLogger()
-	{
-		this->logLevel = LogLevel::ERROR;
-		this->consoleOutputterEnabled = false;
-		this->consoleOutputter = nullptr;
-		this->fileOutputterEnabled = false;
-		this->fileOutputter = nullptr;
-	}
-};
+        void debug(const char *__restrict fmt, ...);
 
-class Logger
-{
-public:
-	Logger();
+        void trace(const char *__restrict fmt, ...);
 
-	explicit Logger(const std::string &logName);
+        virtual ~logger();
 
-	void fatal(const char *__restrict fmt, ...);
+        //为了能够访问成员变量, 序列化和反序列化函数定义为友元
+        friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json_value, logger const &obj);
 
-	void error(const char *__restrict fmt, ...);
+        friend logger tag_invoke(boost::json::value_to_tag<logger>, boost::json::value const &json_value);
 
-	void warn(const char *__restrict fmt, ...);
+        friend class logger_builder;
 
-	void info(const char *__restrict fmt, ...);
+        friend class log4cpp_config;
 
-	void debug(const char *__restrict fmt, ...);
+    private:
+        std::string name;
+        log_level level;
+        output *outputs{nullptr};
+    };
 
-	void trace(const char *__restrict fmt, ...);
+    void tag_invoke(boost::json::value_from_tag, boost::json::value &json_value, logger const &obj);
 
-	virtual ~Logger();
+    logger tag_invoke(boost::json::value_to_tag<logger>, boost::json::value const &json_value);
 
-	friend struct YAML::convert<Logger>;
+/*********************** logger_manager ***********************/
+    class log4cpp_config;
 
-	friend class LoggerBuilder;
+    class log_lock;
 
-//    friend class LoggerManager;
+    class logger_manager
+    {
+    public:
+        static void load_config(const std::string &json_filepath);
 
-	friend class Log4CppConfiger;
+        static logger get_logger(const std::string &name);
 
-private:
-	std::string name;
-	LogLevel logLevel;
-	bool consoleOutputterEnabled;
-	Outputter *consoleOutputter;
-	bool fileOutputterEnabled;
-	Outputter *fileOutputter;
-};
+    private:
+        logger_manager() = default;
 
-/*********************** LoggerBuilder ***********************/
-class LoggerManager
-{
-public:
-	static void setYamlFilePath(const std::string &yaml);
+        logger build_logger(const std::string &name);
 
-	static Logger getLogger(const std::string &name);
+        class auto_load_config
+        {
+        public:
+            auto_load_config();
 
-private:
-	class InnerInit
-	{
-	public:
-		InnerInit();
+            ~auto_load_config();
+        };
 
-		~InnerInit();
-	};
-
-private:
-	static InnerInit init;
-	static std::unordered_map<std::string, Logger> loggers;
-};
+    private:
+        static bool initialized;
+        static log4cpp_config config;
+        static auto_load_config init;
+        static log_lock lock;
+        static std::unordered_map<std::string, logger> loggers;
+    };
+}
