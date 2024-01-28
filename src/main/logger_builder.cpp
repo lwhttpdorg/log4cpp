@@ -1,3 +1,9 @@
+#if defined(__WIN32)
+
+#include <io.h>
+
+#endif
+
 #include "logger_builder.h"
 
 using namespace log4cpp;

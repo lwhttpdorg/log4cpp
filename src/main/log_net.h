@@ -2,13 +2,19 @@
 
 #include <string>
 
+#if defined(__WIN32)
+
+#include <winsock.h>
+
+#endif
+
 namespace log4cpp::net
 {
 #if defined(_MSC_VER) || defined(__WIN32)
-    constexpr SOCKET INVALID_SOCKET = INVALID_SOCKET;
+    constexpr SOCKET INVALID_FD = INVALID_SOCKET;
 #endif
 #if defined(__linux__)
-    constexpr int INVALID_SOCKET = -1;
+    constexpr int INVALID_FD = -1;
 #endif
 
     enum class net_family

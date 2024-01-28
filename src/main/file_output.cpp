@@ -9,7 +9,7 @@
 #include <mutex>
 #include <sys/stat.h>
 
-#ifdef _MSC_VER
+#if defined(__WIN32)
 
 #include <windows.h>
 

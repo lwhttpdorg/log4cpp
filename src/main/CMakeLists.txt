@@ -12,7 +12,10 @@ add_library(${TARGET_NAME} STATIC ${SRC_FILES})
 #    add_library(${TARGET_NAME} SHARED ${SRC_FILES})
 #endif ()
 
-set(Boost_VERBOSE ON)
+if (CMAKE_HOST_WIN32)
+    set(BOOST_ROOT "D:/OpenCode/boost")
+endif ()
+
 find_package(Boost 1.75 REQUIRED COMPONENTS json)
 if (Boost_FOUND)
     #message(STATUS "Boost_LIB_VERSION = ${Boost_VERSION}")
