@@ -78,15 +78,44 @@ logger logger_manager::get_logger(const std::string &name)
 	return log;
 }
 
+void logger_manager::build_logger()
+{
+	logger_builder::builder builder = logger_builder::new_builder();
+	for (auto &x:logger_manager::config.loggers)
+	{
+		builder.set_name(x.get_logger_name());
+		builder.set_log_level(x.get_logger_level());
+		auto flags = x.get_outputs();
+		if ((flags & CONSOLE_OUT_CFG) != 0)
+		{
+			builder.set_console_output(nullptr);
+		}
+		else
+		{
+			builder.set_console_output(nullptr);
+		}
+		if ((flags & FILE_OUT_CFG) != 0)
+		{
+			builder.set_file_output(nullptr);
+		}
+		else
+		{
+			builder.set_file_output(nullptr);
+		}
+		logger l = builder.build();
+		loggers[x.get_logger_name()] = l;
+	}
+
+}
+
 logger logger_manager::build_logger(const std::string &name)
 {
-	logger_config cfg = config.get_logger_config(name);
+	logger_config logger_cfg = config.build_logger(name);
 	logger_builder::builder builder = logger_builder::new_builder();
 	builder.set_name(name);
-	builder.set_log_level(cfg.get_logger_level());
+	builder.set_log_level(logger_cfg.get_logger_level());
 	auto it = std::find_if(config.loggers.begin(), config.loggers.end(),
-	                       [&name](logger const &logger)
-	                       { return logger.name == name; });
+	                       [&name](logger const &logger) { return logger.name == name; });
 	if (it != config.loggers.cend())
 	{
 		logger log = *it;

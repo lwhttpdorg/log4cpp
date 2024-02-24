@@ -21,16 +21,12 @@ namespace log4cpp
 
 	class log_output;
 
-	class output;
-
 	class logger
 	{
 	public:
 		logger();
 
-		explicit logger(const std::string &log_name);
-
-		logger(const std::string &log_name, log_level l, const std::vector<std::string> &out);
+		explicit logger(const std::string &log_name, log_level level = log_level::WARN);
 
 		logger(const logger &other);
 
@@ -56,11 +52,6 @@ namespace log4cpp
 
 		virtual ~logger();
 
-		//为了能够访问成员变量, 序列化和反序列化函数定义为友元
-		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json_value, logger const &obj);
-
-		friend logger tag_invoke(boost::json::value_to_tag<logger>, boost::json::value const &json_value);
-
 		friend class logger_builder;
 
 		friend class log4cpp_config;
@@ -68,12 +59,8 @@ namespace log4cpp
 	private:
 		std::string name;
 		log_level level;
-		output *outputs{nullptr};
+		std::list<log_output *> outputs;
 	};
-
-	void tag_invoke(boost::json::value_from_tag, boost::json::value &json_value, logger const &obj);
-
-	logger tag_invoke(boost::json::value_to_tag<logger>, boost::json::value const &json_value);
 
 	/*********************** logger_manager ***********************/
 	class log4cpp_config;
@@ -90,7 +77,7 @@ namespace log4cpp
 	private:
 		logger_manager() = default;
 
-		logger build_logger(const std::string &name);
+		void build_logger();
 
 		class auto_load_config
 		{

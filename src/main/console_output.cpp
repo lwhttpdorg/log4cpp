@@ -21,7 +21,7 @@ int stream_name_to_file_no(const std::string &out_stream)
     else
     {
         throw std::invalid_argument(
-                "Invalid consoleOutPut outStream \"" + out_stream + "\", valid name: stdout, stderr");
+                "Invalid consoleOutPut outStream \"" + out_stream + "\", valid _name: stdout, stderr");
     }
     return file_no;
 }
