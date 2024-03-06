@@ -5,10 +5,9 @@
 #include <arpa/inet.h>
 #endif
 
-#if defined(__WIN32)
-
-#include <ws2tcpip.h>
-
+#if defined(_WIN32)
+#include <WS2tcpip.h>
+#include <ws2ipdef.h>
 #endif
 
 #include "log_net.h"
@@ -76,7 +75,7 @@ net_addr log4cpp::net::from_string(const std::string &s)
 		addr.ip.addr6[2] = addr6.s6_addr32[2];
 		addr.ip.addr6[3] = addr6.s6_addr32[3];
 #endif
-#if defined(__WIN32)
+#if defined(_WIN32)
 		addr.ip.addr6[0] = addr6.u.Word[0];
 		addr.ip.addr6[1] = addr6.u.Word[1];
 		addr.ip.addr6[2] = addr6.u.Word[2];

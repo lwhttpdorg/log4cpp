@@ -1,10 +1,9 @@
 #include <chrono>
 #include <csignal>
 
-#if defined(__WIN32)
-
+#if defined(_WIN32)
+#include <windows.h>
 #include <processthreadsapi.h>
-
 #endif
 
 #ifdef __linux__
@@ -34,7 +33,7 @@ size_t log_output::build_prefix(log_level level, char *buf, size_t len) {
 	pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
 #endif
 
-#if defined(_MSC_VER) || defined(__WIN32)
+#if defined(_MSC_VER) || defined(_WIN32)
 	unsigned long tid = GetCurrentThreadId();
 #endif
 #ifdef __linux__

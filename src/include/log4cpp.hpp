@@ -9,8 +9,20 @@
 #include <vector>
 #include <memory>
 
-namespace log4cpp {
-	enum class log_level {
+#if defined(_WIN32)
+
+#include <winsock.h>
+
+#if defined(ERROR)
+#undef ERROR
+#endif
+
+#endif
+
+namespace log4cpp
+{
+	enum class log_level
+	{
 		FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5
 	};
 
@@ -20,7 +32,8 @@ namespace log4cpp {
 
 	class log_output;
 
-	class logger {
+	class logger
+	{
 	public:
 		logger();
 
@@ -65,7 +78,8 @@ namespace log4cpp {
 
 	class log_lock;
 
-	class logger_manager {
+	class logger_manager
+	{
 	public:
 		static void load_config(const std::string &json_filepath);
 
@@ -84,11 +98,9 @@ namespace log4cpp {
 		static void build_root_logger();
 
 	private:
-		class inner_garbo {
+		class inner_garbo
+		{
 		public:
-			inner_garbo() {
-				printf("******************** inner_garbo constructor *************");
-			}
 			virtual ~inner_garbo();
 		};
 

@@ -4,12 +4,9 @@
 
 #include <fcntl.h>
 #include <cstdarg>
-#include <cstring>
 #include <stdexcept>
-#include <mutex>
-#include <sys/stat.h>
 
-#if defined(__WIN32)
+#if defined(_MSC_VER)
 
 #include <windows.h>
 
@@ -30,6 +27,12 @@
 
 #endif
 
+#ifdef __MINGW32__
+
+#include <sys/stat.h>
+
+#endif
+
 #if defined(__linux__)
 
 #include <unistd.h>
@@ -43,20 +46,25 @@
 
 using namespace log4cpp;
 
-file_output::builder &file_output::builder::set_file(const std::string &file) {
-	if (this->instance == nullptr) {
+file_output::builder &file_output::builder::set_file(const std::string &file)
+{
+	if (this->instance == nullptr)
+	{
 		throw std::runtime_error("Call new_builder() first");
 	}
 	this->log_file = file;
 	return *this;
 }
 
-file_output *file_output::builder::build() {
+file_output *file_output::builder::build()
+{
 	auto pos = this->log_file.find_last_of('/');
-	if (pos != std::string::npos) {
+	if (pos != std::string::npos)
+	{
 		std::string path = this->log_file.substr(0, pos);
-		if (0 != access(path.c_str(), F_OK)) {
-#if defined(_MSC_VER) || defined(__WIN32)
+		if (0 != access(path.c_str(), F_OK))
+		{
+#if defined(_MSC_VER) || defined(_WIN32)
 			(void)_mkdir(path.c_str());
 #endif
 #if defined(__linux__)
@@ -64,11 +72,12 @@ file_output *file_output::builder::build() {
 #endif
 		}
 	}
-	int openFlags = O_RDWR | O_CREAT;
-	if (this->_append) {
+	int openFlags = O_RDWR|O_CREAT;
+	if (this->_append)
+	{
 		openFlags |= O_APPEND;
 	}
-#if defined(_MSC_VER) || defined(__WIN32)
+#if defined(_MSC_VER) || defined(_WIN32)
 	int mode = _S_IREAD|_S_IWRITE;
 #endif
 
@@ -77,7 +86,8 @@ file_output *file_output::builder::build() {
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 #endif
 	this->instance->fd = open(this->log_file.c_str(), openFlags, mode);
-	if (this->instance->fd == -1) {
+	if (this->instance->fd == -1)
+	{
 		std::string what("Can not open log file, ");
 		what.append(strerror(errno));
 		what.append("(" + std::to_string(errno) + ")");
@@ -86,7 +96,8 @@ file_output *file_output::builder::build() {
 	return this->instance;
 }
 
-file_output::builder file_output::builder::new_builder() {
+file_output::builder file_output::builder::new_builder()
+{
 	file_output::builder builder = file_output::builder{};
 	builder.instance = new file_output();
 	builder._async = false;
@@ -94,36 +105,44 @@ file_output::builder file_output::builder::new_builder() {
 	return builder;
 }
 
-file_output::builder &file_output::builder::set_async(bool async) {
+file_output::builder &file_output::builder::set_async(bool async)
+{
 	this->_async = async;
 	return *this;
 }
 
-file_output::builder &file_output::builder::set_append(bool append) {
+file_output::builder &file_output::builder::set_append(bool append)
+{
 	this->_append = append;
 	return *this;
 }
 
-file_output::file_output(file_output &&other) noexcept {
+file_output::file_output(file_output &&other) noexcept
+{
 	this->fd = other.fd;
 	other.fd = -1;
 }
 
-file_output &file_output::operator=(file_output &&other) noexcept {
-	if (this != &other) {
+file_output &file_output::operator=(file_output &&other) noexcept
+{
+	if (this != &other)
+	{
 		this->fd = other.fd;
 		other.fd = -1;
 	}
 	return *this;
 }
 
-file_output::~file_output() {
-	if (this->fd != -1) {
+file_output::~file_output()
+{
+	if (this->fd != -1)
+	{
 		close(this->fd);
 	}
 }
 
-void file_output::log(log_level level, const char *fmt, va_list args) {
+void file_output::log(log_level level, const char *fmt, va_list args)
+{
 	char buffer[LOG_LINE_MAX];
 	size_t used_len = 0, buf_len = sizeof(buffer);
 	buffer[0] = '\0';
@@ -132,11 +151,12 @@ void file_output::log(log_level level, const char *fmt, va_list args) {
 	used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
 	singleton_log_lock &lock = singleton_log_lock::get_instance();
 	lock.lock();
-	(void) write(this->fd, buffer, used_len);
+	(void)write(this->fd, buffer, used_len);
 	lock.unlock();
 }
 
-void file_output::log(log_level level, const char *fmt, ...) {
+void file_output::log(log_level level, const char *fmt, ...)
+{
 	char buffer[LOG_LINE_MAX];
 	size_t used_len = 0, buf_len = sizeof(buffer);
 	buffer[0] = '\0';
@@ -148,16 +168,19 @@ void file_output::log(log_level level, const char *fmt, ...) {
 	used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
 	singleton_log_lock &lock = singleton_log_lock::get_instance();
 	lock.lock();
-	(void) write(this->fd, buffer, used_len);
+	(void)write(this->fd, buffer, used_len);
 	lock.unlock();
 }
 
-file_output *file_output_config::get_instance(const file_output_config &config) {
+file_output *file_output_config::get_instance(const file_output_config &config)
+{
 	static file_output *instance = nullptr;
 	static log_lock instance_lock;
-	if (instance == nullptr) {
+	if (instance == nullptr)
+	{
 		instance_lock.lock();
-		if (instance == nullptr) {
+		if (instance == nullptr)
+		{
 			instance = file_output::builder::new_builder().set_file(config.file_path).build();
 		}
 		instance_lock.unlock();
@@ -165,13 +188,15 @@ file_output *file_output_config::get_instance(const file_output_config &config) 
 	return instance;
 }
 
-void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const file_output_config &obj) {
+void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const file_output_config &obj)
+{
 	json = boost::json::object{{"filePath", obj.file_path},
 	                           {"async",    obj.async},
 	                           {"append",   obj.append}};
 }
 
-file_output_config log4cpp::tag_invoke(boost::json::value_to_tag<file_output_config>, boost::json::value const &json) {
+file_output_config log4cpp::tag_invoke(boost::json::value_to_tag<file_output_config>, boost::json::value const &json)
+{
 	file_output_config config;
 	config.file_path = boost::json::value_to<std::string>(json.at("filePath"));
 	config.async = boost::json::value_to<bool>(json.at("async"));
