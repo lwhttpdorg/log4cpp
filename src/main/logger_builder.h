@@ -4,38 +4,12 @@
 #include "log4cpp.hpp"
 #include "log4cpp_config.h"
 
-namespace log4cpp
-{
-	class output_builder
-	{
+namespace log4cpp {
+	class logger_builder {
 	public:
-		class builder
-		{
-		public:
-			builder &set_name(const std::string &name);
+		class builder {
+			friend class logger_builder;
 
-			builder &set_log_level(log_level level);
-
-			logger build();
-
-		private:
-			logger log;
-		};
-
-		friend class logger_manager;
-
-	public:
-		static builder new_builder();
-
-	private:
-		output_builder();
-	};
-
-	class logger_builder
-	{
-	public:
-		class builder
-		{
 		public:
 			builder &set_name(const std::string &name);
 
@@ -45,22 +19,21 @@ namespace log4cpp
 
 			builder &set_file_output(log_output *output);
 
-			logger build();
+			logger *build();
 
 		private:
-			logger log;
+			builder();
+
+		private:
+			logger *log;
 		};
 
 		friend class logger_manager;
 
 	public:
-		static void set_config_filepath(const std::string &json_filepath);
-
 		static builder new_builder();
 
-		static logger get_logger(const std::string &name);
-
 	private:
-		logger_builder();
+		logger_builder() = default;
 	};
 }

@@ -46,11 +46,11 @@ namespace log4cpp
 
 		logger_config &operator=(logger_config &&other) noexcept;
 
-		std::string get_logger_name() const;
+		[[nodiscard]] std::string get_logger_name() const;
 
 		void set_logger_name(const std::string &_name);
 
-		log_level get_logger_level() const;
+		[[nodiscard]] log_level get_logger_level() const;
 
 		void set_logger_level(log_level _level);
 

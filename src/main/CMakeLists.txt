@@ -14,6 +14,8 @@ add_library(${TARGET_NAME} STATIC ${SRC_FILES})
 
 if (CMAKE_HOST_WIN32)
     set(BOOST_ROOT "D:/OpenCode/boost")
+else ()
+    set(BOOST_ROOT "/usr/local/boost")
 endif ()
 
 find_package(Boost 1.75 REQUIRED COMPONENTS json)

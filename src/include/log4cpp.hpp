@@ -7,11 +7,10 @@
 #include <boost/json.hpp>
 #include <list>
 #include <vector>
+#include <memory>
 
-namespace log4cpp
-{
-	enum class log_level
-	{
+namespace log4cpp {
+	enum class log_level {
 		FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5
 	};
 
@@ -21,12 +20,11 @@ namespace log4cpp
 
 	class log_output;
 
-	class logger
-	{
+	class logger {
 	public:
 		logger();
 
-		explicit logger(const std::string &log_name, log_level level = log_level::WARN);
+		explicit logger(const std::string &log_name, log_level _level = log_level::WARN);
 
 		logger(const logger &other);
 
@@ -50,7 +48,7 @@ namespace log4cpp
 
 		void trace(const char *__restrict fmt, ...);
 
-		virtual ~logger();
+		virtual ~logger() = default;
 
 		friend class logger_builder;
 
@@ -67,31 +65,40 @@ namespace log4cpp
 
 	class log_lock;
 
-	class logger_manager
-	{
+	class logger_manager {
 	public:
 		static void load_config(const std::string &json_filepath);
 
-		static logger get_logger(const std::string &name);
+		static logger *get_logger(const std::string &name);
+
 
 	private:
 		logger_manager() = default;
 
-		void build_logger();
+		virtual ~logger_manager() = default;
 
-		class auto_load_config
-		{
+		static void build_output();
+
+		static void build_logger();
+
+		static void build_root_logger();
+
+	private:
+		class inner_garbo {
 		public:
-			auto_load_config();
-
-			~auto_load_config();
+			inner_garbo() {
+				printf("******************** inner_garbo constructor *************");
+			}
+			virtual ~inner_garbo();
 		};
 
 	private:
+		static inner_garbo garbo;
 		static bool initialized;
 		static log4cpp_config config;
-		static auto_load_config init;
-		static log_lock lock;
-		static std::unordered_map<std::string, logger> loggers;
+		static log_output *console_out;
+		static log_output *file_out;
+		static std::unordered_map<std::string, logger *> loggers;
+		static logger *root_logger;
 	};
 }

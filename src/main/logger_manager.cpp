@@ -9,147 +9,109 @@
 #include "log4cpp.hpp"
 #include "logger_builder.h"
 #include "log4cpp_config.h"
-#include "log_lock.h"
 
 using namespace log4cpp;
 
+logger_manager::inner_garbo logger_manager::garbo{};
+
 bool logger_manager::initialized = false;
 log4cpp_config logger_manager::config;
-logger_manager::auto_load_config logger_manager::init;
-log_lock logger_manager::lock;
-std::unordered_map<std::string, logger> logger_manager::loggers;
+log_output *logger_manager::console_out = nullptr;
+log_output *logger_manager::file_out = nullptr;
+std::unordered_map<std::string, logger *> logger_manager::loggers;
+logger *logger_manager::root_logger = nullptr;
 
 
-logger_manager::auto_load_config::auto_load_config()
-{
-	std::string default_config_file = "./log4cpp.json";
-	if (-1 != access(default_config_file.c_str(), F_OK))
-	{
-		logger_manager::config = log4cpp_config::load_config(default_config_file);
-		logger_manager::initialized = true;
-	}
-}
-
-logger_manager::auto_load_config::~auto_load_config()
-{
-	while (!logger_manager::loggers.empty())
-	{
-		auto begin = logger_manager::loggers.begin();
-		logger_manager::loggers.erase(begin);
-	}
-}
-
-void logger_manager::load_config(const std::string &json_filepath)
-{
-	if (-1 != access(json_filepath.c_str(), F_OK))
-	{
+void logger_manager::load_config(const std::string &json_filepath) {
+	if (-1 != access(json_filepath.c_str(), F_OK)) {
 		config = log4cpp_config::load_config(json_filepath);
 		logger_manager::initialized = true;
 	}
-	else
-	{
+	else {
 		throw std::filesystem::filesystem_error("Config file " + json_filepath + "opening failed!",
 		                                        std::make_error_code(std::io_errc::stream));
 	}
 }
 
-logger logger_manager::get_logger(const std::string &name)
-{
-	if (!logger_manager::initialized)
-	{
-		throw std::runtime_error("Not initialized: The configuration file does not exist? Or forgotten load_config()?");
+logger *logger_manager::get_logger(const std::string &name) {
+	if (!logger_manager::initialized) {
+		logger_manager::config = log4cpp_config::load_config("./log4cpp.json");
+		logger_manager::initialized = true;
+		//throw std::runtime_error("Not initialized: The configuration file does not exist? or forgotten load_config()?");
 	}
-	logger log;
-	if (logger_manager::loggers.find(name) == logger_manager::loggers.end())
-	{
-		logger_manager::lock.lock();
-		if (logger_manager::loggers.find(name) == logger_manager::loggers.end())
-		{
-			logger tmp_log = build_logger(name);
-			logger_manager::loggers.insert({name, tmp_log});
-		}
-		log = logger_manager::loggers.at(name);
-		logger_manager::lock.unlock();
+	if (logger_manager::loggers.empty()) {
+		logger_manager::build_output();
+		logger_manager::build_logger();
+		logger_manager::build_root_logger();
 	}
-	else
-	{
-		log = logger_manager::loggers.at(name);
+	if (logger_manager::loggers.find(name) == logger_manager::loggers.end()) {
+		return logger_manager::root_logger;
 	}
-	return log;
+	else {
+		return logger_manager::loggers.at(name);
+	}
 }
 
-void logger_manager::build_logger()
-{
-	logger_builder::builder builder = logger_builder::new_builder();
-	for (auto &x:logger_manager::config.loggers)
-	{
+void logger_manager::build_output() {
+	output_config output_cfg = logger_manager::config.output;
+	if (output_cfg.OUT_FLAGS & CONSOLE_OUT_CFG) {
+		logger_manager::console_out = log4cpp::console_output_config::get_instance(output_cfg.console_cfg);
+	}
+	if (output_cfg.OUT_FLAGS & FILE_OUT_CFG) {
+		logger_manager::file_out = log4cpp::file_output_config::get_instance(output_cfg.file_cfg);
+	}
+}
+
+void logger_manager::build_logger() {
+	for (auto &x: logger_manager::config.loggers) {
+		logger_builder::builder builder = logger_builder::new_builder();
 		builder.set_name(x.get_logger_name());
 		builder.set_log_level(x.get_logger_level());
 		auto flags = x.get_outputs();
-		if ((flags & CONSOLE_OUT_CFG) != 0)
-		{
+		if ((flags & CONSOLE_OUT_CFG) != 0) {
+			builder.set_console_output(logger_manager::console_out);
+		}
+		else {
 			builder.set_console_output(nullptr);
 		}
-		else
-		{
-			builder.set_console_output(nullptr);
+		if ((flags & FILE_OUT_CFG) != 0) {
+			builder.set_file_output(logger_manager::file_out);
 		}
-		if ((flags & FILE_OUT_CFG) != 0)
-		{
+		else {
 			builder.set_file_output(nullptr);
 		}
-		else
-		{
-			builder.set_file_output(nullptr);
-		}
-		logger l = builder.build();
-		loggers[x.get_logger_name()] = l;
+		logger *tmp_logger = builder.build();
+		logger_manager::loggers[x.get_logger_name()] = tmp_logger;
 	}
-
 }
 
-logger logger_manager::build_logger(const std::string &name)
-{
-	logger_config logger_cfg = config.build_logger(name);
+void logger_manager::build_root_logger() {
+	logger_config root_log_cfg = config.root_logger;
 	logger_builder::builder builder = logger_builder::new_builder();
-	builder.set_name(name);
-	builder.set_log_level(logger_cfg.get_logger_level());
-	auto it = std::find_if(config.loggers.begin(), config.loggers.end(),
-	                       [&name](logger const &logger) { return logger.name == name; });
-	if (it != config.loggers.cend())
-	{
-		logger log = *it;
-		builder builder = logger_builder::new_builder();
-		builder.set_name(name);
-		builder.set_log_level(log.level);
-		log_output *out = log.outputs->get_console_output();
-		if (out != nullptr)
-		{
-			builder.set_console_output(out);
-		}
-		out = log.outputs->get_file_output();
-		if (out != nullptr)
-		{
-			builder.set_file_output(out);
-		}
-		return builder.build();
+	builder.set_name("root");
+	builder.set_log_level(root_log_cfg.get_logger_level());
+	auto flags = root_log_cfg.get_outputs();
+	if ((flags & CONSOLE_OUT_CFG) != 0) {
+		builder.set_console_output(logger_manager::console_out);
 	}
-	else
-	{
-		logger log = config.root_logger;
-		builder builder = logger_builder::new_builder();
-		builder.set_name(name);
-		builder.set_log_level(log.level);
-		log_output *out = log.outputs->get_console_output();
-		if (out != nullptr)
-		{
-			builder.set_console_output(out);
-		}
-		out = log.outputs->get_file_output();
-		if (out != nullptr)
-		{
-			builder.set_file_output(out);
-		}
-		return builder.build();
+	else {
+		builder.set_console_output(nullptr);
 	}
+	if ((flags & FILE_OUT_CFG) != 0) {
+		builder.set_file_output(logger_manager::file_out);
+	}
+	else {
+		builder.set_file_output(nullptr);
+	}
+	logger_manager::root_logger = builder.build();
+}
+
+logger_manager::inner_garbo::~inner_garbo() {
+	printf("************** inner_garbo ************************");
+	delete logger_manager::console_out;
+	delete logger_manager::file_out;
+	for (auto &x: logger_manager::loggers) {
+		delete x.second;
+	}
+	delete logger_manager::root_logger;
 }

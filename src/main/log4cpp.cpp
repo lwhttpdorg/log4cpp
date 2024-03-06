@@ -20,11 +20,9 @@ const char *LOG_LEVEL_INFO = "INFO";
 const char *LOG_LEVEL_DEBUG = "DEBUG";
 const char *LOG_LEVEL_TRACE = "TRACE";
 
-std::string log4cpp::to_string(log_level level)
-{
+std::string log4cpp::to_string(log_level level) {
 	std::string str;
-	switch (level)
-	{
+	switch (level) {
 		case log_level::FATAL:
 			str = LOG_LEVEL_FATAL;
 			break;
@@ -47,74 +45,51 @@ std::string log4cpp::to_string(log_level level)
 	return str;
 }
 
-log_level log4cpp::from_string(const std::string &s)
-{
+log_level log4cpp::from_string(const std::string &s) {
 	log_level level;
 	auto tmp = boost::algorithm::to_upper_copy(s);
-	if (tmp == LOG_LEVEL_FATAL)
-	{
+	if (tmp == LOG_LEVEL_FATAL) {
 		level = log_level::FATAL;
 	}
-	else if (tmp == LOG_LEVEL_ERROR)
-	{
+	else if (tmp == LOG_LEVEL_ERROR) {
 		level = log_level::ERROR;
 	}
-	else if (tmp == LOG_LEVEL_WARN)
-	{
+	else if (tmp == LOG_LEVEL_WARN) {
 		level = log_level::WARN;
 	}
-	else if (tmp == LOG_LEVEL_INFO)
-	{
+	else if (tmp == LOG_LEVEL_INFO) {
 		level = log_level::INFO;
 	}
-	else if (tmp == LOG_LEVEL_DEBUG)
-	{
+	else if (tmp == LOG_LEVEL_DEBUG) {
 		level = log_level::DEBUG;
 	}
-	else if (tmp == LOG_LEVEL_TRACE)
-	{
+	else if (tmp == LOG_LEVEL_TRACE) {
 		level = log_level::TRACE;
 	}
-	else
-	{
+	else {
 		throw std::invalid_argument("invalid loglevel: " + s);
 	}
 	return level;
 }
 
 /**************************log*****************************/
-logger::logger()
-{
+logger::logger() {
 	this->level = log_level::WARN;
 }
 
-logger::logger(const std::string &log_name, log_level level)
-{
+logger::logger(const std::string &log_name, log_level _level) {
 	this->name = log_name;
-	this->level = level;
+	this->level = _level;
 }
 
-logger::~logger()
-{
-	for (auto &o:this->outputs)
-	{
-		delete o;
-	}
-	this->outputs.clear();
-}
-
-void logger::log(log_level _level, const char *fmt, va_list args)
-{
-	for (auto &l:this->outputs)
-	{
+void logger::log(log_level _level, const char *fmt, va_list args) {
+	for (auto &l: this->outputs) {
 		l->log(_level, fmt, args);
 	}
 }
 
-void logger::fatal(const char *__restrict fmt, ...)
-{
-	if (this->level >= log_level::FATAL)
-	{
+void logger::fatal(const char *__restrict fmt, ...) {
+	if (this->level >= log_level::FATAL) {
 		va_list args;
 		va_start(args, fmt);
 		this->log(log_level::FATAL, fmt, args);
@@ -122,10 +97,8 @@ void logger::fatal(const char *__restrict fmt, ...)
 	}
 }
 
-void logger::error(const char *__restrict fmt, ...)
-{
-	if (this->level >= log_level::ERROR)
-	{
+void logger::error(const char *__restrict fmt, ...) {
+	if (this->level >= log_level::ERROR) {
 		va_list args;
 		va_start(args, fmt);
 		this->log(log_level::ERROR, fmt, args);
@@ -133,10 +106,8 @@ void logger::error(const char *__restrict fmt, ...)
 	}
 }
 
-void logger::warn(const char *__restrict fmt, ...)
-{
-	if (this->level >= log_level::WARN)
-	{
+void logger::warn(const char *__restrict fmt, ...) {
+	if (this->level >= log_level::WARN) {
 		va_list args;
 		va_start(args, fmt);
 		this->log(log_level::WARN, fmt, args);
@@ -144,10 +115,8 @@ void logger::warn(const char *__restrict fmt, ...)
 	}
 }
 
-void logger::info(const char *__restrict fmt, ...)
-{
-	if (this->level >= log_level::INFO)
-	{
+void logger::info(const char *__restrict fmt, ...) {
+	if (this->level >= log_level::INFO) {
 		va_list args;
 		va_start(args, fmt);
 		this->log(log_level::INFO, fmt, args);
@@ -155,10 +124,8 @@ void logger::info(const char *__restrict fmt, ...)
 	}
 }
 
-void logger::debug(const char *__restrict fmt, ...)
-{
-	if (this->level >= log_level::DEBUG)
-	{
+void logger::debug(const char *__restrict fmt, ...) {
+	if (this->level >= log_level::DEBUG) {
 
 		va_list args;
 		va_start(args, fmt);
@@ -167,10 +134,8 @@ void logger::debug(const char *__restrict fmt, ...)
 	}
 }
 
-void logger::trace(const char *__restrict fmt, ...)
-{
-	if (this->level >= log_level::TRACE)
-	{
+void logger::trace(const char *__restrict fmt, ...) {
+	if (this->level >= log_level::TRACE) {
 		va_list args;
 		va_start(args, fmt);
 		this->log(log_level::TRACE, fmt, args);
@@ -178,24 +143,20 @@ void logger::trace(const char *__restrict fmt, ...)
 	}
 }
 
-logger::logger(const logger &other)
-{
+logger::logger(const logger &other) {
 	this->name = other.name;
 	this->level = other.level;
 	this->outputs = other.outputs;
 }
 
-logger::logger(logger &&other) noexcept
-{
+logger::logger(logger &&other) noexcept {
 	this->name = std::move(other.name);
 	this->level = other.level;
 	this->outputs = std::move(other.outputs);
 }
 
-logger &logger::operator=(const logger &other)
-{
-	if (this != &other)
-	{
+logger &logger::operator=(const logger &other) {
+	if (this != &other) {
 		this->name = other.name;
 		this->level = other.level;
 		this->outputs = other.outputs;
@@ -203,10 +164,8 @@ logger &logger::operator=(const logger &other)
 	return *this;
 }
 
-logger &logger::operator=(logger &&other) noexcept
-{
-	if (this != &other)
-	{
+logger &logger::operator=(logger &&other) noexcept {
+	if (this != &other) {
 		this->name = std::move(other.name);
 		this->level = other.level;
 		this->outputs = std::move(other.outputs);
