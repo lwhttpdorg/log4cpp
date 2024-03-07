@@ -1,5 +1,4 @@
 #include <cstdarg>
-#include <io.h>
 
 #if defined(__linux__)
 

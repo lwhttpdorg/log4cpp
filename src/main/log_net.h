@@ -1,15 +1,13 @@
 #pragma once
 
 #include <string>
-#include <winsock.h>
 
 
 #if defined(_WIN32)
 #include <winsock.h>
 #endif
 
-namespace log4cpp::net
-{
+namespace log4cpp::net {
 #if defined(_MSC_VER) || defined(_WIN32)
 	constexpr SOCKET INVALID_FD = INVALID_SOCKET;
 #endif
@@ -17,17 +15,14 @@ namespace log4cpp::net
 	constexpr int INVALID_FD = -1;
 #endif
 
-	enum class net_family
-	{
+	enum class net_family {
 		NET_IPv4,
 		NET_IPv6
 	};
 
-	class net_addr
-	{
+	class net_addr {
 	public:
-		union addr_u
-		{
+		union addr_u {
 			unsigned int addr4;
 			unsigned int addr6[4];
 		};

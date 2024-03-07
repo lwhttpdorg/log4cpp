@@ -36,6 +36,7 @@
 #if defined(__linux__)
 
 #include <unistd.h>
+#include <sys/stat.h>
 
 #endif
 
