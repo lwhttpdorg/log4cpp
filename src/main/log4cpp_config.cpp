@@ -166,7 +166,7 @@ log4cpp_config log4cpp_config::load_config(const std::string &json_file) {
 	ifs.open(json_file, std::ios::in);
 	if (!ifs.is_open()) {
 		std::cerr << "JSON file opening failed" << std::endl;
-		throw std::filesystem::filesystem_error("JSON file " + json_file + "opening failed",
+		throw std::filesystem::filesystem_error("JSON file " + json_file + " opening failed",
 		                                        std::make_error_code(std::io_errc::stream));
 	}
 	std::string a_string;

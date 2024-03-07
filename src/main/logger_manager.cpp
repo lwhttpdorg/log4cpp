@@ -33,7 +33,7 @@ void logger_manager::load_config(const std::string &json_filepath)
 	}
 	else
 	{
-		throw std::filesystem::filesystem_error("Config file " + json_filepath + "opening failed!",
+		throw std::filesystem::filesystem_error("Config file " + json_filepath + " opening failed!",
 		                                        std::make_error_code(std::io_errc::stream));
 	}
 }
