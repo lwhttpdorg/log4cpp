@@ -12,7 +12,7 @@ Logger for C++是一个为C++开发的日志项目, 可以将log输出到控制�
 ## 3. 要求
 
 1. 支持C++11及以上的C++编译器
-3. CMake 3.11及以上版本
+2. CMake 3.11及以上版本
 
 ## 3. 使用
 
@@ -41,11 +41,7 @@ CMakeLists.txt示例:
 add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(
-        log4cpp
-        GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git
-        GIT_TAG v1.0.0
-)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v2.0.0)
 
 FetchContent_MakeAvailable(log4cpp)
 
@@ -61,31 +57,29 @@ target_link_libraries(${TARGET_NAME} log4cpp)
 
 void thread_routine()
 {
-	log log = logger_manager::get_logger("test");
-	log.trace("This is a trace: %s:%d", __func__, __LINE__);
-	log.info("This is a info: %s:%d", __func__, __LINE__);
-	log.debug("This is a debug: %s:%d", __func__, __LINE__);
-	log.error("This is a error: %s:%d", __func__, __LINE__);
-	log.fatal("This is a fatal: %s:%d", __func__, __LINE__);
+	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
+	logger->trace("This is a trace: %s:%d", __func__, __LINE__);
+	logger->info("This is a info: %s:%d", __func__, __LINE__);
+	logger->debug("This is a debug: %s:%d", __func__, __LINE__);
+	logger->error("This is a error: %s:%d", __func__, __LINE__);
+	logger->fatal("This is a fatal: %s:%d", __func__, __LINE__);
 }
 
 int main()
 {
-	logger_manager::set_config_file("./log4cpp.json");
-	log log = logger_manager::get_logger("main");
-	log.trace("This is a trace: %s:%d", __func__, __LINE__);
-	log.info("This is a info: %s:%d", __func__, __LINE__);
-	log.debug("This is a debug: %s:%d", __func__, __LINE__);
-	log.warn("This is a warning: %s:%d", __func__, __LINE__);
-	log.error("This is a error: %s:%d", __func__, __LINE__);
-	log.fatal("This is a fatal: %s:%d", __func__, __LINE__);
+	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("consoleLogger");
+	logger->trace("This is a trace: %s:%d", __func__, __LINE__);
+	logger->info("This is a info: %s:%d", __func__, __LINE__);
+	logger->debug("This is a debug: %s:%d", __func__, __LINE__);
+	logger->warn("This is a warning: %s:%d", __func__, __LINE__);
+	logger->error("This is a error: %s:%d", __func__, __LINE__);
+	logger->fatal("This is a fatal: %s:%d", __func__, __LINE__);
 
 	std::thread th(thread_routine);
 	th.join();
 
 	return 0;
 }
-
 ```
 
 ### 3.3 附加说明
@@ -94,7 +88,7 @@ int main()
 
 ```text
 # 年-月-日 时:分:秒 [线程名或ID]: [log级别] -- log正文
-year-mon-day hh:mm:ss [thread name/id]: [log level] -- log message
+year-mon-day hh:mm:ss [thread name@T${thread id}]: [log level] -- log message
 ```
 
 其中:
@@ -118,14 +112,10 @@ enum class log_level
 示例:
 
 ```shell
-2023-06-18 22:40:43 [           10636]: [TRACE] -- This is a trace: main:19
-2023-06-18 22:40:43 [           10636]: [INFO ] -- This is a info: main:20
-2023-06-18 22:40:43 [           10636]: [DEBUG] -- This is a debug: main:21
-2023-06-18 22:40:43 [           10636]: [WARN ] -- This is a warning: main:22
-2023-06-18 22:40:43 [           10636]: [ERROR] -- This is a error: main:23
-2023-06-18 22:40:43 [           10636]: [FATAL] -- This is a fatal: main:24
-2023-06-18 22:40:43 [            5348]: [ERROR] -- This is a error: thread_routine:11
-2023-06-18 22:40:43 [            5348]: [FATAL] -- This is a fatal: thread_routine:12
+2024-03-07 23:04:13 [            demo@T2641]: [INFO ] -- This is a info: main:19
+2024-03-07 23:04:13 [            demo@T2641]: [WARN ] -- This is a warning: main:21
+2024-03-07 23:04:13 [            demo@T2641]: [ERROR] -- This is a error: main:22
+2024-03-07 23:04:13 [            demo@T2641]: [FATAL] -- This is a fatal: main:23
 ```
 
 ## 4. YAML示例
@@ -134,58 +124,65 @@ enum class log_level
 
 ```json
 {
-  "log4cpp": {
-    // 输出格式
-    "pattern": "${yyyy}-${mm}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}",
-    // 输出器
-    "logOutPut": {
-      // 控制台输出器
-      "consoleOutPut": {
-        "out_stream": "stdout"
-        // 输出流，可以是stdout或stderr
-      },
-      // 文件输出器
-      "fileOutPut": {
-        // 输出文件
-        "file_path": "log/log4cpp.log",
-        // 是否异步输出, 默认false
-        "async": true,
-        // 追加还是覆盖, 默认覆盖
-        "append": false
-      },
-      // TCP输出器
-      "tcpOutPut": {
-        // 监听地址
-        "localAddr": "172.0.0.1",
-        // 监听端口
-        "port": "9443"
-      },
-      // UDP输出器
-      "udpOutPut": {
-        "localAddr": "172.0.0.1",
-        "port": "9443"
-      }
+  // 输出格式, 暂未实现
+  "pattern": "${yyyy}-${mm}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}",
+  // 输出器
+  "logOutPut": {
+    // 控制台输出器
+    "consoleOutPut": {
+      // 输出流，可以是stdout或stderr
+      "outStream": "stdout"
     },
-    "loggers": [
-      {
-        // logger名称
-        "name": "consoleLogger",
-        // log级别
-        "level": "info",
-        // 使能的输出器
-        "logOutPuts": [
-          "consoleOutPut"
-        ]
-      },
-      {
-        "name": "recordLogger",
-        "level": "error",
-        "logOutPuts": [
-          "fileOutPut",
-          "tcpOutPut",
-          "udpOutPut"
-        ]
-      }
+    // 文件输出器
+    "fileOutPut": {
+      // 输出文件
+      "filePath": "log/log4cpp.log",
+      // 是否异步输出, 默认false
+      "async": true,
+      // 追加还是覆盖, 默认覆盖
+      "append": false
+    },
+    // TCP输出器, 暂未实现
+    "tcpOutPut": {
+      // 监听地址
+      "localAddr": "172.0.0.1",
+      // 监听端口
+      "port": "9443"
+    },
+    // UDP输出器
+    "udpOutPut": {
+      "localAddr": "172.0.0.1",
+      "port": "9443"
+    }
+  },
+  "loggers": [
+    {
+      // logger名称
+      "name": "consoleLogger",
+      // log级别
+      "logLevel": "info",
+      // 使能的输出器
+      "logOutPuts": [
+        "consoleOutPut"
+      ]
+    },
+    {
+      "name": "recordLogger",
+      "logLevel": "error",
+      "logOutPuts": [
+        "fileOutPut",
+        "tcpOutPut",
+        "udpOutPut"
+      ]
+    }
+  ],
+  // 默认logger
+  "rootLogger": {
+    "logLevel": "info",
+    "logOutPuts": [
+      "fileOutPut",
+      "tcpOutPut",
+      "udpOutPut"
     ]
   }
 }
