@@ -4,10 +4,13 @@
 #include "log4cpp.hpp"
 #include "log4cpp_config.h"
 
-namespace log4cpp {
-	class logger_builder {
+namespace log4cpp
+{
+	class logger_builder
+	{
 	public:
-		class builder {
+		class builder
+		{
 			friend class logger_builder;
 
 		public:
@@ -15,9 +18,9 @@ namespace log4cpp {
 
 			builder &set_log_level(log_level level);
 
-			builder &set_console_output(log_output *output);
+			builder &set_console_output(const std::shared_ptr<log_output>& output);
 
-			builder &set_file_output(log_output *output);
+			builder &set_file_output(const std::shared_ptr<log_output>& output);
 
 			logger *build();
 

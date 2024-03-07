@@ -70,7 +70,7 @@ namespace log4cpp
 	private:
 		std::string name;
 		log_level level;
-		std::list<log_output *> outputs;
+		std::list<std::shared_ptr<log_output>> outputs;
 	};
 
 	/*********************** logger_manager ***********************/
@@ -83,7 +83,7 @@ namespace log4cpp
 	public:
 		static void load_config(const std::string &json_filepath);
 
-		static logger *get_logger(const std::string &name);
+		static std::shared_ptr<logger> get_logger(const std::string &name);
 
 
 	private:
@@ -98,19 +98,11 @@ namespace log4cpp
 		static void build_root_logger();
 
 	private:
-		class inner_garbo
-		{
-		public:
-			virtual ~inner_garbo();
-		};
-
-	private:
-		static inner_garbo garbo;
 		static bool initialized;
 		static log4cpp_config config;
-		static log_output *console_out;
-		static log_output *file_out;
-		static std::unordered_map<std::string, logger *> loggers;
-		static logger *root_logger;
+		static std::shared_ptr<log_output> console_out;
+		static std::shared_ptr<log_output> file_out;
+		static std::unordered_map<std::string, std::shared_ptr<logger>> loggers;
+		static std::shared_ptr<logger> root_logger;
 	};
 }

@@ -16,14 +16,12 @@
 
 using namespace log4cpp;
 
-logger_manager::inner_garbo logger_manager::garbo{};
-
 bool logger_manager::initialized = false;
 log4cpp_config logger_manager::config;
-log_output *logger_manager::console_out = nullptr;
-log_output *logger_manager::file_out = nullptr;
-std::unordered_map<std::string, logger *> logger_manager::loggers;
-logger *logger_manager::root_logger = nullptr;
+std::shared_ptr<log_output> logger_manager::console_out = nullptr;
+std::shared_ptr<log_output>logger_manager::file_out = nullptr;
+std::unordered_map<std::string, std::shared_ptr<logger>> logger_manager::loggers;
+std::shared_ptr<logger> logger_manager::root_logger = nullptr;
 
 
 void logger_manager::load_config(const std::string &json_filepath)
@@ -40,7 +38,7 @@ void logger_manager::load_config(const std::string &json_filepath)
 	}
 }
 
-logger *logger_manager::get_logger(const std::string &name)
+std::shared_ptr<logger> logger_manager::get_logger(const std::string &name)
 {
 	if (!logger_manager::initialized)
 	{
@@ -69,11 +67,13 @@ void logger_manager::build_output()
 	output_config output_cfg = logger_manager::config.output;
 	if (output_cfg.OUT_FLAGS&CONSOLE_OUT_CFG)
 	{
-		logger_manager::console_out = log4cpp::console_output_config::get_instance(output_cfg.console_cfg);
+		logger_manager::console_out = std::shared_ptr<log_output>(
+				log4cpp::console_output_config::get_instance(output_cfg.console_cfg));
 	}
 	if (output_cfg.OUT_FLAGS&FILE_OUT_CFG)
 	{
-		logger_manager::file_out = log4cpp::file_output_config::get_instance(output_cfg.file_cfg);
+		logger_manager::file_out = std::shared_ptr<log_output>(
+				log4cpp::file_output_config::get_instance(output_cfg.file_cfg));
 	}
 }
 
@@ -102,7 +102,7 @@ void logger_manager::build_logger()
 			builder.set_file_output(nullptr);
 		}
 		logger *tmp_logger = builder.build();
-		logger_manager::loggers[x.get_logger_name()] = tmp_logger;
+		logger_manager::loggers[x.get_logger_name()] = std::shared_ptr<logger>(tmp_logger);
 	}
 }
 
@@ -129,16 +129,16 @@ void logger_manager::build_root_logger()
 	{
 		builder.set_file_output(nullptr);
 	}
-	logger_manager::root_logger = builder.build();
+	logger_manager::root_logger = std::shared_ptr<logger>(builder.build());
 }
 
-logger_manager::inner_garbo::~inner_garbo()
-{
-	delete logger_manager::console_out;
-	delete logger_manager::file_out;
-	for (auto &x:logger_manager::loggers)
-	{
-		delete x.second;
-	}
-	delete logger_manager::root_logger;
-}
+//logger_manager::inner_garbo::~inner_garbo()
+//{
+//	delete logger_manager::console_out;
+//	delete logger_manager::file_out;
+//	for (auto &x:logger_manager::loggers)
+//	{
+//		delete x.second;
+//	}
+//	delete logger_manager::root_logger;
+//}
