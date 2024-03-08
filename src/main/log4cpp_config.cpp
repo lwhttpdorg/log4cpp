@@ -21,10 +21,10 @@ bool valid_output(const std::string &name) {
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const output_config &obj) {
 	json = boost::json::object{};
-	if (obj.OUT_FLAGS & CONSOLE_OUT_CFG) {
+	if (obj.OUT_FLAGS&CONSOLE_OUT_CFG) {
 		json.at(CONSOLE_OUTPUT_NAME) = boost::json::value_from(obj.console_cfg);
 	}
-	if (obj.OUT_FLAGS & FILE_OUT_CFG) {
+	if (obj.OUT_FLAGS&FILE_OUT_CFG) {
 		json.at(FILE_OUTPUT_NAME) = boost::json::value_from(obj.file_cfg);
 	}
 }
@@ -109,7 +109,7 @@ logger_config log4cpp::tag_invoke(boost::json::value_to_tag<logger_config>, boos
 	}
 	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json.at("logLevel")));
 	std::vector<std::string> outputs = boost::json::value_to<std::vector<std::string>>(json.at("logOutPuts"));
-	for (auto &output: outputs) {
+	for (auto &output:outputs) {
 		if (output == CONSOLE_OUTPUT_NAME) {
 			obj._outputs |= CONSOLE_OUT_CFG;
 		}
@@ -128,16 +128,16 @@ logger_config log4cpp::tag_invoke(boost::json::value_to_tag<logger_config>, boos
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const logger_config &obj) {
 	std::vector<std::string> outputs;
-	if (obj._outputs & CONSOLE_OUT_CFG) {
+	if (obj._outputs&CONSOLE_OUT_CFG) {
 		outputs.emplace_back(CONSOLE_OUTPUT_NAME);
 	}
-	if (obj._outputs & FILE_OUT_CFG) {
+	if (obj._outputs&FILE_OUT_CFG) {
 		outputs.emplace_back(FILE_OUTPUT_NAME);
 	}
-	if (obj._outputs & TCP_OUT_CFG) {
+	if (obj._outputs&TCP_OUT_CFG) {
 		outputs.emplace_back(TCP_OUTPUT_NAME);
 	}
-	if (obj._outputs & UDP_OUT_CFG) {
+	if (obj._outputs&UDP_OUT_CFG) {
 		outputs.emplace_back(UDP_OUTPUT_NAME);
 	}
 

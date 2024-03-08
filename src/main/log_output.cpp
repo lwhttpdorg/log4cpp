@@ -23,8 +23,7 @@
 
 using namespace log4cpp;
 
-size_t log_output::build_prefix(log_level level, char *buf, size_t len)
-{
+size_t log_output::build_prefix(log_level level, char *buf, size_t len) {
 	size_t used_len = 0;
 	std::chrono::system_clock::time_point clock_now = std::chrono::system_clock::now();
 	std::time_t tm_now = std::chrono::system_clock::to_time_t(clock_now);

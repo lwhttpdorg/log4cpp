@@ -1,41 +1,30 @@
-#if defined(_WIN32)
-
-#include <io.h>
-
-#endif
-
+#include <iostream>
 #include "logger_builder.h"
+#include "log_utils.h"
 
 using namespace log4cpp;
 
-logger_builder::builder::builder()
-{
+logger_builder::builder::builder() {
 	this->log = new logger();
 }
 
-logger_builder::builder logger_builder::new_builder()
-{
+logger_builder::builder logger_builder::new_builder() {
 	return logger_builder::builder{};
 }
 
-logger_builder::builder &logger_builder::builder::set_name(const std::string &name)
-{
+logger_builder::builder &logger_builder::builder::set_name(const std::string &name) {
 	this->log->name = name;
 	return *this;
 }
 
-logger_builder::builder &logger_builder::builder::set_log_level(log_level level)
-{
+logger_builder::builder &logger_builder::builder::set_log_level(log_level level) {
 	this->log->level = level;
 	return *this;
 }
 
-logger_builder::builder &logger_builder::builder::set_console_output(const std::shared_ptr<log_output>& output)
-{
-	if (output != nullptr)
-	{
-		if (typeid(*output) != typeid(console_output))
-		{
+logger_builder::builder &logger_builder::builder::set_console_output(const std::shared_ptr<log_output> &output) {
+	if (output != nullptr) {
+		if (typeid(*output) != typeid(console_output)) {
 			throw std::runtime_error("output is not an instance of console_output");
 		}
 		this->log->outputs.push_back(output);
@@ -43,12 +32,9 @@ logger_builder::builder &logger_builder::builder::set_console_output(const std::
 	return *this;
 }
 
-logger_builder::builder &logger_builder::builder::set_file_output(const std::shared_ptr<log_output>& output)
-{
-	if (output != nullptr)
-	{
-		if (typeid(*output) != typeid(file_output))
-		{
+logger_builder::builder &logger_builder::builder::set_file_output(const std::shared_ptr<log_output> &output) {
+	if (output != nullptr) {
+		if (typeid(*output) != typeid(file_output)) {
 			throw std::runtime_error("output is not an instance of file_output");
 		}
 		this->log->outputs.push_back(output);
@@ -56,7 +42,6 @@ logger_builder::builder &logger_builder::builder::set_file_output(const std::sha
 	return *this;
 }
 
-logger *logger_builder::builder::build()
-{
+logger *logger_builder::builder::build() {
 	return this->log;
 }

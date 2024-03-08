@@ -39,7 +39,7 @@ $ cd build
 $ make
 ```
 
-### 3.2 API
+### 3.2 使用
 
 #### a. 头文件
 
@@ -62,7 +62,42 @@ FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(${TARGET_NAME} log4cpp)
 ```
 
-#### c. 用法
+#### c. API
+
+1. 加载配置文件
+
+如果当前路径下存在`log4cpp.json`, 会自动加载此配置文件. 如果配置文件不在当前路径或文件名不是`log4cpp.json`, 需要手动加载配置文件
+
+```c++
+log4cpp::logger_manager::load_config("./log4cpp.json");
+```
+
+2. 获取logger实例
+
+通过`name`获取配置的`"name": "consoleLogger"`logger, 如果不存在指定的logger, 则返回默认的`rootLogger`
+
+```c++
+std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
+```
+
+3. 输出log
+
+```c++
+void log(log_level level, const char *fmt, ...);
+```
+
+下面几个API是上面的特化
+
+```c++
+void trace(const char *__restrict fmt, ...);
+void info(const char *__restrict fmt, ...);
+void debug(const char *__restrict fmt, ...);
+void warn(const char *__restrict fmt, ...);
+void error(const char *__restrict fmt, ...);
+void fatal(const char *__restrict fmt, ...);
+```
+
+#### d. demo
 
 ```c++
 #include <thread>
@@ -112,15 +147,11 @@ year-mon-day hh:mm:ss [thread name@T${thread id}]: [log level] -- log message
 3. log级别的定义如下:
 
 ```c++
-enum class log_level
-{
-	FATAL = 0,
-	ERROR = 1,
-	WARN = 2,
-	INFO = 3,
-	DEBUG = 4,
-	TRACE = 5
-};
+namespace log4cpp {
+	enum class log_level {
+		FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5
+	};
+}
 ```
 
 示例:
@@ -151,8 +182,6 @@ enum class log_level
 	"fileOutPut": {
 	  // 输出文件
 	  "filePath": "log/log4cpp.log",
-	  // 是否异步输出, 默认false
-	  "async": true,
 	  // 追加还是覆盖, 默认覆盖
 	  "append": false
 	},

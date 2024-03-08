@@ -4,7 +4,9 @@
 
 
 #if defined(_WIN32)
+
 #include <winsock.h>
+
 #endif
 
 namespace log4cpp::net {

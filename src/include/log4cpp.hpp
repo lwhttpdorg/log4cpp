@@ -19,10 +19,8 @@
 
 #endif
 
-namespace log4cpp
-{
-	enum class log_level
-	{
+namespace log4cpp {
+	enum class log_level {
 		FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5
 	};
 
@@ -32,8 +30,7 @@ namespace log4cpp
 
 	class log_output;
 
-	class logger
-	{
+	class logger {
 	public:
 		logger();
 
@@ -78,8 +75,7 @@ namespace log4cpp
 
 	class log_lock;
 
-	class logger_manager
-	{
+	class logger_manager {
 	public:
 		static void load_config(const std::string &json_filepath);
 

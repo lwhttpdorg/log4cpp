@@ -1,47 +1,46 @@
 {
   "pattern": "${yyyy}-${mm}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}",
   "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    },
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "async": true,
-      "append": false
-    },
-    "tcpOutPut": {
-      "localAddr": "172.0.0.1",
-      "port": "9443"
-    },
-    "udpOutPut": {
-      "localAddr": "172.0.0.1",
-      "port": "9443"
-    }
+	"consoleOutPut": {
+	  "outStream": "stdout"
+	},
+	"fileOutPut": {
+	  "filePath": "log/log4cpp.log",
+	  "append": false
+	},
+	"tcpOutPut": {
+	  "localAddr": "172.0.0.1",
+	  "port": "9443"
+	},
+	"udpOutPut": {
+	  "localAddr": "172.0.0.1",
+	  "port": "9443"
+	}
   },
   "loggers": [
-    {
-      "name": "consoleLogger",
-      "logLevel": "info",
-      "logOutPuts": [
-        "consoleOutPut"
-      ]
-    },
-    {
-      "name": "recordLogger",
-      "logLevel": "error",
-      "logOutPuts": [
-        "fileOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    }
+	{
+	  "name": "consoleLogger",
+	  "logLevel": "info",
+	  "logOutPuts": [
+		"consoleOutPut"
+	  ]
+	},
+	{
+	  "name": "recordLogger",
+	  "logLevel": "error",
+	  "logOutPuts": [
+		"fileOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	}
   ],
   "rootLogger": {
-    "logLevel": "info",
-    "logOutPuts": [
-      "fileOutPut",
-      "tcpOutPut",
-      "udpOutPut"
-    ]
+	"logLevel": "info",
+	"logOutPuts": [
+	  "fileOutPut",
+	  "tcpOutPut",
+	  "udpOutPut"
+	]
   }
 }

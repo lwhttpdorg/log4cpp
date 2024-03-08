@@ -7,16 +7,14 @@
 #include "tcp_output.h"
 #include "udp_output.h"
 
-namespace log4cpp
-{
+namespace log4cpp {
 
 	constexpr unsigned char CONSOLE_OUT_CFG = 0x01;
 	constexpr unsigned char FILE_OUT_CFG = 0x02;
 	constexpr unsigned char TCP_OUT_CFG = 0x04;
 	constexpr unsigned char UDP_OUT_CFG = 0x08;
 
-	class output_config
-	{
+	class output_config {
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, output_config const &obj);
 
 		friend output_config tag_invoke(boost::json::value_to_tag<output_config>, boost::json::value const &json);
@@ -33,8 +31,7 @@ namespace log4cpp
 
 	output_config tag_invoke(boost::json::value_to_tag<output_config>, boost::json::value const &json);
 
-	class logger_config
-	{
+	class logger_config {
 	public:
 		logger_config();
 
@@ -70,8 +67,7 @@ namespace log4cpp
 
 	logger_config tag_invoke(boost::json::value_to_tag<logger_config>, boost::json::value const &json);
 
-	class log4cpp_config
-	{
+	class log4cpp_config {
 	public:
 		static log4cpp_config load_config(const std::string &json_file);
 

@@ -6,19 +6,19 @@
 #endif
 
 #if defined(_WIN32)
+
 #include <WS2tcpip.h>
 #include <ws2ipdef.h>
+
 #endif
 
 #include "log_net.h"
 
 using namespace log4cpp::net;
 
-std::string log4cpp::net::to_string(const net_addr &addr)
-{
+std::string log4cpp::net::to_string(const net_addr &addr) {
 	std::string s;
-	if (addr.family == net_family::NET_IPv4)
-	{
+	if (addr.family == net_family::NET_IPv4) {
 		char buf[INET_ADDRSTRLEN];
 		unsigned char a, b, c, d;
 		a = (addr.ip.addr4 >> 24)&0xff;
@@ -28,46 +28,38 @@ std::string log4cpp::net::to_string(const net_addr &addr)
 		snprintf(buf, sizeof(buf), "%u.%u.%u.%u", a, b, c, d);
 		s = std::string{buf};
 	}
-	else if (addr.family == net_family::NET_IPv6)
-	{
+	else if (addr.family == net_family::NET_IPv6) {
 		char buf[INET6_ADDRSTRLEN];
 		int len = 0;
-		for (auto x:addr.ip.addr6)
-		{
+		for (auto x:addr.ip.addr6) {
 			unsigned short a = (x >> 16), b = x&0xffff;
 			int l = snprintf(buf + len, sizeof(buf) - len, "%x%x:", a, b);
-			if (l > 0)
-			{
+			if (l > 0) {
 				len += l;
 			}
-			else
-			{
+			else {
 				break;
 			}
 		}
 		buf[len - 1] = '\0';
 		s = std::string{buf};
 	}
-	else
-	{
+	else {
 		throw std::invalid_argument("Invalid addr family \"" + std::to_string(static_cast<int> (addr.family)) + "\"");
 	}
 	return s;
 }
 
-net_addr log4cpp::net::from_string(const std::string &s)
-{
+net_addr log4cpp::net::from_string(const std::string &s) {
 	net_addr addr{};
 
 	in_addr addr4{};
 	in6_addr addr6{};
-	if (0 < inet_pton(AF_INET, s.c_str(), &addr4))
-	{
+	if (0 < inet_pton(AF_INET, s.c_str(), &addr4)) {
 		addr.family = net_family::NET_IPv4;
 		addr.ip.addr4 = addr4.s_addr;
 	}
-	else if (0 < inet_pton(AF_INET6, s.c_str(), &addr6))
-	{
+	else if (0 < inet_pton(AF_INET6, s.c_str(), &addr6)) {
 		addr.family = net_family::NET_IPv6;
 #if defined(__linux__)
 		addr.ip.addr6[0] = addr6.s6_addr32[0];
