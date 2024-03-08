@@ -54,6 +54,16 @@ if (ENABLE_DEMO)
     add_subdirectory(demo)
 endif ()
 
+#if (CMAKE_HOST_WIN32)
+#    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+#        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+#    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+#        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+#    endif ()
+#else ()
+#    set(BOOST_ROOT "/usr/local/boost")
+#endif ()
+
 add_subdirectory(src)
 
 target_include_directories(log4cpp

@@ -11,12 +11,27 @@ Logger for C++是一个为C++开发的日志项目, 可以将log输出到控制�
 
 ## 3. 要求
 
-1. 支持C++11及以上的C++编译器
+1. 支持C++17及以上的C++编译器
 2. CMake 3.11及以上版本
+3. Boost >= 1.75
 
 ## 3. 使用
 
 ### 3.1 编译和安装
+
+如果CMake没有自动找到Boost路径, 可参考修改[CMakeLists.txt](CMakeLists.txt)
+
+```cmake
+if (CMAKE_HOST_WIN32)
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+    endif ()
+else ()
+    set(BOOST_ROOT "/usr/local/boost")
+endif ()
+```
 
 ```shell
 $ cmake -S . -B build -DENABLE_DEMO=ON
@@ -127,62 +142,62 @@ enum class log_level
   "pattern": "${yyyy}-${mm}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}",
   // 输出器
   "logOutPut": {
-    // 控制台输出器
-    "consoleOutPut": {
-      // 输出流，可以是stdout或stderr
-      "outStream": "stdout"
-    },
-    // 文件输出器
-    "fileOutPut": {
-      // 输出文件
-      "filePath": "log/log4cpp.log",
-      // 是否异步输出, 默认false
-      "async": true,
-      // 追加还是覆盖, 默认覆盖
-      "append": false
-    },
-    // TCP输出器, 暂未实现
-    "tcpOutPut": {
-      // 监听地址
-      "localAddr": "172.0.0.1",
-      // 监听端口
-      "port": "9443"
-    },
-    // UDP输出器
-    "udpOutPut": {
-      "localAddr": "172.0.0.1",
-      "port": "9443"
-    }
+	// 控制台输出器
+	"consoleOutPut": {
+	  // 输出流，可以是stdout或stderr
+	  "outStream": "stdout"
+	},
+	// 文件输出器
+	"fileOutPut": {
+	  // 输出文件
+	  "filePath": "log/log4cpp.log",
+	  // 是否异步输出, 默认false
+	  "async": true,
+	  // 追加还是覆盖, 默认覆盖
+	  "append": false
+	},
+	// TCP输出器, 暂未实现
+	"tcpOutPut": {
+	  // 监听地址
+	  "localAddr": "172.0.0.1",
+	  // 监听端口
+	  "port": "9443"
+	},
+	// UDP输出器
+	"udpOutPut": {
+	  "localAddr": "172.0.0.1",
+	  "port": "9443"
+	}
   },
   "loggers": [
-    {
-      // logger名称
-      "name": "consoleLogger",
-      // log级别
-      "logLevel": "info",
-      // 使能的输出器
-      "logOutPuts": [
-        "consoleOutPut"
-      ]
-    },
-    {
-      "name": "recordLogger",
-      "logLevel": "error",
-      "logOutPuts": [
-        "fileOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    }
+	{
+	  // logger名称
+	  "name": "consoleLogger",
+	  // log级别
+	  "logLevel": "info",
+	  // 使能的输出器
+	  "logOutPuts": [
+		"consoleOutPut"
+	  ]
+	},
+	{
+	  "name": "recordLogger",
+	  "logLevel": "error",
+	  "logOutPuts": [
+		"fileOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	}
   ],
   // 默认logger
   "rootLogger": {
-    "logLevel": "info",
-    "logOutPuts": [
-      "fileOutPut",
-      "tcpOutPut",
-      "udpOutPut"
-    ]
+	"logLevel": "info",
+	"logOutPuts": [
+	  "fileOutPut",
+	  "tcpOutPut",
+	  "udpOutPut"
+	]
   }
 }
 ```
