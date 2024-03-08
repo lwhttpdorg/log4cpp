@@ -22,7 +22,6 @@ Logger for C++是一个为C++开发的日志项目, 可以将log输出到控制�
 $ cmake -S . -B build -DENABLE_DEMO=ON
 $ cd build
 $ make
-$ sudo make install
 ```
 
 ### 3.2 API
@@ -94,7 +93,7 @@ year-mon-day hh:mm:ss [thread name@T${thread id}]: [log level] -- log message
 其中:
 
 1. 秒精确到小数点后三位(毫秒)
-2. 标识前缀如果未设置, 默认使用线程ID(通过gettid()获得)
+2. `${thread id}`为线程ID, 某些系统无法设置线程名, 只能通过线程ID区分多线程
 3. log级别的定义如下:
 
 ```c++
@@ -118,9 +117,9 @@ enum class log_level
 2024-03-07 23:04:13 [            demo@T2641]: [FATAL] -- This is a fatal: main:23
 ```
 
-## 4. YAML示例
+## 4. 配置文件示例
 
-[YAML配置文件示例](demo/log4cpp.json)
+[参考配置文件示例](demo/log4cpp.json)
 
 ```json
 {
