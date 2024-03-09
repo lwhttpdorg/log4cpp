@@ -45,11 +45,7 @@ namespace log4cpp {
 
 		[[nodiscard]] std::string get_logger_name() const;
 
-		void set_logger_name(const std::string &_name);
-
 		[[nodiscard]] log_level get_logger_level() const;
-
-		void set_logger_level(log_level _level);
 
 		[[nodiscard]] unsigned char get_outputs() const;
 

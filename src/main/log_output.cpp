@@ -30,9 +30,8 @@ size_t log_output::build_prefix(log_level level, char *buf, size_t len) {
 	std::chrono::system_clock::time_point clock_now = std::chrono::system_clock::now();
 	std::time_t tm_now = std::chrono::system_clock::to_time_t(clock_now);
 	tm *local = localtime(&tm_now);
-	used_len += log4c_scnprintf(buf + used_len, len - used_len, "%04d-%02d-%02d %02d:%02d:%02d ",
-	                            1900 + local->tm_year, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min,
-	                            local->tm_sec);
+	used_len += log4c_scnprintf(buf + used_len, len - used_len, "%04d-%02d-%02d %02d:%02d:%02d ", 1900 + local->tm_year,
+	                            local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min, local->tm_sec);
 	char thread_name[THREAD_NAME_MAX_LEN];
 	thread_name[0] = '\0';
 #if defined(_MSC_VER) || defined(_WIN32)

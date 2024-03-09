@@ -1,8 +1,10 @@
 #include <stdexcept>
 
 #if defined(__linux__)
+
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 #endif
 
 #if defined(_WIN32)
@@ -21,10 +23,10 @@ std::string log4cpp::net::to_string(const net_addr &addr) {
 	if (addr.family == net_family::NET_IPv4) {
 		char buf[INET_ADDRSTRLEN];
 		unsigned char a, b, c, d;
-		a = (addr.ip.addr4 >> 24)&0xff;
-		b = (addr.ip.addr4 >> 16)&0xff;
-		c = (addr.ip.addr4 >> 8)&0xff;
-		d = addr.ip.addr4&0xff;
+		a = (addr.ip.addr4 >> 24) & 0xff;
+		b = (addr.ip.addr4 >> 16) & 0xff;
+		c = (addr.ip.addr4 >> 8) & 0xff;
+		d = addr.ip.addr4 & 0xff;
 		snprintf(buf, sizeof(buf), "%u.%u.%u.%u", a, b, c, d);
 		s = std::string{buf};
 	}
@@ -32,7 +34,7 @@ std::string log4cpp::net::to_string(const net_addr &addr) {
 		char buf[INET6_ADDRSTRLEN];
 		int len = 0;
 		for (auto x:addr.ip.addr6) {
-			unsigned short a = (x >> 16), b = x&0xffff;
+			unsigned short a = (x >> 16), b = x & 0xffff;
 			int l = snprintf(buf + len, sizeof(buf) - len, "%x%x:", a, b);
 			if (l > 0) {
 				len += l;
