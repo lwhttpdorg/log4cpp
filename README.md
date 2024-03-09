@@ -158,10 +158,12 @@ namespace log4cpp {
 示例:
 
 ```shell
-2024-03-07 23:04:13 [            demo@T2641]: [INFO ] -- This is a info: main:19
-2024-03-07 23:04:13 [            demo@T2641]: [WARN ] -- This is a warning: main:21
-2024-03-07 23:04:13 [            demo@T2641]: [ERROR] -- This is a error: main:22
-2024-03-07 23:04:13 [            demo@T2641]: [FATAL] -- This is a fatal: main:23
+2024-03-09 18:33:24 [    main] [INFO ] - Main: this is a info 0x9b4b0b80
+2024-03-09 18:33:24 [   child] [ERROR] - Child: this is an error 0x9adff640
+2024-03-09 18:33:24 [    main] [WARN ] - Main: this is an warning 0x9b4b0b80
+2024-03-09 18:33:24 [    main] [ERROR] - Main: this is an error 0x9b4b0b80
+2024-03-09 18:33:24 [   child] [FATAL] - Child: this is a fatal 0x9adff640
+2024-03-09 18:33:24 [    main] [FATAL] - Main: this is a fatal 0x9b4b0b80
 ```
 
 ## 4. 配置文件示例
