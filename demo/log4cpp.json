@@ -6,7 +6,7 @@
     },
     "fileOutPut": {
       "filePath": "log/log4cpp.log",
-      "append": false
+      "append": true
     },
     "tcpOutPut": {
       "localAddr": "172.0.0.1",
