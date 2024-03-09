@@ -93,7 +93,7 @@ logger::logger(const std::string &log_name, log_level _level) {
 }
 
 void logger::log(log_level _level, const char *fmt, va_list args) {
-	for (auto &l:this->outputs) {
+	for (auto &l: this->outputs) {
 		l->log(_level, fmt, args);
 	}
 }
@@ -118,7 +118,6 @@ void logger::info(const char *__restrict fmt, ...) {
 
 void logger::debug(const char *__restrict fmt, ...) {
 	if (this->level >= log_level::DEBUG) {
-
 		va_list args;
 		va_start(args, fmt);
 		this->log(log_level::DEBUG, fmt, args);
@@ -139,8 +138,7 @@ void logger::error(const char *__restrict fmt, ...) {
 	if (this->level >= log_level::ERROR) {
 		va_list args;
 		va_start(args, fmt);
-		this->log(log_level::
-		          ERROR, fmt, args);
+		this->log(log_level::ERROR, fmt, args);
 		va_end(args);
 	}
 }

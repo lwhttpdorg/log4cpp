@@ -9,6 +9,10 @@ namespace log4cpp {
 
 		console_output &operator=(const console_output &other) = delete;
 
+		console_output(console_output &&other) = delete;
+
+		console_output &operator=(console_output &&other) = delete;
+
 		void log(log_level level, const char *__restrict fmt, va_list args) override;
 
 		void log(log_level level, const char *__restrict fmt, ...) override;
@@ -28,10 +32,6 @@ namespace log4cpp {
 
 	private:
 		console_output() = default;
-
-		console_output(console_output &&other) noexcept;
-
-		console_output &operator=(console_output &&other) noexcept;
 
 		explicit console_output(const std::string &out_stream);
 

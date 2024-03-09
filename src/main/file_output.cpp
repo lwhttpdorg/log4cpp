@@ -105,19 +105,6 @@ file_output::builder &file_output::builder::set_append(bool append) {
 	return *this;
 }
 
-file_output::file_output(file_output &&other) noexcept {
-	this->fd = other.fd;
-	other.fd = -1;
-}
-
-file_output &file_output::operator=(file_output &&other) noexcept {
-	if (this != &other) {
-		this->fd = other.fd;
-		other.fd = -1;
-	}
-	return *this;
-}
-
 file_output::~file_output() {
 	if (this->fd != -1) {
 		close(this->fd);
