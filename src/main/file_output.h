@@ -12,14 +12,14 @@ namespace log4cpp {
 
 			builder &set_append(bool append);
 
-			file_output *build();
+			std::shared_ptr<file_output> build();
 
 			static builder new_builder();
 
 		private:
 			bool _append;
 			std::string log_file;
-			file_output *instance{nullptr};
+			std::shared_ptr<file_output> instance{nullptr};
 		};
 
 
@@ -46,7 +46,7 @@ namespace log4cpp {
 
 	class file_output_config {
 	public:
-		static file_output *get_instance(const file_output_config &config);
+		static std::shared_ptr<file_output> get_instance(const file_output_config &config);
 
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, file_output_config const &obj);
 

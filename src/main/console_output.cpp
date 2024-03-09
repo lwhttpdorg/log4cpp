@@ -44,11 +44,11 @@ console_output::builder console_output::builder::new_builder() {
 }
 
 console_output::builder &console_output::builder::set_out_stream(const std::string &out_stream) {
-	this->instance = new console_output(out_stream);
+	this->instance = std::shared_ptr<console_output>(new console_output(out_stream));
 	return *this;
 }
 
-console_output *console_output::builder::build() {
+std::shared_ptr<console_output> console_output::builder::build() {
 	return this->instance;
 }
 
@@ -96,9 +96,9 @@ void console_output::log(log_level level, const char *fmt, ...) {
 	lock.unlock();
 }
 
-console_output *console_output_config::get_instance(const console_output_config &config) {
+std::shared_ptr<console_output> console_output_config::get_instance(const console_output_config &config) {
 	static log_lock instance_lock;
-	static console_output *instance = nullptr;
+	static std::shared_ptr<console_output> instance = nullptr;
 	if (instance == nullptr) {
 		instance_lock.lock();
 		if (instance == nullptr) {

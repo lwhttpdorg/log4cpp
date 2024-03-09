@@ -1,19 +1,22 @@
-#include <thread>
+#include <pthread.h>
 
 #include "log4cpp.hpp"
 
-void thread_routine()
-{
+void *child_thread_routine(void *) {
+	pthread_setname_np(pthread_self(), "child_thread_456");
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
 	logger->trace("This is a trace: %s:%d", __func__, __LINE__);
 	logger->info("This is a info: %s:%d", __func__, __LINE__);
 	logger->debug("This is a debug: %s:%d", __func__, __LINE__);
 	logger->error("This is a error: %s:%d", __func__, __LINE__);
 	logger->fatal("This is a fatal: %s:%d", __func__, __LINE__);
+	return nullptr;
 }
 
-int main()
-{
+int main() {
+	pthread_t child_tid;
+	pthread_create(&child_tid, nullptr, child_thread_routine, nullptr);
+	pthread_setname_np(pthread_self(), "main_thread_123");
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("consoleLogger");
 	logger->trace("This is a trace: %s:%d", __func__, __LINE__);
 	logger->info("This is a info: %s:%d", __func__, __LINE__);
@@ -22,8 +25,7 @@ int main()
 	logger->error("This is a error: %s:%d", __func__, __LINE__);
 	logger->fatal("This is a fatal: %s:%d", __func__, __LINE__);
 
-	std::thread th(thread_routine);
-	th.join();
+	pthread_join(child_tid, nullptr);
 
 	return 0;
 }

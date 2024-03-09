@@ -55,7 +55,7 @@ file_output::builder &file_output::builder::set_file(const std::string &file) {
 	return *this;
 }
 
-file_output *file_output::builder::build() {
+std::shared_ptr<file_output> file_output::builder::build() {
 	if (this->instance == nullptr) {
 		throw std::runtime_error("Call new_builder() first");
 	}
@@ -81,7 +81,7 @@ file_output *file_output::builder::build() {
 
 #ifdef __linux__
 	openFlags |= O_CLOEXEC;
-	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH;
 #endif
 	this->instance->fd = open(this->log_file.c_str(), openFlags, mode);
 	if (this->instance->fd == -1) {
@@ -95,7 +95,7 @@ file_output *file_output::builder::build() {
 
 file_output::builder file_output::builder::new_builder() {
 	file_output::builder builder = file_output::builder{};
-	builder.instance = new file_output();
+	builder.instance = std::shared_ptr<file_output>(new file_output());
 	builder._append = true;
 	return builder;
 }
@@ -153,13 +153,13 @@ void file_output::log(log_level level, const char *fmt, ...) {
 	lock.unlock();
 }
 
-file_output *file_output_config::get_instance(const file_output_config &config) {
-	static file_output *instance = nullptr;
+std::shared_ptr<file_output> file_output_config::get_instance(const file_output_config &config) {
+	static std::shared_ptr<file_output> instance = nullptr;
 	static log_lock instance_lock;
 	if (instance == nullptr) {
 		instance_lock.lock();
 		if (instance == nullptr) {
-			instance = file_output::builder::new_builder().set_file(config.file_path).build();
+			instance = file_output::builder::new_builder().set_file(config.file_path).set_append(config.append).build();
 		}
 		instance_lock.unlock();
 	}

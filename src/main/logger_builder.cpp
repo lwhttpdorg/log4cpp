@@ -25,7 +25,10 @@ logger_builder::builder &logger_builder::builder::set_log_level(log_level level)
 logger_builder::builder &logger_builder::builder::set_console_output(const std::shared_ptr<log_output> &output) {
 	if (output != nullptr) {
 		if (typeid(*output) != typeid(console_output)) {
-			throw std::runtime_error("output is not an instance of console_output");
+			std::string what = typeid(*output).name();
+			what += " not an instance of ";
+			what += typeid(console_output).name();
+			throw std::runtime_error(what);
 		}
 		this->log->outputs.push_back(output);
 	}
@@ -35,7 +38,10 @@ logger_builder::builder &logger_builder::builder::set_console_output(const std::
 logger_builder::builder &logger_builder::builder::set_file_output(const std::shared_ptr<log_output> &output) {
 	if (output != nullptr) {
 		if (typeid(*output) != typeid(file_output)) {
-			throw std::runtime_error("output is not an instance of file_output");
+			std::string what = typeid(*output).name();
+			what += " not an instance of ";
+			what += typeid(file_output).name();
+			throw std::runtime_error(what);
 		}
 		this->log->outputs.push_back(output);
 	}

@@ -36,15 +36,23 @@ void logger_manager::load_config(const std::string &json_filepath) {
 }
 
 std::shared_ptr<logger> logger_manager::get_logger(const std::string &name) {
+	static log_lock lock;
 	if (!logger_manager::initialized) {
-		logger_manager::config = log4cpp_config::load_config("./log4cpp.json");
-		logger_manager::initialized = true;
-		//throw std::runtime_error("Not initialized: The configuration file does not exist? or forgotten load_config()?");
+		lock.lock();
+		if (!logger_manager::initialized) {
+			logger_manager::config = log4cpp_config::load_config("./log4cpp.json");
+			logger_manager::initialized = true;
+		}
+		lock.unlock();
 	}
 	if (logger_manager::loggers.empty()) {
-		logger_manager::build_output();
-		logger_manager::build_logger();
-		logger_manager::build_root_logger();
+		lock.lock();
+		if (logger_manager::loggers.empty()) {
+			logger_manager::build_output();
+			logger_manager::build_logger();
+			logger_manager::build_root_logger();
+		}
+		lock.unlock();
 	}
 	if (logger_manager::loggers.find(name) == logger_manager::loggers.end()) {
 		return logger_manager::root_logger;

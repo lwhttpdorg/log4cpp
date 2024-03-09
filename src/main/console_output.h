@@ -18,12 +18,12 @@ namespace log4cpp {
 		public:
 			builder &set_out_stream(const std::string &out_stream);
 
-			console_output *build();
+			std::shared_ptr<console_output> build();
 
 			static builder new_builder();
 
 		private:
-			console_output *instance{nullptr};
+			std::shared_ptr<console_output> instance{nullptr};
 		};
 
 	private:
@@ -41,7 +41,7 @@ namespace log4cpp {
 
 	class console_output_config {
 	public:
-		static console_output *get_instance(const console_output_config &config);
+		static std::shared_ptr<console_output> get_instance(const console_output_config &config);
 
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, console_output_config const &obj);
 
