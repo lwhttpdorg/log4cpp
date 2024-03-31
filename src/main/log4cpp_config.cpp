@@ -31,12 +31,13 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 
 output_config log4cpp::tag_invoke(boost::json::value_to_tag<output_config>, boost::json::value const &json) {
 	output_config output_cfg{};
-	if (json.as_object().contains(CONSOLE_OUTPUT_NAME)) {
-		output_cfg.console_cfg = boost::json::value_to<console_output_config>(json.at(CONSOLE_OUTPUT_NAME));
+	auto json_obj = json.as_object();
+	if (json_obj.contains(CONSOLE_OUTPUT_NAME)) {
+		output_cfg.console_cfg = boost::json::value_to<console_output_config>(json_obj.at(CONSOLE_OUTPUT_NAME));
 		output_cfg.OUT_FLAGS |= CONSOLE_OUT_CFG;
 	}
-	if (json.as_object().contains(FILE_OUTPUT_NAME)) {
-		output_cfg.file_cfg = boost::json::value_to<file_output_config>(json.at(FILE_OUTPUT_NAME));
+	if (json_obj.contains(FILE_OUTPUT_NAME)) {
+		output_cfg.file_cfg = boost::json::value_to<file_output_config>(json_obj.at(FILE_OUTPUT_NAME));
 		output_cfg.OUT_FLAGS |= FILE_OUT_CFG;
 	}
 	return output_cfg;
@@ -90,15 +91,22 @@ unsigned char logger_config::get_outputs() const {
 
 logger_config log4cpp::tag_invoke(boost::json::value_to_tag<logger_config>, boost::json::value const &json) {
 	logger_config obj;
-	if (json.as_object().contains("name")) {
-		obj.name = boost::json::value_to<std::string>(json.at("name"));
+	auto json_obj = json.as_object();
+	if (json_obj.contains("name")) {
+		obj.name = boost::json::value_to<std::string>(json_obj.at("name"));
 	}
 	else {
 		obj.name = "root";
 	}
-	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json.at("logLevel")));
-	std::vector<std::string> outputs = boost::json::value_to<std::vector<std::string>>(json.at("logOutPuts"));
-	for (auto &output:outputs) {
+	if (json_obj.contains("logLevel")) {
+		throw std::invalid_argument("\"logLevel\" is mandatory");
+	}
+	if (json_obj.contains("logOutPuts")) {
+		throw std::invalid_argument("\"logOutPuts\" is mandatory");
+	}
+	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json_obj.at("logLevel")));
+	std::vector<std::string> outputs = boost::json::value_to<std::vector<std::string>>(json_obj.at("logOutPuts"));
+	for (auto &output: outputs) {
 		if (!valid_output(output)) {
 			throw std::invalid_argument("invalid loggers::logOutPuts \"" + output + "\"");
 		}
@@ -146,10 +154,30 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 }
 
 log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, boost::json::value const &json) {
-	std::string pattern = boost::json::value_to<std::string>(json.at("pattern"));
-	output_config outputs = boost::json::value_to<output_config>(json.at("logOutPut"));
-	std::vector<logger_config> loggers = boost::json::value_to<std::vector<logger_config>>(json.at("loggers"));
-	logger_config root = boost::json::value_to<logger_config>(json.at("rootLogger"));
+	auto json_obj = json.as_object();
+	std::string pattern;
+	if (json_obj.contains("pattern")) {
+		pattern = boost::json::value_to<std::string>(json_obj.at("pattern"));
+	}
+	output_config outputs;
+	if (json_obj.contains("logOutPut")) {
+		outputs = boost::json::value_to<output_config>(json_obj.at("logOutPut"));
+	}
+	else {
+		throw std::invalid_argument("\"logOutPut\" is mandatory");
+	}
+	std::vector<logger_config> loggers;
+	if (json_obj.contains("loggers")) {
+		loggers = boost::json::value_to<std::vector<logger_config>>(json_obj.at("loggers"));
+	}
+	logger_config root;
+	if (json_obj.contains("rootLogger")) {
+		root = boost::json::value_to<logger_config>(json_obj.at("rootLogger"));
+	}
+	else {
+		throw std::invalid_argument("\"rootLogger\" is mandatory");
+	}
+
 	return log4cpp_config{pattern, outputs, loggers, root};
 }
 
