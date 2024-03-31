@@ -55,7 +55,7 @@ CMakeLists.txt示例:
 add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v2.0.0)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v2.0.1)
 
 FetchContent_MakeAvailable(log4cpp)
 

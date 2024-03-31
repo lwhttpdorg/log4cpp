@@ -117,14 +117,3 @@ void logger_manager::build_root_logger() {
 	}
 	logger_manager::root_logger = std::shared_ptr<logger>(builder.build());
 }
-
-//logger_manager::inner_garbo::~inner_garbo()
-//{
-//	delete logger_manager::console_out;
-//	delete logger_manager::file_out;
-//	for (auto &x:logger_manager::loggers)
-//	{
-//		delete x.second;
-//	}
-//	delete logger_manager::root_logger;
-//}

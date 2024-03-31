@@ -98,17 +98,18 @@ logger_config log4cpp::tag_invoke(boost::json::value_to_tag<logger_config>, boos
 	else {
 		obj.name = "root";
 	}
-	if (json_obj.contains("logLevel")) {
-		throw std::invalid_argument("\"logLevel\" is mandatory");
+	if (!json_obj.contains("logLevel")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"logLevel\" is mandatory");
 	}
-	if (json_obj.contains("logOutPuts")) {
-		throw std::invalid_argument("\"logOutPuts\" is mandatory");
+	if (!json_obj.contains("logOutPuts")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"logOutPuts\" is mandatory");
 	}
 	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json_obj.at("logLevel")));
 	std::vector<std::string> outputs = boost::json::value_to<std::vector<std::string>>(json_obj.at("logOutPuts"));
 	for (auto &output: outputs) {
 		if (!valid_output(output)) {
-			throw std::invalid_argument("invalid loggers::logOutPuts \"" + output + "\"");
+			throw std::invalid_argument(
+					"Malformed JSON configuration file: invalid loggers::logOutPuts \"" + output + "\"");
 		}
 		if (output == CONSOLE_OUTPUT_NAME) {
 			obj._outputs |= CONSOLE_OUT_CFG;
@@ -159,25 +160,18 @@ log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, bo
 	if (json_obj.contains("pattern")) {
 		pattern = boost::json::value_to<std::string>(json_obj.at("pattern"));
 	}
-	output_config outputs;
-	if (json_obj.contains("logOutPut")) {
-		outputs = boost::json::value_to<output_config>(json_obj.at("logOutPut"));
-	}
-	else {
-		throw std::invalid_argument("\"logOutPut\" is mandatory");
+	if (!json_obj.contains("logOutPut")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"logOutPut\" is mandatory");
 	}
 	std::vector<logger_config> loggers;
 	if (json_obj.contains("loggers")) {
 		loggers = boost::json::value_to<std::vector<logger_config>>(json_obj.at("loggers"));
 	}
-	logger_config root;
-	if (json_obj.contains("rootLogger")) {
-		root = boost::json::value_to<logger_config>(json_obj.at("rootLogger"));
+	if (!json_obj.contains("rootLogger")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"rootLogger\" is mandatory");
 	}
-	else {
-		throw std::invalid_argument("\"rootLogger\" is mandatory");
-	}
-
+	output_config outputs = boost::json::value_to<output_config>(json_obj.at("logOutPut"));
+	logger_config root = boost::json::value_to<logger_config>(json_obj.at("rootLogger"));
 	return log4cpp_config{pattern, outputs, loggers, root};
 }
 
@@ -210,7 +204,7 @@ log4cpp_config log4cpp_config::load_config(const std::string &json_file) {
 	}
 	ifs.close();
 	if (error_code) {
-		throw std::invalid_argument("JSON parse failed! " + error_code.message());
+		throw std::invalid_argument("Malformed JSON configuration file: JSON parse failed! " + error_code.message());
 	}
 	sparser.finish();
 	boost::json::value json_value = sparser.release();

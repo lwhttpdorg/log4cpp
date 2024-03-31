@@ -1,0 +1,29 @@
+{
+  "pattern": "${yyyy}-${mm}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}",
+  "logOutPut": {
+    "consoleOutPut": {
+      "outStream": "stdout"
+    },
+    "fileOutPut": {
+      "filePath": "log/log4cpp-test-2.log",
+      "append": true
+    },
+    "tcpOutPut": {
+      "localAddr": "172.0.0.1",
+      "port": "9443"
+    },
+    "udpOutPut": {
+      "localAddr": "172.0.0.1",
+      "port": "9443"
+    }
+  },
+  "rootLogger": {
+    "logLevel": "info",
+    "logOutPuts": [
+      "consoleOutPut",
+      "fileOutPut",
+      "tcpOutPut",
+      "udpOutPut"
+    ]
+  }
+}
