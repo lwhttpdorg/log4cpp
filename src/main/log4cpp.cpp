@@ -11,6 +11,8 @@
 #endif
 #endif
 
+#include <cstdarg>
+
 #include <boost/json.hpp>
 #include <boost/algorithm/string.hpp>
 
