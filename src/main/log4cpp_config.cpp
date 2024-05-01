@@ -170,7 +170,7 @@ log4cpp_config log4cpp_config::load_config(const std::string &json_file) {
 		                                        std::make_error_code(std::io_errc::stream));
 	}
 	std::string a_string;
-	boost::json::error_code error_code;
+	boost::system::error_code error_code;
 	boost::json::parse_options parse_options{};
 	parse_options.allow_comments = true;
 	boost::json::storage_ptr sp{};
