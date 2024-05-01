@@ -7,7 +7,8 @@ FetchContent_MakeAvailable(googletest)
 
 set(TEST_TARGET_NAME "MainTests")
 
-file(COPY ../../demo/log4cpp.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ./test-log4cpp-1.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+file(COPY ./test-log4cpp-2.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
 add_test(NAME mainTest COMMAND ${TEST_TARGET_NAME} --exe $<TARGET_FILE:${TEST_TARGET_NAME}> WORKING_DIRECTORY "./")
 

@@ -64,11 +64,11 @@ std::shared_ptr<logger> logger_manager::get_logger(const std::string &name) {
 
 void logger_manager::build_output() {
 	output_config output_cfg = logger_manager::config.output;
-	if (output_cfg.OUT_FLAGS&CONSOLE_OUT_CFG) {
+	if (output_cfg.OUT_FLAGS & CONSOLE_OUT_CFG) {
 		logger_manager::console_out = std::shared_ptr<log_output>(
 				log4cpp::console_output_config::get_instance(output_cfg.console_cfg));
 	}
-	if (output_cfg.OUT_FLAGS&FILE_OUT_CFG) {
+	if (output_cfg.OUT_FLAGS & FILE_OUT_CFG) {
 		logger_manager::file_out = std::shared_ptr<log_output>(
 				log4cpp::file_output_config::get_instance(output_cfg.file_cfg));
 	}
@@ -80,13 +80,13 @@ void logger_manager::build_logger() {
 		builder.set_name(x.get_logger_name());
 		builder.set_log_level(x.get_logger_level());
 		auto flags = x.get_outputs();
-		if ((flags&CONSOLE_OUT_CFG) != 0) {
+		if ((flags & CONSOLE_OUT_CFG) != 0) {
 			builder.set_console_output(logger_manager::console_out);
 		}
 		else {
 			builder.set_console_output(nullptr);
 		}
-		if ((flags&FILE_OUT_CFG) != 0) {
+		if ((flags & FILE_OUT_CFG) != 0) {
 			builder.set_file_output(logger_manager::file_out);
 		}
 		else {
@@ -103,13 +103,13 @@ void logger_manager::build_root_logger() {
 	builder.set_name("root");
 	builder.set_log_level(root_log_cfg.get_logger_level());
 	auto flags = root_log_cfg.get_outputs();
-	if ((flags&CONSOLE_OUT_CFG) != 0) {
+	if ((flags & CONSOLE_OUT_CFG) != 0) {
 		builder.set_console_output(logger_manager::console_out);
 	}
 	else {
 		builder.set_console_output(nullptr);
 	}
-	if ((flags&FILE_OUT_CFG) != 0) {
+	if ((flags & FILE_OUT_CFG) != 0) {
 		builder.set_file_output(logger_manager::file_out);
 	}
 	else {
@@ -117,14 +117,3 @@ void logger_manager::build_root_logger() {
 	}
 	logger_manager::root_logger = std::shared_ptr<logger>(builder.build());
 }
-
-//logger_manager::inner_garbo::~inner_garbo()
-//{
-//	delete logger_manager::console_out;
-//	delete logger_manager::file_out;
-//	for (auto &x:logger_manager::loggers)
-//	{
-//		delete x.second;
-//	}
-//	delete logger_manager::root_logger;
-//}

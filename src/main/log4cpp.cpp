@@ -61,8 +61,7 @@ log_level log4cpp::from_string(const std::string &s) {
 		level = log_level::FATAL;
 	}
 	else if (tmp == LOG_LEVEL_ERROR) {
-		level = log_level::
-		ERROR;
+		level = log_level::ERROR;
 	}
 	else if (tmp == LOG_LEVEL_WARN) {
 		level = log_level::WARN;
@@ -118,7 +117,6 @@ void logger::info(const char *__restrict fmt, ...) {
 
 void logger::debug(const char *__restrict fmt, ...) {
 	if (this->level >= log_level::DEBUG) {
-
 		va_list args;
 		va_start(args, fmt);
 		this->log(log_level::DEBUG, fmt, args);
@@ -139,8 +137,7 @@ void logger::error(const char *__restrict fmt, ...) {
 	if (this->level >= log_level::ERROR) {
 		va_list args;
 		va_start(args, fmt);
-		this->log(log_level::
-		          ERROR, fmt, args);
+		this->log(log_level::ERROR, fmt, args);
 		va_end(args);
 	}
 }

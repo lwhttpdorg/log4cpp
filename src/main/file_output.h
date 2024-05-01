@@ -5,7 +5,6 @@
 namespace log4cpp {
 	class file_output : public log_output {
 	public:
-	public:
 		class builder {
 		public:
 			builder &set_file(const std::string &file);
@@ -25,11 +24,11 @@ namespace log4cpp {
 
 		file_output(const file_output &other) = delete;
 
-		file_output(file_output &&other) noexcept;
+		file_output(file_output &&other) = delete;
 
 		file_output &operator=(const file_output &other) = delete;
 
-		file_output &operator=(file_output &&other) noexcept;
+		file_output &operator=(file_output &&other) = delete;
 
 		void log(log_level level, const char *__restrict fmt, va_list args) override;
 

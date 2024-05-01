@@ -5,7 +5,7 @@
       "outStream": "stdout"
     },
     "fileOutPut": {
-      "filePath": "log/log4cpp.log",
+      "filePath": "log/log4cpp-test-1.log",
       "append": true
     },
     "tcpOutPut": {
@@ -27,7 +27,7 @@
     },
     {
       "name": "recordLogger",
-      "logLevel": "error",
+      "logLevel": "info",
       "logOutPuts": [
         "consoleOutPut",
         "fileOutPut",

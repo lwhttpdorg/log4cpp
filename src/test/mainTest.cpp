@@ -9,25 +9,45 @@ int main(int argc, const char **argv) {
 	return RUN_ALL_TESTS();
 }
 
-TEST(logConfigTest, loadConfig) {
-	log4cpp::logger_manager::load_config("./log4cpp.json");
-}
-
-TEST(logOutputTest, consoleOutput) {
+void consoleOutputTest() {
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("consoleLogger");
-	logger->trace("This is a trace: %s:%d", __func__, __LINE__);
-	logger->info("This is a info: %s:%d", __func__, __LINE__);
-	logger->debug("This is a debug: %s:%d", __func__, __LINE__);
-	logger->warn("This is a warning: %s:%d", __func__, __LINE__);
-	logger->error("This is a error: %s:%d", __func__, __LINE__);
-	logger->fatal("This is a fatal: %s:%d", __func__, __LINE__);
+	logger->trace("Child: this is a trace 0x%x", pthread_self());
+	logger->info("Child: this is a info 0x%x", pthread_self());
+	logger->debug("Child: this is a debug 0x%x", pthread_self());
+	logger->error("Child: this is an error 0x%x", pthread_self());
+	logger->fatal("Child: this is a fatal 0x%x", pthread_self());
 }
 
-TEST(logOutputTest, fileOutput) {
+void fileOutputTest() {
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
-	logger->trace("This is a trace: %s:%d", __func__, __LINE__);
-	logger->info("This is a info: %s:%d", __func__, __LINE__);
-	logger->debug("This is a debug: %s:%d", __func__, __LINE__);
-	logger->error("This is a error: %s:%d", __func__, __LINE__);
-	logger->fatal("This is a fatal: %s:%d", __func__, __LINE__);
+	logger->trace("Child: this is a trace 0x%x", pthread_self());
+	logger->info("Child: this is a info 0x%x", pthread_self());
+	logger->debug("Child: this is a debug 0x%x", pthread_self());
+	logger->error("Child: this is an error 0x%x", pthread_self());
+	logger->fatal("Child: this is a fatal 0x%x", pthread_self());
+}
+
+void rootLoggerTest() {
+	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("root");
+	logger->trace("Child: this is a trace 0x%x", pthread_self());
+	logger->info("Child: this is a info 0x%x", pthread_self());
+	logger->debug("Child: this is a debug 0x%x", pthread_self());
+	logger->error("Child: this is an error 0x%x", pthread_self());
+	logger->fatal("Child: this is a fatal 0x%x", pthread_self());
+}
+
+void logOutTest() {
+	consoleOutputTest();
+	fileOutputTest();
+	rootLoggerTest();
+}
+
+TEST(logConfigTest, loadConfigTest1) {
+	log4cpp::logger_manager::load_config("./test-log4cpp-1.json");
+	logOutTest();
+}
+
+TEST(logConfigTest, loadConfigTest2) {
+	log4cpp::logger_manager::load_config("./test-log4cpp-2.json");
+	logOutTest();
 }

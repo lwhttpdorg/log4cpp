@@ -2,7 +2,7 @@
 
 ## 1. 简述
 
-Logger for C++是一个为C++开发的日志项目, 可以将log输出到控制台或指定的文件
+Logger for C++是一个为C++开发的日志记录工具, 可以将log输出到控制台或指定的文件
 
 ## 2. 特性
 
@@ -55,7 +55,7 @@ CMakeLists.txt示例:
 add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v2.0.0)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v2.0.1)
 
 FetchContent_MakeAvailable(log4cpp)
 
@@ -100,32 +100,33 @@ void fatal(const char *__restrict fmt, ...);
 #### d. demo
 
 ```c++
-#include <thread>
+#include <pthread.h>
 
 #include "log4cpp.hpp"
 
-void thread_routine()
-{
+void *child_thread_routine(void *) {
+	pthread_setname_np(pthread_self(), "child");
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
-	logger->trace("This is a trace: %s:%d", __func__, __LINE__);
-	logger->info("This is a info: %s:%d", __func__, __LINE__);
-	logger->debug("This is a debug: %s:%d", __func__, __LINE__);
-	logger->error("This is a error: %s:%d", __func__, __LINE__);
-	logger->fatal("This is a fatal: %s:%d", __func__, __LINE__);
+	logger->trace("Child: this is a trace 0x%x", pthread_self());
+	logger->info("Child: this is a info 0x%x", pthread_self());
+	logger->debug("Child: this is a debug 0x%x", pthread_self());
+	logger->error("Child: this is an error 0x%x", pthread_self());
+	logger->fatal("Child: this is a fatal 0x%x", pthread_self());
+	return nullptr;
 }
 
-int main()
-{
+int main() {
+	pthread_t child_tid;
+	pthread_create(&child_tid, nullptr, child_thread_routine, nullptr);
+	pthread_setname_np(pthread_self(), "main");
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("consoleLogger");
-	logger->trace("This is a trace: %s:%d", __func__, __LINE__);
-	logger->info("This is a info: %s:%d", __func__, __LINE__);
-	logger->debug("This is a debug: %s:%d", __func__, __LINE__);
-	logger->warn("This is a warning: %s:%d", __func__, __LINE__);
-	logger->error("This is a error: %s:%d", __func__, __LINE__);
-	logger->fatal("This is a fatal: %s:%d", __func__, __LINE__);
+	logger->trace("Main: this is a trace 0x%x", pthread_self());
+	logger->info("Main: this is a info 0x%x", pthread_self());
+	logger->debug("Main: this is a debug 0x%x", pthread_self());
+	logger->error("Main: this is an error 0x%x", pthread_self());
+	logger->fatal("Main: this is a fatal 0x%x", pthread_self());
 
-	std::thread th(thread_routine);
-	th.join();
+	pthread_join(child_tid, nullptr);
 
 	return 0;
 }
@@ -157,10 +158,12 @@ namespace log4cpp {
 示例:
 
 ```shell
-2024-03-07 23:04:13 [            demo@T2641]: [INFO ] -- This is a info: main:19
-2024-03-07 23:04:13 [            demo@T2641]: [WARN ] -- This is a warning: main:21
-2024-03-07 23:04:13 [            demo@T2641]: [ERROR] -- This is a error: main:22
-2024-03-07 23:04:13 [            demo@T2641]: [FATAL] -- This is a fatal: main:23
+2024-03-09 18:33:24 [    main] [INFO ] - Main: this is a info 0x9b4b0b80
+2024-03-09 18:33:24 [   child] [ERROR] - Child: this is an error 0x9adff640
+2024-03-09 18:33:24 [    main] [WARN ] - Main: this is an warning 0x9b4b0b80
+2024-03-09 18:33:24 [    main] [ERROR] - Main: this is an error 0x9b4b0b80
+2024-03-09 18:33:24 [   child] [FATAL] - Child: this is a fatal 0x9adff640
+2024-03-09 18:33:24 [    main] [FATAL] - Main: this is a fatal 0x9b4b0b80
 ```
 
 ## 4. 配置文件示例

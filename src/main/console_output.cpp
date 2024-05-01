@@ -56,17 +56,6 @@ console_output::console_output(const std::string &out_stream) {
 	this->file_no = stream_name_to_file_no(out_stream);
 }
 
-console_output::console_output(console_output &&other) noexcept {
-	this->file_no = other.file_no;
-}
-
-console_output &console_output::operator=(console_output &&other) noexcept {
-	if (this != &other) {
-		this->file_no = other.file_no;
-	}
-	return *this;
-}
-
 void console_output::log(log_level level, const char *fmt, va_list args) {
 	char buffer[LOG_LINE_MAX];
 	size_t used_len = 0, buf_len = sizeof(buffer);

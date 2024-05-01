@@ -2,7 +2,6 @@
 
 #include <string>
 
-
 #if defined(_WIN32)
 
 #include <winsock.h>
@@ -18,8 +17,7 @@ namespace log4cpp::net {
 #endif
 
 	enum class net_family {
-		NET_IPv4,
-		NET_IPv6
+		NET_IPv4, NET_IPv6
 	};
 
 	class net_addr {

@@ -71,7 +71,7 @@ std::shared_ptr<file_output> file_output::builder::build() {
 #endif
 		}
 	}
-	int openFlags = O_RDWR|O_CREAT;
+	int openFlags = O_RDWR | O_CREAT;
 	if (this->_append) {
 		openFlags |= O_APPEND;
 	}
@@ -81,7 +81,7 @@ std::shared_ptr<file_output> file_output::builder::build() {
 
 #ifdef __linux__
 	openFlags |= O_CLOEXEC;
-	mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH;
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 #endif
 	this->instance->fd = open(this->log_file.c_str(), openFlags, mode);
 	if (this->instance->fd == -1) {
@@ -102,19 +102,6 @@ file_output::builder file_output::builder::new_builder() {
 
 file_output::builder &file_output::builder::set_append(bool append) {
 	this->_append = append;
-	return *this;
-}
-
-file_output::file_output(file_output &&other) noexcept {
-	this->fd = other.fd;
-	other.fd = -1;
-}
-
-file_output &file_output::operator=(file_output &&other) noexcept {
-	if (this != &other) {
-		this->fd = other.fd;
-		other.fd = -1;
-	}
 	return *this;
 }
 
