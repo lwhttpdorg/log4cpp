@@ -1,11 +1,32 @@
-#include <thread>
 #include "gtest/gtest.h"
+#include <thread>
 
 #include "log4cpp.hpp"
 
+namespace {
+	bool backslash;
+	std::string base_path;
+}
 
-int main(int argc, const char **argv) {
-	::testing::InitGoogleTest();
+class TestEnvironment : public testing::Environment {
+public:
+	explicit TestEnvironment(const std::string &cur_path) {
+		size_t end = cur_path.find_last_of('\\');
+		if (end != std::string::npos) {
+			backslash = true;
+		}
+		else {
+			backslash = false;
+			end = cur_path.find_last_of('/');
+		}
+		base_path = cur_path.substr(0, end);
+	}
+};
+
+int main(int argc, char **argv) {
+	std::string cur_path = argv[0];
+	testing::InitGoogleTest(&argc, argv);
+	testing::AddGlobalTestEnvironment(new TestEnvironment(cur_path));
 	return RUN_ALL_TESTS();
 }
 
@@ -43,11 +64,27 @@ void logOutTest() {
 }
 
 TEST(logConfigTest, loadConfigTest1) {
-	log4cpp::logger_manager::load_config("./test-log4cpp-1.json");
+	std::string config_file_path = base_path;
+	if (backslash) {
+		config_file_path += '\\';
+	}
+	else {
+		config_file_path += '/';
+	}
+	config_file_path += "test-log4cpp-1.json";
+	log4cpp::logger_manager::load_config(config_file_path);
 	logOutTest();
 }
 
 TEST(logConfigTest, loadConfigTest2) {
-	log4cpp::logger_manager::load_config("./test-log4cpp-2.json");
+	std::string config_file_path = base_path;
+	if (backslash) {
+		config_file_path += '\\';
+	}
+	else {
+		config_file_path += '/';
+	}
+	config_file_path += "test-log4cpp-2.json";
+	log4cpp::logger_manager::load_config(config_file_path);
 	logOutTest();
 }
