@@ -32,29 +32,29 @@ int main(int argc, char **argv) {
 
 void consoleOutputTest() {
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("consoleLogger");
-	logger->trace("Child: this is a trace 0x%x", pthread_self());
-	logger->info("Child: this is a info 0x%x", pthread_self());
-	logger->debug("Child: this is a debug 0x%x", pthread_self());
-	logger->error("Child: this is an error 0x%x", pthread_self());
-	logger->fatal("Child: this is a fatal 0x%x", pthread_self());
+	logger->trace("Child: this is a trace");
+	logger->info("Child: this is a info");
+	logger->debug("Child: this is a debug");
+	logger->error("Child: this is an error");
+	logger->fatal("Child: this is a fatal");
 }
 
 void fileOutputTest() {
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
-	logger->trace("Child: this is a trace 0x%x", pthread_self());
-	logger->info("Child: this is a info 0x%x", pthread_self());
-	logger->debug("Child: this is a debug 0x%x", pthread_self());
-	logger->error("Child: this is an error 0x%x", pthread_self());
-	logger->fatal("Child: this is a fatal 0x%x", pthread_self());
+	logger->trace("Child: this is a trace");
+	logger->info("Child: this is a info");
+	logger->debug("Child: this is a debug");
+	logger->error("Child: this is an error");
+	logger->fatal("Child: this is a fatal");
 }
 
 void rootLoggerTest() {
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("root");
-	logger->trace("Child: this is a trace 0x%x", pthread_self());
-	logger->info("Child: this is a info 0x%x", pthread_self());
-	logger->debug("Child: this is a debug 0x%x", pthread_self());
-	logger->error("Child: this is an error 0x%x", pthread_self());
-	logger->fatal("Child: this is a fatal 0x%x", pthread_self());
+	logger->trace("Child: this is a trace");
+	logger->info("Child: this is a info");
+	logger->debug("Child: this is a debug");
+	logger->error("Child: this is an error");
+	logger->fatal("Child: this is a fatal");
 }
 
 void logOutTest() {
