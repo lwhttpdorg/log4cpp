@@ -159,6 +159,7 @@ log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, bo
 	std::string pattern;
 	if (json_obj.contains("pattern")) {
 		pattern = boost::json::value_to<std::string>(json_obj.at("pattern"));
+		log_pattern::set_pattern(pattern);
 	}
 	if (!json_obj.contains("logOutPut")) {
 		throw std::invalid_argument("Malformed JSON configuration file: \"logOutPut\" is mandatory");
@@ -221,6 +222,7 @@ std::string log4cpp::serialize(const log4cpp_config &obj) {
 log4cpp_config::log4cpp_config(std::string _pattern, output_config &o, const std::vector<logger_config> &l,
                                logger_config root) {
 	this->pattern = std::move(_pattern);
+	log_pattern::set_pattern(this->pattern);
 	this->output = o;
 	this->loggers = l;
 	this->root_logger = std::move(root);
@@ -229,6 +231,7 @@ log4cpp_config::log4cpp_config(std::string _pattern, output_config &o, const std
 
 log4cpp_config::log4cpp_config(const log4cpp_config &other) {
 	this->pattern = other.pattern;
+	log_pattern::set_pattern(this->pattern);
 	this->output = other.output;
 	this->loggers = other.loggers;
 	this->root_logger = other.root_logger;
@@ -236,6 +239,7 @@ log4cpp_config::log4cpp_config(const log4cpp_config &other) {
 
 log4cpp_config::log4cpp_config(log4cpp_config &&other) noexcept {
 	this->pattern = std::move(other.pattern);
+	log_pattern::set_pattern(this->pattern);
 	this->output = std::move(other.output);
 	this->loggers = std::move(other.loggers);
 	this->root_logger = std::move(other.root_logger);
@@ -244,6 +248,7 @@ log4cpp_config::log4cpp_config(log4cpp_config &&other) noexcept {
 log4cpp_config &log4cpp_config::operator=(const log4cpp_config &other) {
 	if (this != &other) {
 		this->pattern = other.pattern;
+		log_pattern::set_pattern(this->pattern);
 		this->output = other.output;
 		this->loggers = other.loggers;
 		this->root_logger = other.root_logger;
@@ -254,6 +259,7 @@ log4cpp_config &log4cpp_config::operator=(const log4cpp_config &other) {
 log4cpp_config &log4cpp_config::operator=(log4cpp_config &&other) noexcept {
 	if (this != &other) {
 		this->pattern = std::move(other.pattern);
+		log_pattern::set_pattern(this->pattern);
 		this->output = std::move(other.output);
 		this->loggers = std::move(other.loggers);
 		this->root_logger = std::move(other.root_logger);

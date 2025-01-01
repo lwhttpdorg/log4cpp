@@ -137,9 +137,31 @@ int main() {
 #### a. 输出格式
 
 ```text
-# 年-月-日 时:分:秒 [线程名或ID]: [log级别] -- log正文
-year-mon-day hh:mm:ss [thread name@T${thread id}]: [log level] -- log message
+${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}
 ```
+
+解释:
+
+* `${yy}`: A two digit representation of a year. Examples: 99 or 03
+* `${yyyy}`: A full numeric representation of a year, at least 4 digits, with - for years BCE. Examples: -0055, 0787,
+  1999, 2003, 10191
+* `${M}`: Numeric representation of a month, without leading zeros. 1 through 12
+* `${MM}`: Numeric representation of a month, with leading zeros. 01 through 12
+* `${MMM}`: A short textual representation of a month, three letters. Jan through Dec
+* `${d}`: Day of the month without leading zeros. 1 to 31
+* `${dd}`: Day of the month, 2 digits with leading zeros. 01 to 31
+* `${h}`: 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem. Examples: AM
+  01 or PM 11
+* `${hh}`: 24-hour format of an hour with leading zeros. 00 through 23
+* `${m}`: Minutes without leading zeros. 1 to 59
+* `${mm}`: Minutes with leading zeros. 01 to 59
+* `${s}`: Seconds without leading zeros. 1 to 59
+* `${ss}`: Seconds with leading zeros. 01 to 59
+* `${TH}`: The name of the thread, if the name is empty, use thread id instead, e.g. T12345
+* `${\d+TH}`: The regular expression to match the thread id pattern, e.g. ${8TH}. max width is 16. if the name is empty,
+  use thread id instead, e.g. T12345
+* `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
+* `${W}`: Log content, Examples: hello world!
 
 其中:
 
@@ -172,64 +194,64 @@ namespace log4cpp {
 
 ```json
 {
-  // 输出格式, 暂未实现
-  "pattern": "${yyyy}-${mm}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}",
+  // 输出格式
+  "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}",
   // 输出器
   "logOutPut": {
-	// 控制台输出器
-	"consoleOutPut": {
-	  // 输出流，可以是stdout或stderr
-	  "outStream": "stdout"
-	},
-	// 文件输出器
-	"fileOutPut": {
-	  // 输出文件
-	  "filePath": "log/log4cpp.log",
-	  // 追加还是覆盖, 默认覆盖
-	  "append": false
-	},
-	// TCP输出器, 暂未实现
-	"tcpOutPut": {
-	  // 监听地址
-	  "localAddr": "172.0.0.1",
-	  // 监听端口
-	  "port": "9443"
-	},
-	// UDP输出器
-	"udpOutPut": {
-	  "localAddr": "172.0.0.1",
-	  "port": "9443"
-	}
+    // 控制台输出器
+    "consoleOutPut": {
+      // 输出流，可以是stdout或stderr
+      "outStream": "stdout"
+    },
+    // 文件输出器
+    "fileOutPut": {
+      // 输出文件
+      "filePath": "log/log4cpp.log",
+      // 追加还是覆盖, 默认覆盖
+      "append": false
+    },
+    // TCP输出器, 暂未实现
+    "tcpOutPut": {
+      // 监听地址
+      "localAddr": "172.0.0.1",
+      // 监听端口
+      "port": "9443"
+    },
+    // UDP输出器
+    "udpOutPut": {
+      "localAddr": "172.0.0.1",
+      "port": "9443"
+    }
   },
   "loggers": [
-	{
-	  // logger名称
-	  "name": "consoleLogger",
-	  // log级别
-	  "logLevel": "info",
-	  // 使能的输出器
-	  "logOutPuts": [
-		"consoleOutPut"
-	  ]
-	},
-	{
-	  "name": "recordLogger",
-	  "logLevel": "error",
-	  "logOutPuts": [
-		"fileOutPut",
-		"tcpOutPut",
-		"udpOutPut"
-	  ]
-	}
+    {
+      // logger名称
+      "name": "consoleLogger",
+      // log级别
+      "logLevel": "info",
+      // 使能的输出器
+      "logOutPuts": [
+        "consoleOutPut"
+      ]
+    },
+    {
+      "name": "recordLogger",
+      "logLevel": "error",
+      "logOutPuts": [
+        "fileOutPut",
+        "tcpOutPut",
+        "udpOutPut"
+      ]
+    }
   ],
   // 默认logger
   "rootLogger": {
-	"logLevel": "info",
-	"logOutPuts": [
-	  "fileOutPut",
-	  "tcpOutPut",
-	  "udpOutPut"
-	]
+    "logLevel": "info",
+    "logOutPuts": [
+      "fileOutPut",
+      "tcpOutPut",
+      "udpOutPut"
+    ]
   }
 }
 ```

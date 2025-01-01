@@ -6,6 +6,7 @@
 
 #include "log4cpp.hpp"
 #include "log_lock.h"
+#include "log_pattern.h"
 
 #define CONSOLE_OUTPUT_NAME  "consoleOutPut"
 #define FILE_OUTPUT_NAME     "fileOutPut"
@@ -13,12 +14,8 @@
 #define UDP_OUTPUT_NAME      "udpOutPut"
 
 namespace log4cpp {
-	constexpr unsigned short LOG_LINE_MAX = 512;
-
 	class log_output {
 	public:
-		static size_t build_prefix(log_level level, char *__restrict buf, size_t len);
-
 		virtual void log(log_level level, const char *__restrict fmt, va_list args) = 0;
 
 		virtual void log(log_level level, const char *__restrict fmt, ...) = 0;

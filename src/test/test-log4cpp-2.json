@@ -1,5 +1,5 @@
 {
-  "pattern": "${yyyy}-${mm}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}",
+  "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}",
   "logOutPut": {
     "consoleOutPut": {
       "outStream": "stdout"

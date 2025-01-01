@@ -42,7 +42,6 @@
 
 #include "log4cpp.hpp"
 #include "file_output.h"
-#include "main/log_utils.h"
 
 
 using namespace log4cpp;
@@ -113,30 +112,21 @@ file_output::~file_output() {
 
 void file_output::log(log_level level, const char *fmt, va_list args) {
 	char buffer[LOG_LINE_MAX];
-	size_t used_len = 0, buf_len = sizeof(buffer);
 	buffer[0] = '\0';
-	used_len += build_prefix(level, buffer, buf_len);
-	used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
-	used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
+	size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt, args);
 	singleton_log_lock &lock = singleton_log_lock::get_instance();
 	lock.lock();
-	(void)write(this->fd, buffer, used_len);
+	(void) write(this->fd, buffer, used_len);
 	lock.unlock();
 }
 
 void file_output::log(log_level level, const char *fmt, ...) {
 	char buffer[LOG_LINE_MAX];
-	size_t used_len = 0, buf_len = sizeof(buffer);
 	buffer[0] = '\0';
-	used_len += build_prefix(level, buffer, buf_len);
-	va_list args;
-	va_start(args, fmt);
-	used_len += log4c_vscnprintf(buffer + used_len, buf_len - used_len, fmt, args);
-	va_end(args);
-	used_len += log4c_scnprintf(buffer + used_len, buf_len - used_len, "\n");
+	size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt);
 	singleton_log_lock &lock = singleton_log_lock::get_instance();
 	lock.lock();
-	(void)write(this->fd, buffer, used_len);
+	(void) write(this->fd, buffer, used_len);
 	lock.unlock();
 }
 

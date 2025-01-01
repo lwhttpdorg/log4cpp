@@ -27,8 +27,7 @@ DWORD WINAPI thread_routine(LPVOID lpParam)
 
 #include "log4cpp.hpp"
 
-void *thread_routine(void *)
-{
+void *thread_routine(void *) {
 	pthread_setname_np(pthread_self(), "child");
 	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
 	logger->trace("Child: this is a trace 0x%x", pthread_self());
@@ -42,11 +41,7 @@ void *thread_routine(void *)
 
 #endif
 
-int main()
-{
-	log4cpp::pattern p("${yyyy}-${MM}-${dd} %{hh}:${mm}:${ss} [${t}]: [${l}] -- ${M}");
-	const std::string a = p.format("hello", log4cpp::log_level::TRACE, "hello world");
-	std::cout<<a<<std::endl;
+int main() {
 #ifdef _MSC_VER
 	DWORD thread_id;
 	HANDLE handle = CreateThread(nullptr, 0, thread_routine, nullptr, 0, &thread_id);
