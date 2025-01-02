@@ -1,5 +1,11 @@
 # log4cpp
 
+---
+
+中文版本 | [English](README.md)
+
+---
+
 ## 1. 简述
 
 log4cpp是一个简单的C++日志库, 支持多线程, 支持自定义输出格式, 支持配置文件, 支持控制台, 文件, TCP, UDP输出
@@ -241,8 +247,7 @@ log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
 #include "log4cpp.hpp"
 ```
 
-然后获取logger实例. 通过`name`获取配置的`"name": "consoleLogger"`logger, 如果不存在指定的logger,
-则返回默认的`rootLogger`
+然后获取logger实例. 通过`name`获取配置logger, 如果不存在指定的logger, 则返回默认的`rootLogger`
 
 ```c++
 std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");

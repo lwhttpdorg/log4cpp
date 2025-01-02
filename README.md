@@ -1,18 +1,25 @@
 # log4cpp
 
-## 1. 简述
+---
 
-log4cpp是一个简单的C++日志库, 支持多线程, 支持自定义输出格式, 支持配置文件, 支持控制台, 文件, TCP, UDP输出
+[中文版本](README_ZH.md) | English
 
-## 2. 要求
+---
 
-1. 支持C++17及以上的C++编译器
-2. CMake 3.11及以上版本
+## 1. Description
+
+log4cpp is a simple C++ log library that supports multithreading, custom output format, configuration files, console,
+file, TCP, and UDP output
+
+## 2. Requirements
+
+1. C++ compiler that supports C++17 and above
+2. CMake 3.11 and above
 3. Boost >= 1.75
 
-## 3. 使用
+## 3. Usage
 
-### 3.1 在CMake项目中使用
+### 3.1 Use in CMake projects
 
 ````cmake
 include(FetchContent)
@@ -23,9 +30,9 @@ FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 ````
 
-### 3.2 配置文件
+### 3.2 Configuration file
 
-#### 3.2.1 配置输出格式
+#### 3.2.1 Configure output format
 
 ```json
 {
@@ -33,7 +40,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 }
 ```
 
-解释:
+explain:
 
 * `${yy}`: A two digit representation of a year. Examples: 99 or 03
 * `${yyyy}`: A full numeric representation of a year, at least 4 digits, with - for years BCE. Examples: -0055, 0787,
@@ -57,13 +64,14 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 * `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 * `${W}`: Log content, Examples: hello world!
 
-_注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度为16. 某些系统无法设置线程名, 只能通过线程ID区分多线程_
+_Warning: Some systems cannot set thread names, and only multiple threads can be distinguished by thread ID_
 
-#### 3.2.2 配置输出器
+#### 3.2.2 Configure output
 
-配置输出器有四种类型: 控制台输出器(consoleOutPut), 文件输出器(fileOutPut), TCP输出器(tcpOutPut), UDP输出器(udpOutPut)
+There are four types of configured output: console output(consoleOutPut), file output(fileOutPut), TCP output(
+tcpOutPut), UDP output(udpOutPut)
 
-一个简单的配置文件示例:
+A simple configuration file example:
 
 ```json
 {
@@ -87,9 +95,9 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 }
 ```
 
-#### 3.2.3 控制台输出器
+#### 3.2.3 Console Output
 
-控制台输出器的作用是将日志输出到STDOUT或STDERR. 典型配置如下:
+The function of the console output is to output logs to STDOUT or STDERR. Typical configuration is as follows:
 
 ```json
 {
@@ -101,13 +109,13 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 }
 ```
 
-解释:
+Explanation:
 
-* `outStream`: 输出流, 可以是stdout或stderr
+* `outStream`: output stream, can be stdout or stderr
 
-#### 3.2.4 文件输出器
+#### 3.2.4 File Output
 
-文件输出器的作用是将日志输出到指定文件. 典型配置如下:
+The function of the file output is to output logs to a specified file. Typical configuration is as follows:
 
 ```json
 {
@@ -120,14 +128,15 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 }
 ```
 
-解释:
+Explanation:
 
-* `filePath`: 输出文件名
-* `append`: 追加还是覆盖, 默认追加(true)
+* `filePath`: output file name
+* `append`: append or overwrite, Default append (true)
 
-#### 3.2.5 TCP输出器
+#### 3.2.5 TCP exporter
 
-TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出到连接的客户端, 用于输出日志到远程设备. 典型配置如下:
+The TCP exporter will start a TCP server inside, accept TCP connections, and output logs to the connected client, which
+is used to output logs to remote devices. The typical configuration is as follows:
 
 ```json
 {
@@ -140,26 +149,30 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 }
 ```
 
-解释:
+Explanation:
 
-* `localAddr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
-* `port`: 监听端口
+* `localAddr`: Listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
+* `port`: Listening port
 
-_注意: 如果有多个TCP客户端, 会便利所有客户端逐个发送日志_
+_Note: If there are multiple TCP clients, it will be convenient for all clients to send logs one by one_
 
-_注意: 日志为明文传输, 注意隐私和安全问题. 后续不会支持加密传输, 如果需要加密建议先将日志加密后再传递个log4cpp_
+_Note: Logs are transmitted in plain text, pay attention to privacy and security issues. Encrypted transmission will not
+be supported in the future. If encryption is required, it is recommended to encrypt the logs before passing them to
+log4cpp_
 
-#### 3.2.6 UDP输出器
+#### 3.2.6 UDP exporter
 
-UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户端, 用于输出日志到远程设备
+A UDP server will be started inside the UDP exporter to export logs to the connected client, which is used to export
+logs to remote devices
 
-与TCP输出器不同, UDP是无连接的, 需要注意:
+Unlike the TCP exporter, UDP is connectionless. Please note:
 
-* UDP是无连接的, 无法保证日志的完整性
-* 需要客户端主动发送"hello"消息, 以便服务器获取客户端地址, 以便发送日志
-* 客户端退出时需要发送"goodbye"消息, 以便服务器清理客户端地址, 否则客户端地址会一直保留直到因为日志发送失败而清理或程序退出
+* UDP is connectionless and cannot guarantee the integrity of the log
+* The client needs to actively send a "hello" message so that the server can obtain the client address and send logs
+* When the client exits, it needs to send a "goodbye" message so that the server can clean up the client address.
+  Otherwise, the client address will be retained until it is cleaned up due to log sending failure or program exit
 
-典型配置如下:
+The typical configuration is as follows:
 
 ```json
 {
@@ -172,24 +185,26 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 }
 ```
 
-解释:
+Explanation:
 
-* `localAddr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
-* `port`: 监听端口
+* `localAddr`: listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
+* `port`: listening port
 
-### 3.3 配置logger
+### 3.3 Configure logger
 
-logger分为命名logger(配置名`loggers`)和默认logger(配置名`rootLogger`), getLogger时如果没有指定名称的logger, 则返回默认logger
+Loggers are divided into named loggers (configuration name `loggers`) and default loggers (configuration
+name `rootLogger`). If there is no logger with a specified name when getLogger, the default logger is returned
 
-_注意: 命名logger可以没有, 但是默认logger必须有_
+_Note: named loggers can be absent, but default loggers must be present_
 
-命名logger是一个数组, 每个logger配置包括:
+Named loggers are an array, and each logger configuration includes:
 
-* `name`: logger名称, 用于获取logger, 不能重复, 不能是`root`
-* `logLevel`: log级别, 只有大于等于此级别的log才会输出
-* `logOutPuts`: 输出器, 只有配置的输出器才会输出. 输出器可以是`consoleOutPut`, `fileOutPut`, `tcpOutPut`, `udpOutPut`
+* `name`: logger name, used to get loggers, cannot be repeated, cannot be `root`
+* `logLevel`: log level, only logs greater than or equal to this level will be output
+* `logOutPuts`: output device, only configured output devices will be output. Output devices can
+  be `consoleOutPut`, `fileOutPut`, `tcpOutPut`, `udpOutPut`
 
-默认logger是一个对象, 只有`logLevel`和`logOutPuts`, 没有`name`, 内部实现`name`为`root`
+Default logger is an object, only `logLevel` and `logOutPuts`, no `name`, internal implementation of `name` is `root`
 
 ```json
 {
@@ -222,33 +237,36 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 }
 ```
 
-### 3.4 加载配置文件
+### 3.4 Loading configuration files
 
-配置文件有两种加载方式:
+There are two ways to load configuration files:
 
-1. 如果当前路径下存在`log4cpp.json`, 会自动加载此配置文件
-2. 如果配置文件不在当前路径下, 或者文件名不是`log4cpp.json`, 需要手动加载配置文件
+1. If `log4cpp.json` exists in the current path, this configuration file will be automatically loaded
+
+2. If the configuration file is not in the current path, or the file name is not `log4cpp.json`, Need to load the
+   configuration file manually
 
 ```c++
 log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
 ```
 
-### 3.5 在代码中使用
+### 3.5 Use in code
 
-首先需要引入头文件:
+First, you need to import the header file:
 
 ```c++
 #include "log4cpp.hpp"
+
 ```
 
-然后获取logger实例. 通过`name`获取配置的`"name": "consoleLogger"`logger, 如果不存在指定的logger,
-则返回默认的`rootLogger`
+Then get the logger instance. Get the logger through `name`. If the specified logger does not exist, then return the
+default `rootLogger`
 
 ```c++
 std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
 ```
 
-获取logger后, 可以使用下面的方法输出log:
+After getting the logger, you can use the following method to output the log:
 
 ```c++
 void trace(const char *__restrict fmt, ...);
@@ -259,13 +277,13 @@ void error(const char *__restrict fmt, ...);
 void fatal(const char *__restrict fmt, ...);
 ```
 
-上面的方法内部调用了下面的方法, 也可以直接调用下面的方法:
+The above method calls the following method internally, or you can call the following method directly:
 
 ```c++
 void log(log_level level, const char *fmt, ...);
 ```
 
-其中log级别`log_level level`的定义如下:
+The log level `log_level The definition of level` is as follows:
 
 ```c++
 namespace log4cpp {
@@ -275,16 +293,16 @@ namespace log4cpp {
 }
 ```
 
-解释:
+Explanation:
 
-* `FATAL`: 致命错误
-* `ERROR`: 错误
-* `WARN`: 警告
-* `INFO`: 信息
-* `DEBUG`: 调试
-* `TRACE`: 跟踪
+* `FATAL`: fatal error
+* `ERROR`: error
+* `WARN`: warning
+* `INFO`: information
+* `DEBUG`: debugging
+* `TRACE`: tracing
 
-### 3.6 完整示例
+### 3.6 Complete example
 
 ```c++
 #include <thread>
@@ -325,7 +343,7 @@ int main() {
 }
 ```
 
-CMakeLists.txt示例:
+CMakeLists.txt example:
 
 ```cmake
 set(TARGET_NAME demo)
@@ -341,11 +359,11 @@ FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(${TARGET_NAME} log4cpp)
 
 if (CMAKE_HOST_UNIX)
-  target_link_libraries(demo pthread)
+    target_link_libraries(demo pthread)
 endif ()
 ```
 
-输出log示例:
+Output log example:
 
 ```shell
 2025-01-02 22:53:04:329 [    main] [INFO ] -- this is a info
@@ -356,9 +374,9 @@ endif ()
 2025-01-02 22:53:04:329 [    main] [FATAL] -- this is a fatal
 ```
 
-配置文件实例:
+Configuration file example:
 
-[参考配置文件示例](demo/log4cpp.json)
+[Reference configuration file example](demo/log4cpp.json)
 
 ```json
 {
@@ -412,14 +430,15 @@ endif ()
 }
 ```
 
-### 3.7 贡献
+### 3.7 Contribution
 
-欢迎提交PR, 再提交PR之前有些事项需了解:
+Welcome to submit PR. There are some things to know before submitting PR:
 
-#### 3.7.1 boost库
+#### 3.7.1 boost library
 
-本项目从github在线拉去boost库, 你也可以修改[CMakeLists.txt](src/main/CMakeLists.txt)使用本地boost库,
-取消对应位置的注释即可:
+This project pulls the boost library from github online. You can also modify [CMakeLists.txt](src/main/CMakeLists.txt)to
+use the local boost library.
+Uncomment the corresponding position:
 
 ```cmake
 #find_package(Boost 1.75 REQUIRED COMPONENTS json)
@@ -434,42 +453,44 @@ endif ()
 #endif ()
 ```
 
-如果CMake没有自动找到Boost路径, 可以手动设置Boost路径:
+If CMake does not automatically find the Boost path, you can manually set the Boost path:
 
 ```cmake
 if (CMAKE_HOST_WIN32)
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-  endif ()
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+    endif ()
 else ()
-  set(BOOST_ROOT "/usr/local/boost")
+    set(BOOST_ROOT "/usr/local/boost")
 endif ()
 ```
 
-#### 3.7.2 CMake编译选项
+#### 3.7.2 CMake compile options
 
 ```shell
 $ cmake -S . -B build -DENABLE_DEMO=ON
 ```
 
-选项说明:
+Option description:
 
-* `-DENABLE_DEMO=ON`: 编译demo, 默认不编译
-* `-DENABLE_TEST=ON`: 编译测试, 默认不开启
-* `-DENABLE_ASAN=ON`: 开启地址检测, 默认不开启
+* `-DENABLE_DEMO=ON`: compile demo, not compiled by default
+* `-DENABLE_TEST=ON`: compile test, not enabled by default
+* `-DENABLE_ASAN=ON`: enable address detection, not enabled by default
 
-#### 3.7.3 测试
+#### 3.7.3 Test
 
-本项目使用Google Test进行单元测试, 测试代码在[test](src/test)目录下, 欢迎补充测试用例
+This project uses Google Test for unit testing. The test code is in the [test](src/test) directory. You are welcome to
+add test cases
 
-如果你的代码修改了现有功能, 请确保测试用例覆盖到你的修改
+If your code modifies existing functions, Please make sure that the test cases cover your changes
 
 #### 3.7.4 ASAN
 
-如果你的代码修改了现有功能, 请确保ASAN检测通过, 未经ASAN检测通过的代码不会合并
+If your code modifies existing functions, please make sure that the ASAN test passes. Code that does not pass the ASAN
+test will not be merged
 
-## 4. 许可
+## 4. License
 
-本项目使用[GPLv3](LICENSE)许可
+This project uses the [GPLv3] (LICENSE) license
