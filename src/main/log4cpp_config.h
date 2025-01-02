@@ -23,8 +23,8 @@ namespace log4cpp {
 		unsigned char OUT_FLAGS{};
 		console_output_config console_cfg;
 		file_output_config file_cfg;
-		//tcp_output_config tcp_cfg;
-		//udp_output_config udp_cfg;
+		tcp_output_config tcp_cfg;
+		udp_output_config udp_cfg;
 	};
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, output_config const &obj);

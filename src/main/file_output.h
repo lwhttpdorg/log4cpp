@@ -3,6 +3,26 @@
 #include "main/log_output.h"
 
 namespace log4cpp {
+	class file_output;
+
+	class file_output_config {
+	public:
+		static std::shared_ptr<file_output> get_instance(const file_output_config &config);
+
+		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, file_output_config const &obj);
+
+		friend file_output_config
+		tag_invoke(boost::json::value_to_tag<file_output_config>, boost::json::value const &json);
+
+	public:
+		std::string file_path;
+		bool append;
+	};
+
+	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, file_output_config const &obj);
+
+	file_output_config tag_invoke(boost::json::value_to_tag<file_output_config>, boost::json::value const &json);
+
 	class file_output : public log_output {
 	public:
 		class builder {
@@ -16,8 +36,7 @@ namespace log4cpp {
 			static builder new_builder();
 
 		private:
-			bool _append;
-			std::string log_file;
+			file_output_config config;
 			std::shared_ptr<file_output> instance{nullptr};
 		};
 
@@ -42,22 +61,4 @@ namespace log4cpp {
 	private:
 		int fd{-1};
 	};
-
-	class file_output_config {
-	public:
-		static std::shared_ptr<file_output> get_instance(const file_output_config &config);
-
-		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, file_output_config const &obj);
-
-		friend file_output_config
-		tag_invoke(boost::json::value_to_tag<file_output_config>, boost::json::value const &json);
-
-	private:
-		std::string file_path;
-		bool append;
-	};
-
-	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, file_output_config const &obj);
-
-	file_output_config tag_invoke(boost::json::value_to_tag<file_output_config>, boost::json::value const &json);
 }

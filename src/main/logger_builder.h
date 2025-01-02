@@ -19,6 +19,10 @@ namespace log4cpp {
 
 			builder &set_file_output(const std::shared_ptr<log_output> &output);
 
+			builder &set_tcp_output(const std::shared_ptr<log_output> &output);
+
+			builder &set_udp_output(const std::shared_ptr<log_output> &output);
+
 			logger *build();
 
 		private:

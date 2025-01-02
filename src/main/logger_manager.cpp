@@ -20,6 +20,8 @@ bool logger_manager::initialized = false;
 log4cpp_config logger_manager::config;
 std::shared_ptr<log_output> logger_manager::console_out = nullptr;
 std::shared_ptr<log_output>logger_manager::file_out = nullptr;
+std::shared_ptr<log_output>logger_manager::tcp_out = nullptr;
+std::shared_ptr<log_output>logger_manager::udp_out = nullptr;
 std::unordered_map<std::string, std::shared_ptr<logger>> logger_manager::loggers;
 std::shared_ptr<logger> logger_manager::root_logger = nullptr;
 
@@ -72,10 +74,18 @@ void logger_manager::build_output() {
 		logger_manager::file_out = std::shared_ptr<log_output>(
 				log4cpp::file_output_config::get_instance(output_cfg.file_cfg));
 	}
+	if (output_cfg.OUT_FLAGS & TCP_OUT_CFG) {
+		logger_manager::tcp_out = std::shared_ptr<log_output>(
+				log4cpp::tcp_output_config::get_instance(output_cfg.tcp_cfg));
+	}
+	if (output_cfg.OUT_FLAGS & UDP_OUT_CFG) {
+		logger_manager::udp_out = std::shared_ptr<log_output>(
+				log4cpp::udp_output_config::get_instance(output_cfg.udp_cfg));
+	}
 }
 
 void logger_manager::build_logger() {
-	for (auto &x:logger_manager::config.loggers) {
+	for (auto &x: logger_manager::config.loggers) {
 		logger_builder::builder builder = logger_builder::new_builder();
 		builder.set_name(x.get_logger_name());
 		builder.set_log_level(x.get_logger_level());
@@ -91,6 +101,18 @@ void logger_manager::build_logger() {
 		}
 		else {
 			builder.set_file_output(nullptr);
+		}
+		if ((flags & TCP_OUT_CFG) != 0) {
+			builder.set_tcp_output(logger_manager::tcp_out);
+		}
+		else {
+			builder.set_tcp_output(nullptr);
+		}
+		if ((flags & UDP_OUT_CFG) != 0) {
+			builder.set_udp_output(logger_manager::udp_out);
+		}
+		else {
+			builder.set_udp_output(nullptr);
 		}
 		logger *tmp_logger = builder.build();
 		logger_manager::loggers[x.get_logger_name()] = std::shared_ptr<logger>(tmp_logger);
@@ -114,6 +136,18 @@ void logger_manager::build_root_logger() {
 	}
 	else {
 		builder.set_file_output(nullptr);
+	}
+	if ((flags & TCP_OUT_CFG) != 0) {
+		builder.set_tcp_output(logger_manager::tcp_out);
+	}
+	else {
+		builder.set_tcp_output(nullptr);
+	}
+	if ((flags & UDP_OUT_CFG) != 0) {
+		builder.set_udp_output(logger_manager::udp_out);
+	}
+	else {
+		builder.set_udp_output(nullptr);
 	}
 	logger_manager::root_logger = std::shared_ptr<logger>(builder.build());
 }

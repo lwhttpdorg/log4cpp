@@ -341,7 +341,7 @@ FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(${TARGET_NAME} log4cpp)
 
 if (CMAKE_HOST_UNIX)
-  target_link_libraries(demo pthread)
+    target_link_libraries(demo pthread)
 endif ()
 ```
 
@@ -438,13 +438,13 @@ endif ()
 
 ```cmake
 if (CMAKE_HOST_WIN32)
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-  endif ()
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+    endif ()
 else ()
-  set(BOOST_ROOT "/usr/local/boost")
+    set(BOOST_ROOT "/usr/local/boost")
 endif ()
 ```
 

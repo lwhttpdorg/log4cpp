@@ -71,6 +71,7 @@ namespace log4cpp {
 	const char *FULL_MINUTES = "${mm}"; // Minutes with leading zeros. 01 to 59
 	const char *SHORT_SECOND = "${s}";  // Seconds without leading zeros. 1 to 59
 	const char *FULL_SECOND = "${ss}";  // Seconds with leading zeros. 01 to 59
+	const char *MILLISECOND = "${ms}";  // Milliseconds with leading zeros. 001 to 999
 	const char *THREAD_ID = "${TH}";    // The name of the thread, if the name is empty, use thread id instead, e.g. T12345
 	// The regular expression to match the thread id pattern, e.g. ${8TH}. max width is 16. if the name is empty, use thread id instead, e.g. T12345
 	const std::regex THREAD_ID_REGEX(R"(\$\{\d+TH\})");
@@ -78,70 +79,76 @@ namespace log4cpp {
 	const char *LOG_CONTENT = "${W}"; // Log content, Examples: hello world!
 
 	size_t log_pattern::format_with_pattern(char *buf, size_t len, log4cpp::log_level level, const char *msg) {
-		std::chrono::system_clock::time_point clock_now = std::chrono::system_clock::now();
-		std::time_t tm_now = std::chrono::system_clock::to_time_t(clock_now);
-		tm *local = localtime(&tm_now);
+		auto now = std::chrono::system_clock::now();
+		auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+		std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+		tm *now_tm = std::localtime(&now_time_t);
 		log4c_scnprintf(buf, len, "%s", log4cpp::log_pattern::_pattern.c_str());
 		if (log4cpp::log_pattern::_pattern.find(SHORT_YEAR) != std::string::npos) {
 			char year[3];
-			log4c_scnprintf(year, 3, "%02d", local->tm_year % 100);
+			log4c_scnprintf(year, 3, "%02d", now_tm->tm_year % 100);
 			replace(buf, len, SHORT_YEAR, year);
 		}
 		if (log4cpp::log_pattern::_pattern.find(FULL_YEAR) != std::string::npos) {
 			char year[5];
-			log4c_scnprintf(year, 5, "%04d", 1900 + local->tm_year);
+			log4c_scnprintf(year, 5, "%04d", 1900 + now_tm->tm_year);
 			replace(buf, len, FULL_YEAR, year);
 		}
 		if (log4cpp::log_pattern::_pattern.find(SHORT_MONTH) != std::string::npos) {
 			char month[3];
-			log4c_scnprintf(month, 3, "%02d", local->tm_mon + 1);
+			log4c_scnprintf(month, 3, "%02d", now_tm->tm_mon + 1);
 			replace(buf, len, SHORT_MONTH, month);
 		}
 		if (log4cpp::log_pattern::_pattern.find(FULL_MONTH) != std::string::npos) {
 			char month[3];
-			log4c_scnprintf(month, 3, "%02d", local->tm_mon + 1);
+			log4c_scnprintf(month, 3, "%02d", now_tm->tm_mon + 1);
 			replace(buf, len, FULL_MONTH, month);
 		}
 		if (log4cpp::log_pattern::_pattern.find(ABBR_MONTH) != std::string::npos) {
-			replace(buf, len, ABBR_MONTH, MONTH_NAME[local->tm_mon]);
+			replace(buf, len, ABBR_MONTH, MONTH_NAME[now_tm->tm_mon]);
 		}
 		if (log4cpp::log_pattern::_pattern.find(SHORT_DAY) != std::string::npos) {
 			char day[3];
-			log4c_scnprintf(day, 3, "%02d", local->tm_mday);
+			log4c_scnprintf(day, 3, "%02d", now_tm->tm_mday);
 			replace(buf, len, SHORT_DAY, day);
 		}
 		if (log4cpp::log_pattern::_pattern.find(FULL_DAY) != std::string::npos) {
 			char day[3];
-			log4c_scnprintf(day, 3, "%02d", local->tm_mday);
+			log4c_scnprintf(day, 3, "%02d", now_tm->tm_mday);
 			replace(buf, len, FULL_DAY, day);
 		}
 		if (log4cpp::log_pattern::_pattern.find(SHORT_HOUR) != std::string::npos) {
-			replace(buf, len, SHORT_HOUR, (local->tm_hour < 12) ? "AM" : "PM");
+			replace(buf, len, SHORT_HOUR, (now_tm->tm_hour < 12) ? "AM" : "PM");
 		}
 		if (log4cpp::log_pattern::_pattern.find(FULL_HOUR) != std::string::npos) {
 			char hour[3];
-			log4c_scnprintf(hour, 3, "%02d", local->tm_hour);
+			log4c_scnprintf(hour, 3, "%02d", now_tm->tm_hour);
 			replace(buf, len, FULL_HOUR, hour);
 		}
 		if (log4cpp::log_pattern::_pattern.find(SHORT_MINUTES) != std::string::npos) {
 			char minutes[3];
-			log4c_scnprintf(minutes, 3, "%02d", local->tm_min);
+			log4c_scnprintf(minutes, 3, "%02d", now_tm->tm_min);
 			replace(buf, len, SHORT_MINUTES, minutes);
 		}
 		if (log4cpp::log_pattern::_pattern.find(FULL_MINUTES) != std::string::npos) {
 			char minutes[3];
-			log4c_scnprintf(minutes, 3, "%02d", local->tm_min);
+			log4c_scnprintf(minutes, 3, "%02d", now_tm->tm_min);
 			replace(buf, len, FULL_MINUTES, minutes);
 		}
 		if (log4cpp::log_pattern::_pattern.find(SHORT_SECOND) != std::string::npos) {
 			char seconds[3];
-			log4c_scnprintf(seconds, 3, "%02d", local->tm_sec);
+			log4c_scnprintf(seconds, 3, "%02d", now_tm->tm_sec);
 			replace(buf, len, SHORT_SECOND, seconds);
 		}
 		if (log4cpp::log_pattern::_pattern.find(FULL_SECOND) != std::string::npos) {
 			char seconds[3];
-			log4c_scnprintf(seconds, 3, "%02d", local->tm_sec);
+			log4c_scnprintf(seconds, 3, "%02d", now_tm->tm_sec);
 			replace(buf, len, FULL_SECOND, seconds);
+		}
+		if (log4cpp::log_pattern::_pattern.find(MILLISECOND) != std::string::npos) {
+			char millisecond[4];
+			log4c_scnprintf(millisecond, 4, "%03d", static_cast<int>(now_ms.count()));
+			replace(buf, len, MILLISECOND, millisecond);
 		}
 		if (log4cpp::log_pattern::_pattern.find(THREAD_ID) != std::string::npos) {
 			char thread_name[THREAD_NAME_MAX_LEN];

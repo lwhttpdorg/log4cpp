@@ -6,6 +6,7 @@
 #include "log4cpp_config.h"
 #include "console_output.h"
 #include "file_output.h"
+#include "tcp_output.h"
 
 
 using namespace log4cpp;
@@ -27,6 +28,12 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 	if (obj.OUT_FLAGS & FILE_OUT_CFG) {
 		json.at(FILE_OUTPUT_NAME) = boost::json::value_from(obj.file_cfg);
 	}
+	if (obj.OUT_FLAGS & TCP_OUT_CFG) {
+		json.at(TCP_OUTPUT_NAME) = boost::json::value_from(obj.tcp_cfg);
+	}
+	if (obj.OUT_FLAGS & UDP_OUT_CFG) {
+		json.at(UDP_OUTPUT_NAME) = boost::json::value_from(obj.udp_cfg);
+	}
 }
 
 output_config log4cpp::tag_invoke(boost::json::value_to_tag<output_config>, boost::json::value const &json) {
@@ -39,6 +46,14 @@ output_config log4cpp::tag_invoke(boost::json::value_to_tag<output_config>, boos
 	if (json_obj.contains(FILE_OUTPUT_NAME)) {
 		output_cfg.file_cfg = boost::json::value_to<file_output_config>(json_obj.at(FILE_OUTPUT_NAME));
 		output_cfg.OUT_FLAGS |= FILE_OUT_CFG;
+	}
+	if (json_obj.contains(TCP_OUTPUT_NAME)) {
+		output_cfg.tcp_cfg = boost::json::value_to<tcp_output_config>(json_obj.at(TCP_OUTPUT_NAME));
+		output_cfg.OUT_FLAGS |= TCP_OUT_CFG;
+	}
+	if (json_obj.contains(UDP_OUTPUT_NAME)) {
+		output_cfg.udp_cfg = boost::json::value_to<udp_output_config>(json_obj.at(UDP_OUTPUT_NAME));
+		output_cfg.OUT_FLAGS |= UDP_OUT_CFG;
 	}
 	return output_cfg;
 }

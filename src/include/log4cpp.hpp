@@ -98,6 +98,8 @@ namespace log4cpp {
 		static log4cpp_config config;
 		static std::shared_ptr<log_output> console_out;
 		static std::shared_ptr<log_output> file_out;
+		static std::shared_ptr<log_output> tcp_out;
+		static std::shared_ptr<log_output> udp_out;
 		static std::unordered_map<std::string, std::shared_ptr<logger>> loggers;
 		static std::shared_ptr<logger> root_logger;
 	};

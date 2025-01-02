@@ -36,10 +36,20 @@ set(BOOST_ENABLE_PYTHON OFF)
 set(BOOST_ENABLE_MPI OFF)
 FetchContent_Declare(
         Boost
-        URL https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-cmake.zip
-        URL_HASH SHA256=b5486e7b75715d5b1b2ef405a4cc29506d1a432a64e8b1bb8028df57239e768d
+        URL https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-cmake.zip
+        URL_HASH SHA256=03530dec778bc1b85b070f0b077f3b01fd417133509bb19fe7c142e47777a87b
+        DOWNLOAD_EXTRACT_TIMESTAMP FALSE
 )
 FetchContent_MakeAvailable(Boost)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set_target_properties(boost_json PROPERTIES COMPILE_FLAGS "-g -O0")
+        set_target_properties(boost_algorithm PROPERTIES COMPILE_FLAGS "-g -O0")
+    endif ()
+else ()
+    set_target_properties(boost_json PROPERTIES COMPILE_FLAGS "-g -O2")
+    set_target_properties(boost_algorithm PROPERTIES COMPILE_FLAGS "-g -O2")
+endif ()
 target_link_libraries(${TARGET_NAME} Boost::json Boost::algorithm)
 
 if (CMAKE_HOST_WIN32)

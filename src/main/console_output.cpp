@@ -12,6 +12,8 @@
 
 #include "console_output.h"
 #include "main/log_utils.h"
+#include "udp_output.h"
+
 
 #ifdef _MSC_VER
 

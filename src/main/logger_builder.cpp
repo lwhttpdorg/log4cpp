@@ -48,6 +48,32 @@ logger_builder::builder &logger_builder::builder::set_file_output(const std::sha
 	return *this;
 }
 
+logger_builder::builder &logger_builder::builder::set_tcp_output(const std::shared_ptr<log_output> &output) {
+	if (output != nullptr) {
+		if (typeid(*output) != typeid(tcp_output)) {
+			std::string what = typeid(*output).name();
+			what += " not an instance of ";
+			what += typeid(tcp_output).name();
+			throw std::runtime_error(what);
+		}
+		this->log->outputs.push_back(output);
+	}
+	return *this;
+}
+
+logger_builder::builder &logger_builder::builder::set_udp_output(const std::shared_ptr<log_output> &output) {
+	if (output != nullptr) {
+		if (typeid(*output) != typeid(udp_output)) {
+			std::string what = typeid(*output).name();
+			what += " not an instance of ";
+			what += typeid(udp_output).name();
+			throw std::runtime_error(what);
+		}
+		this->log->outputs.push_back(output);
+	}
+	return *this;
+}
+
 logger *logger_builder::builder::build() {
 	return this->log;
 }

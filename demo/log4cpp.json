@@ -1,5 +1,5 @@
 {
-  "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}",
+  "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
   "logOutPut": {
     "consoleOutPut": {
       "outStream": "stdout"
@@ -9,12 +9,12 @@
       "append": true
     },
     "tcpOutPut": {
-      "localAddr": "172.0.0.1",
-      "port": "9443"
+      "localAddr": "0.0.0.0",
+      "port": 9443
     },
     "udpOutPut": {
-      "localAddr": "172.0.0.1",
-      "port": "9443"
+      "localAddr": "0.0.0.0",
+      "port": 9443
     }
   },
   "loggers": [
@@ -22,7 +22,9 @@
       "name": "consoleLogger",
       "logLevel": "info",
       "logOutPuts": [
-        "consoleOutPut"
+        "consoleOutPut",
+        "tcpOutPut",
+        "udpOutPut"
       ]
     },
     {

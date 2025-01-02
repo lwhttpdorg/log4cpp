@@ -50,7 +50,7 @@ file_output::builder &file_output::builder::set_file(const std::string &file) {
 	if (this->instance == nullptr) {
 		throw std::runtime_error("Call new_builder() first");
 	}
-	this->log_file = file;
+	this->config.file_path = file;
 	return *this;
 }
 
@@ -58,9 +58,9 @@ std::shared_ptr<file_output> file_output::builder::build() {
 	if (this->instance == nullptr) {
 		throw std::runtime_error("Call new_builder() first");
 	}
-	auto pos = this->log_file.find_last_of('/');
+	auto pos = this->config.file_path.find_last_of('/');
 	if (pos != std::string::npos) {
-		std::string path = this->log_file.substr(0, pos);
+		std::string path = this->config.file_path.substr(0, pos);
 		if (0 != access(path.c_str(), F_OK)) {
 #if defined(_MSC_VER) || defined(_WIN32)
 			(void)_mkdir(path.c_str());
@@ -71,7 +71,7 @@ std::shared_ptr<file_output> file_output::builder::build() {
 		}
 	}
 	int openFlags = O_RDWR | O_CREAT;
-	if (this->_append) {
+	if (this->config.append) {
 		openFlags |= O_APPEND;
 	}
 #if defined(_MSC_VER) || defined(_WIN32)
@@ -82,7 +82,7 @@ std::shared_ptr<file_output> file_output::builder::build() {
 	openFlags |= O_CLOEXEC;
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 #endif
-	this->instance->fd = open(this->log_file.c_str(), openFlags, mode);
+	this->instance->fd = open(this->config.file_path.c_str(), openFlags, mode);
 	if (this->instance->fd == -1) {
 		std::string what("Can not open log file, ");
 		what.append(strerror(errno));
@@ -95,12 +95,12 @@ std::shared_ptr<file_output> file_output::builder::build() {
 file_output::builder file_output::builder::new_builder() {
 	file_output::builder builder = file_output::builder{};
 	builder.instance = std::shared_ptr<file_output>(new file_output());
-	builder._append = true;
+	builder.config.append = true;
 	return builder;
 }
 
 file_output::builder &file_output::builder::set_append(bool append) {
-	this->_append = append;
+	this->config.append = append;
 	return *this;
 }
 
