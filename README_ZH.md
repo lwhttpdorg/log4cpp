@@ -342,7 +342,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 file(COPY ./log4cpp.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v2.0.1)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG 28fae1da9c93c47631818185d93f73407374e7d6)
 
 FetchContent_MakeAvailable(log4cpp)
 
