@@ -56,7 +56,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 * `${ss}`: 有补0的秒. 从01到59
 * `${ms}`: 有补0的毫米. 从001到999
 * `${TH}`: 线程名. 如果线程名为空, 使用"T+线程ID"代替, 如"main", "T12345"
-* `${\d+TH}`: 线程ID正则表达式, 如`${8TH}`. `\d+`为位数, 最大为16
+* `${\d+TH}`: 线程ID正则表达式, 如`${8TH}`. `\d+`为位数, 默认是8, 最大为16
 * `${L}`: 日志级别, 取值FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 * `${W}`: 日志正文, 如"hello world!"
 
@@ -71,21 +71,21 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 ```json
 {
   "logOutPut": {
-	"consoleOutPut": {
-	  "outStream": "stdout"
-	},
-	"fileOutPut": {
-	  "filePath": "log/log4cpp.log",
-	  "append": false
-	},
-	"tcpOutPut": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	},
-	"udpOutPut": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	}
+    "consoleOutPut": {
+      "outStream": "stdout"
+    },
+    "fileOutPut": {
+      "filePath": "log/log4cpp.log",
+      "append": false
+    },
+    "tcpOutPut": {
+      "localAddr": "0.0.0.0",
+      "port": 9443
+    },
+    "udpOutPut": {
+      "localAddr": "0.0.0.0",
+      "port": 9443
+    }
   }
 }
 ```
@@ -97,9 +97,9 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 ```json
 {
   "logOutPut": {
-	"consoleOutPut": {
-	  "outStream": "stdout"
-	}
+    "consoleOutPut": {
+      "outStream": "stdout"
+    }
   }
 }
 ```
@@ -115,10 +115,10 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 ```json
 {
   "logOutPut": {
-	"fileOutPut": {
-	  "filePath": "log/log4cpp.log",
-	  "append": true
-	}
+    "fileOutPut": {
+      "filePath": "log/log4cpp.log",
+      "append": true
+    }
   }
 }
 ```
@@ -135,10 +135,10 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 ```json
 {
   "logOutPut": {
-	"tcpOutPut": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	}
+    "tcpOutPut": {
+      "localAddr": "0.0.0.0",
+      "port": 9443
+    }
   }
 }
 ```
@@ -167,10 +167,10 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 ```json
 {
   "logOutPut": {
-	"udpOutPut": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	}
+    "udpOutPut": {
+      "localAddr": "0.0.0.0",
+      "port": 9443
+    }
   }
 }
 ```
@@ -197,30 +197,30 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 ```json
 {
   "loggers": [
-	{
-	  "name": "consoleLogger",
-	  "logLevel": "info",
-	  "logOutPuts": [
-		"consoleOutPut"
-	  ]
-	},
-	{
-	  "name": "recordLogger",
-	  "logLevel": "error",
-	  "logOutPuts": [
-		"fileOutPut",
-		"tcpOutPut",
-		"udpOutPut"
-	  ]
-	}
+    {
+      "name": "consoleLogger",
+      "logLevel": "info",
+      "logOutPuts": [
+        "consoleOutPut"
+      ]
+    },
+    {
+      "name": "recordLogger",
+      "logLevel": "error",
+      "logOutPuts": [
+        "fileOutPut",
+        "tcpOutPut",
+        "udpOutPut"
+      ]
+    }
   ],
   "rootLogger": {
-	"logLevel": "info",
-	"logOutPuts": [
-	  "fileOutPut",
-	  "tcpOutPut",
-	  "udpOutPut"
-	]
+    "logLevel": "info",
+    "logOutPuts": [
+      "fileOutPut",
+      "tcpOutPut",
+      "udpOutPut"
+    ]
   }
 }
 ```
@@ -366,50 +366,50 @@ endif ()
 {
   "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
   "logOutPut": {
-	"consoleOutPut": {
-	  "outStream": "stdout"
-	},
-	"fileOutPut": {
-	  "filePath": "log/log4cpp.log",
-	  "append": true
-	},
-	"tcpOutPut": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	},
-	"udpOutPut": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	}
+    "consoleOutPut": {
+      "outStream": "stdout"
+    },
+    "fileOutPut": {
+      "filePath": "log/log4cpp.log",
+      "append": true
+    },
+    "tcpOutPut": {
+      "localAddr": "0.0.0.0",
+      "port": 9443
+    },
+    "udpOutPut": {
+      "localAddr": "0.0.0.0",
+      "port": 9443
+    }
   },
   "loggers": [
-	{
-	  "name": "consoleLogger",
-	  "logLevel": "info",
-	  "logOutPuts": [
-		"consoleOutPut",
-		"tcpOutPut",
-		"udpOutPut"
-	  ]
-	},
-	{
-	  "name": "recordLogger",
-	  "logLevel": "error",
-	  "logOutPuts": [
-		"consoleOutPut",
-		"fileOutPut",
-		"tcpOutPut",
-		"udpOutPut"
-	  ]
-	}
+    {
+      "name": "consoleLogger",
+      "logLevel": "info",
+      "logOutPuts": [
+        "consoleOutPut",
+        "tcpOutPut",
+        "udpOutPut"
+      ]
+    },
+    {
+      "name": "recordLogger",
+      "logLevel": "error",
+      "logOutPuts": [
+        "consoleOutPut",
+        "fileOutPut",
+        "tcpOutPut",
+        "udpOutPut"
+      ]
+    }
   ],
   "rootLogger": {
-	"logLevel": "info",
-	"logOutPuts": [
-	  "fileOutPut",
-	  "tcpOutPut",
-	  "udpOutPut"
-	]
+    "logLevel": "info",
+    "logOutPuts": [
+      "fileOutPut",
+      "tcpOutPut",
+      "udpOutPut"
+    ]
   }
 }
 ```

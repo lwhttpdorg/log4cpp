@@ -8,6 +8,12 @@
 
 #endif
 
+#ifdef __linux
+
+#include <unistd.h>
+
+#endif
+
 namespace log4cpp::net {
 #if defined(_MSC_VER) || defined(_WIN32)
 	constexpr SOCKET INVALID_FD = INVALID_SOCKET;
@@ -24,6 +30,7 @@ namespace log4cpp::net {
 	inline void close_socket(socket_fd fd) {
 		close(fd);
 	}
+
 #endif
 
 #ifdef _WIN32
@@ -99,7 +106,7 @@ namespace std {
 				h = std::hash<unsigned int>{}(addr.ip.addr4);
 			}
 			else {
-				for (const auto x:addr.ip.addr6) {
+				for (const auto x: addr.ip.addr6) {
 					h ^= std::hash<unsigned int>{}(x);
 				}
 			}

@@ -59,7 +59,7 @@ Description:
 * `${ss}`: Seconds with leading zeros. 01 to 59
 * `${ms}`: Milliseconds with leading zeros. 001 to 999
 * `${TH}`: The name of the thread, if the name is empty, use "T+thread id" instead, e.g. "main", "T12345"
-* `${\d+TH}`: The regular expression to match the thread id pattern, e.g. ${8TH}. `\d+` is the digit width, max width is
+* `${\d+TH}`: The regular expression to match the thread id pattern, e.g. ${8TH}. `\d+` is the digit width, default is 8, max width is
   16
 * `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 * `${W}`: Log message, e.g. hello world!

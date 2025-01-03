@@ -29,9 +29,10 @@ namespace log4cpp {
 	const char *DEFAULT_PATTERN = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}";
 
 	constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
+	constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
 	constexpr std::array<const char *, 12> MONTH_NAME = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+			"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+			"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 	};
 
 	std::string log_pattern::_pattern = DEFAULT_PATTERN;
@@ -47,13 +48,12 @@ namespace log4cpp {
 		(void)len;
 		unsigned long tid = GetCurrentThreadId();
 #endif
-#ifdef __linux__
-		unsigned long tid = gettid();
-#endif
 
 #ifdef _PTHREAD_H
+		unsigned long tid = pthread_self();
 		pthread_getname_np(pthread_self(), thread_name, len);
 #elif __linux__
+		unsigned long tid = gettid();
 		(void)len;
 		prctl(PR_GET_NAME, reinterpret_cast<unsigned long>(thread_name));
 #endif
@@ -91,7 +91,7 @@ namespace log4cpp {
 	/* The name of the thread, if the name is empty, use thread id instead, e.g. T12345 */
 	const char *THREAD_ID = "${TH}";
 	// The regular expression to match the thread id pattern, e.g. ${8TH}. max width is 16. if the name is empty, use thread id instead, e.g. T12345
-	const std::regex THREAD_ID_REGEX(R"(\$\{\d+TH\})");
+	const std::regex THREAD_ID_REGEX(R"(\$\{\d{1,2}TH\})");
 	/* Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE */
 	const char *LOG_LEVEL = "${L}";
 	/* Log message, e.g.: hello world! */
@@ -172,32 +172,30 @@ namespace log4cpp {
 		if (_pattern.find(THREAD_ID) != std::string::npos) {
 			char thread_name[THREAD_NAME_MAX_LEN];
 			const unsigned long tid = get_thread_name_id(thread_name, sizeof(thread_name));
-			char thread_id[THREAD_NAME_MAX_LEN];
+			char thread_id[THREAD_NAME_MAX_LEN + 1];
 			thread_id[0] = '\0';
 			if (thread_name[0] != '\0') {
-				log4c_scnprintf(thread_id, THREAD_NAME_MAX_LEN, "T%s", thread_name);
+				log4c_scnprintf(thread_id, sizeof(thread_id), "%s", thread_name);
 			}
 			else {
-				log4c_scnprintf(thread_id, THREAD_NAME_MAX_LEN, "T%lu", tid);
+				log4c_scnprintf(thread_id, sizeof(thread_id), "T%0*u", THREAD_ID_WIDTH_MAX, tid);
 			}
 			replace(buf, len, THREAD_ID, thread_id);
 		}
 		if (std::smatch match; std::regex_search(_pattern, match, THREAD_ID_REGEX)) {
 			const std::string m = match[0];
 			const std::string num = m.substr(2, m.size() - 3);
-			const size_t width = std::stoul(num);
+			size_t width = std::stoul(num);
+			if (THREAD_NAME_MAX_LEN < width) {
+				width = THREAD_NAME_MAX_LEN;
+			}
 
 			char thread_name[THREAD_NAME_MAX_LEN];
 			const unsigned long tid = get_thread_name_id(thread_name, sizeof(thread_name));
 
-			char thread_id[THREAD_NAME_MAX_LEN];
+			char thread_id[THREAD_NAME_MAX_LEN + 1];
 			thread_id[0] = '\0';
-			if (thread_name[0] != '\0') {
-				log4c_scnprintf(thread_id, THREAD_NAME_MAX_LEN, "T%*.*s", width, width, thread_name);
-			}
-			else {
-				log4c_scnprintf(thread_id, THREAD_NAME_MAX_LEN, "T%0*u", width, tid);
-			}
+			log4c_scnprintf(thread_id, sizeof(thread_id), "T%0*u", width, tid);
 			replace(buf, len, m.c_str(), thread_id);
 		}
 		// replace ${L} with log level, log level fixed length is 5, align left, fill with space
@@ -212,8 +210,7 @@ namespace log4cpp {
 		return 0;
 	}
 
-	size_t log_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt,
-	                           const va_list args) {
+	size_t log_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, va_list args) {
 		char message[LOG_LINE_MAX];
 		message[0] = '\0';
 		log4c_vscnprintf(message, sizeof(message), fmt, args);
