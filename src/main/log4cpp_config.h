@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ostream>
 #include "../include/log4cpp.hpp"
 #include "console_output.h"
 #include "file_output.h"
@@ -8,7 +7,6 @@
 #include "udp_output.h"
 
 namespace log4cpp {
-
 	constexpr unsigned char CONSOLE_OUT_CFG = 0x01;
 	constexpr unsigned char FILE_OUT_CFG = 0x02;
 	constexpr unsigned char TCP_OUT_CFG = 0x04;
@@ -43,10 +41,16 @@ namespace log4cpp {
 
 		logger_config &operator=(logger_config &&other) noexcept;
 
+		/**
+		 * @brief Get the logger name
+		 * @return The logger name
+		 */
 		[[nodiscard]] std::string get_logger_name() const;
 
+		/* Get the logger level */
 		[[nodiscard]] log_level get_logger_level() const;
 
+		/* Get the output flags */
 		[[nodiscard]] unsigned char get_outputs() const;
 
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, logger_config const &obj);
@@ -54,8 +58,11 @@ namespace log4cpp {
 		friend logger_config tag_invoke(boost::json::value_to_tag<logger_config>, boost::json::value const &json);
 
 	private:
+		/* Logger name */
 		std::string name;
+		/* Logger level */
 		log_level level;
+		/* Output flags */
 		unsigned char _outputs{};
 	};
 
@@ -65,17 +72,29 @@ namespace log4cpp {
 
 	class log4cpp_config {
 	public:
+		/**
+		 * @brief Load the configuration from a JSON file
+		 * @param json_file The JSON file
+		 * @return The configuration
+		 */
+		[[nodiscard]]
 		static log4cpp_config load_config(const std::string &json_file);
 
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, log4cpp_config const &obj);
 
 		friend log4cpp_config tag_invoke(boost::json::value_to_tag<log4cpp_config>, boost::json::value const &json);
 
-		friend std::string serialize(log4cpp_config const &obj);
+		/**
+		 * @brief Serialize the configuration to a JSON string
+		 * @param obj The configuration
+		 * @return The JSON string
+		 */
+		static std::string serialize(const log4cpp_config &obj);
 
 		log4cpp_config() = default;
 
-		log4cpp_config(std::string _pattern, output_config &o, const std::vector<logger_config> &l, logger_config root);
+		log4cpp_config(std::string _pattern, const output_config &o, const std::vector<logger_config> &l,
+		               logger_config root);
 
 		log4cpp_config(const log4cpp_config &other);
 
@@ -88,15 +107,13 @@ namespace log4cpp {
 		friend class logger_manager;
 
 	private:
-		std::string pattern;   // pattern
-		output_config output{};  // logOutPut
+		std::string pattern; // pattern
+		output_config output{}; // logOutPut
 		std::vector<logger_config> loggers; // loggers
-		logger_config root_logger;          // rootLogger
+		logger_config root_logger; // rootLogger
 	};
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, log4cpp_config const &obj);
 
 	log4cpp_config tag_invoke(boost::json::value_to_tag<log4cpp_config>, boost::json::value const &json);
-
-	std::string serialize(log4cpp_config const &obj);
 }

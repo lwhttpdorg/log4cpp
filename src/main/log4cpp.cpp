@@ -2,14 +2,6 @@
 #define  _CRT_SECURE_NO_WARNINGS
 #endif
 
-#ifdef _WIN32
-
-#include <windows.h>
-
-#ifdef ERROR
-#undef ERROR
-#endif
-#endif
 
 #include <cstdarg>
 
@@ -18,8 +10,16 @@
 
 #include "../include/log4cpp.hpp"
 #include "log4cpp_config.h"
-#include "console_output.h"
 #include "file_output.h"
+
+#ifdef _WIN32
+
+#include <windows.h>
+
+#ifdef ERROR
+#undef ERROR
+#endif
+#endif
 
 using namespace log4cpp;
 
@@ -58,8 +58,7 @@ std::string log4cpp::to_string(log_level level) {
 
 log_level log4cpp::from_string(const std::string &s) {
 	log_level level;
-	auto tmp = boost::algorithm::to_upper_copy(s);
-	if (tmp == LOG_LEVEL_FATAL) {
+	if (const auto tmp = boost::algorithm::to_upper_copy(s); tmp == LOG_LEVEL_FATAL) {
 		level = log_level::FATAL;
 	}
 	else if (tmp == LOG_LEVEL_ERROR) {
@@ -83,7 +82,7 @@ log_level log4cpp::from_string(const std::string &s) {
 	return level;
 }
 
-/**************************log*****************************/
+/**************************logger*****************************/
 logger::logger() {
 	this->level = log_level::WARN;
 }
@@ -93,13 +92,13 @@ logger::logger(const std::string &log_name, log_level _level) {
 	this->level = _level;
 }
 
-void logger::log(log_level _level, const char *fmt, va_list args) {
+void logger::log(log_level _level, const char *fmt, va_list args) const {
 	for (auto &l:this->outputs) {
 		l->log(_level, fmt, args);
 	}
 }
 
-void logger::trace(const char *__restrict fmt, ...) {
+void logger::trace(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::TRACE) {
 		va_list args;
 		va_start(args, fmt);
@@ -108,7 +107,7 @@ void logger::trace(const char *__restrict fmt, ...) {
 	}
 }
 
-void logger::info(const char *__restrict fmt, ...) {
+void logger::info(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::INFO) {
 		va_list args;
 		va_start(args, fmt);
@@ -117,7 +116,7 @@ void logger::info(const char *__restrict fmt, ...) {
 	}
 }
 
-void logger::debug(const char *__restrict fmt, ...) {
+void logger::debug(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::DEBUG) {
 		va_list args;
 		va_start(args, fmt);
@@ -126,7 +125,7 @@ void logger::debug(const char *__restrict fmt, ...) {
 	}
 }
 
-void logger::warn(const char *__restrict fmt, ...) {
+void logger::warn(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::WARN) {
 		va_list args;
 		va_start(args, fmt);
@@ -135,7 +134,7 @@ void logger::warn(const char *__restrict fmt, ...) {
 	}
 }
 
-void logger::error(const char *__restrict fmt, ...) {
+void logger::error(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::ERROR) {
 		va_list args;
 		va_start(args, fmt);
@@ -144,7 +143,7 @@ void logger::error(const char *__restrict fmt, ...) {
 	}
 }
 
-void logger::fatal(const char *__restrict fmt, ...) {
+void logger::fatal(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::FATAL) {
 		va_list args;
 		va_start(args, fmt);

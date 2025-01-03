@@ -34,13 +34,13 @@ int stream_name_to_file_no(const std::string &out_stream) {
 	}
 	else {
 		throw std::invalid_argument(
-				"Invalid consoleOutPut outStream \"" + out_stream + "\", valid _name: stdout, stderr");
+			"Invalid consoleOutPut outStream \"" + out_stream + "\", valid _name: stdout, stderr");
 	}
 	return file_no;
 }
 
 console_output::builder console_output::builder::new_builder() {
-	return console_output::builder{};
+	return builder{};
 }
 
 console_output::builder &console_output::builder::set_out_stream(const std::string &out_stream) {
@@ -59,20 +59,20 @@ console_output::console_output(const std::string &out_stream) {
 void console_output::log(log_level level, const char *fmt, va_list args) {
 	char buffer[LOG_LINE_MAX];
 	buffer[0] = '\0';
-	size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt, args);
+	const size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt, args);
 	singleton_log_lock &lock = singleton_log_lock::get_instance();
 	lock.lock();
-	(void) write(this->file_no, buffer, used_len);
+	(void)write(this->file_no, buffer, used_len);
 	lock.unlock();
 }
 
 void console_output::log(log_level level, const char *fmt, ...) {
 	char buffer[LOG_LINE_MAX];
 	buffer[0] = '\0';
-	size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt);
+	const size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt);
 	singleton_log_lock &lock = singleton_log_lock::get_instance();
 	lock.lock();
-	(void) write(this->file_no, buffer, used_len);
+	(void)write(this->file_no, buffer, used_len);
 	lock.unlock();
 }
 

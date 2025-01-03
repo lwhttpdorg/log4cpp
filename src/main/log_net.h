@@ -4,17 +4,43 @@
 
 #if defined(_WIN32)
 
-#include <winsock.h>
+#include <WinSock2.h>
 
 #endif
 
 namespace log4cpp::net {
 #if defined(_MSC_VER) || defined(_WIN32)
 	constexpr SOCKET INVALID_FD = INVALID_SOCKET;
+	typedef SOCKET socket_fd;
+
+	inline void close_socket(socket_fd fd) {
+		closesocket(fd);
+	}
 #endif
 #if defined(__linux__)
 	constexpr int INVALID_FD = -1;
+	typedef int socket_fd;
+
+	inline void close_socket(socket_fd fd) {
+		close(fd);
+	}
 #endif
+
+#ifdef _WIN32
+	// Windows socket initialization
+	class socket_init {
+	public:
+		socket_init() {
+			WSADATA wsa_data{};
+			WSAStartup(MAKEWORD(2, 2), &wsa_data);
+		}
+
+		~socket_init() {
+			WSACleanup();
+		}
+	};
+#endif
+
 
 	enum class net_family {
 		NET_IPv4, NET_IPv6
@@ -29,6 +55,7 @@ namespace log4cpp::net {
 
 		net_family family{net_family::NET_IPv4};
 		addr_u ip{};
+
 	public:
 		net_addr();
 
@@ -49,12 +76,13 @@ namespace log4cpp::net {
 	public:
 		net_addr addr{};
 		unsigned short port{0};
+
 	public:
 		sock_addr();
 
-		explicit sock_addr(const char *ip, unsigned short port);
+		explicit sock_addr(const char *ip, unsigned short p);
 
-		explicit sock_addr(const std::string &ip, unsigned short port);
+		explicit sock_addr(const std::string &ip, unsigned short p);
 
 		bool operator==(const sock_addr &rhs) const;
 
@@ -71,7 +99,7 @@ namespace std {
 				h = std::hash<unsigned int>{}(addr.ip.addr4);
 			}
 			else {
-				for (auto x: addr.ip.addr6) {
+				for (const auto x:addr.ip.addr6) {
 					h ^= std::hash<unsigned int>{}(x);
 				}
 			}

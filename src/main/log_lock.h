@@ -11,7 +11,7 @@
 #endif
 
 namespace log4cpp {
-	class log_lock {
+	class log_lock final {
 	public:
 		log_lock() {
 #ifdef _MSC_VER
@@ -21,13 +21,12 @@ namespace log4cpp {
 #endif
 		}
 
-		virtual ~log_lock() {
+		~log_lock() {
 #ifdef _MSC_VER
 			DeleteCriticalSection(&_m_lock);
 #else
 			pthread_spin_destroy(&_m_lock);
 #endif
-
 		}
 
 		void lock() {

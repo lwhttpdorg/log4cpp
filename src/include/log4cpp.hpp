@@ -6,12 +6,9 @@
 
 #include <boost/json.hpp>
 #include <list>
-#include <vector>
 #include <memory>
 
 #if defined(_WIN32)
-
-#include <winsock.h>
 
 #if defined(ERROR)
 #undef ERROR
@@ -20,17 +17,30 @@
 #endif
 
 namespace log4cpp {
+	/**
+	 * The log level.
+	 */
 	enum class log_level {
 		FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5
 	};
 
+	/**
+	 * Convert log level to string.
+	 * @param level The log level.
+	 * @return The string of log level.
+	 */
 	std::string to_string(log_level level);
 
+	/**
+	 * Convert string to log level.
+	 * @param s The string of log level.
+	 * @return The log level.
+	 */
 	log_level from_string(const std::string &s);
 
 	class log_output;
 
-	class logger {
+	class logger final {
 	public:
 		logger();
 
@@ -44,29 +54,68 @@ namespace log4cpp {
 
 		logger &operator=(logger &&other) noexcept;
 
-		void log(log_level _level, const char *__restrict fmt, va_list args);
+		/**
+		 * write log message to output.
+		 * @param _level The log level.
+		 * @param fmt The format string.
+		 * @param args The arguments.
+		 */
+		void log(log_level _level, const char *__restrict fmt, va_list args) const;
 
-		void fatal(const char *__restrict fmt, ...);
+		/**
+		 * write FATAL log message to output.
+		 * @param fmt The format string.
+		 * @param ... The arguments.
+		 */
+		void fatal(const char *__restrict fmt, ...) const;
 
-		void error(const char *__restrict fmt, ...);
+		/**
+		 * write ERROR log message to output.
+		 * @param fmt The format string.
+		 * @param ... The arguments.
+		 */
+		void error(const char *__restrict fmt, ...) const;
 
-		void warn(const char *__restrict fmt, ...);
+		/**
+		 * write WARN log message to output.
+		 * @param fmt The format string.
+		 * @param ... The arguments.
+		 */
+		void warn(const char *__restrict fmt, ...) const;
 
-		void info(const char *__restrict fmt, ...);
+		/**
+		 * write INFO log message to output.
+		 * @param fmt The format string.
+		 * @param ... The arguments.
+		 */
+		void info(const char *__restrict fmt, ...) const;
 
-		void debug(const char *__restrict fmt, ...);
+		/**
+		 * write DEBUG log message to output.
+		 * @param fmt The format string.
+		 * @param ... The arguments.
+		 */
+		void debug(const char *__restrict fmt, ...) const;
 
-		void trace(const char *__restrict fmt, ...);
+		/**
+		 * write TRACE log message to output.
+		 * @param fmt The format string.
+		 * @param ... The arguments.
+		 */
+		void trace(const char *__restrict fmt, ...) const;
 
-		virtual ~logger() = default;
+		~logger() = default;
 
 		friend class logger_builder;
 
 		friend class log4cpp_config;
 
 	private:
+		/* The logger name. */
 		std::string name;
+		/* The log level. */
 		log_level level;
+		/* The log outputs. */
 		std::list<std::shared_ptr<log_output>> outputs;
 	};
 
@@ -75,17 +124,25 @@ namespace log4cpp {
 
 	class log_lock;
 
-	class logger_manager {
+	class logger_manager final {
 	public:
+		/**
+		 * Load log4cpp configuration from json file.
+		 * @param json_filepath
+		 */
 		static void load_config(const std::string &json_filepath);
 
+		/**
+		 * Get logger by name.
+		 * @param name The logger name.
+		 * @return If the logger exists, return the logger, otherwise return rootLogger.
+		 */
 		static std::shared_ptr<logger> get_logger(const std::string &name);
-
 
 	private:
 		logger_manager() = default;
 
-		virtual ~logger_manager() = default;
+		~logger_manager() = default;
 
 		static void build_output();
 

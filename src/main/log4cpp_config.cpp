@@ -121,10 +121,10 @@ logger_config log4cpp::tag_invoke(boost::json::value_to_tag<logger_config>, boos
 	}
 	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json_obj.at("logLevel")));
 	std::vector<std::string> outputs = boost::json::value_to<std::vector<std::string>>(json_obj.at("logOutPuts"));
-	for (auto &output: outputs) {
+	for (auto &output:outputs) {
 		if (!valid_output(output)) {
 			throw std::invalid_argument(
-					"Malformed JSON configuration file: invalid loggers::logOutPuts \"" + output + "\"");
+				"Malformed JSON configuration file: invalid loggers::logOutPuts \"" + output + "\"");
 		}
 		if (output == CONSOLE_OUTPUT_NAME) {
 			obj._outputs |= CONSOLE_OUT_CFG;
@@ -157,16 +157,20 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 		outputs.emplace_back(UDP_OUTPUT_NAME);
 	}
 
-	json = boost::json::object{{"name",       obj.name},
-	                           {"logLevel",   log4cpp::to_string(obj.level)},
-	                           {"logOutPuts", boost::json::value_from(outputs)}};
+	json = boost::json::object{
+		{"name", obj.name},
+		{"logLevel", log4cpp::to_string(obj.level)},
+		{"logOutPuts", boost::json::value_from(outputs)}
+	};
 }
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const log4cpp_config &obj) {
-	json = boost::json::object{{"pattern",    obj.pattern},
-	                           {"logOutPut",  boost::json::value_from(obj.output)},
-	                           {"loggers",    boost::json::value_from(obj.loggers)},
-	                           {"rootLogger", boost::json::value_from(obj.root_logger)}};
+	json = boost::json::object{
+		{"pattern", obj.pattern},
+		{"logOutPut", boost::json::value_from(obj.output)},
+		{"loggers", boost::json::value_from(obj.loggers)},
+		{"rootLogger", boost::json::value_from(obj.root_logger)}
+	};
 }
 
 log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, boost::json::value const &json) {
@@ -181,13 +185,13 @@ log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, bo
 	}
 	std::vector<logger_config> loggers;
 	if (json_obj.contains("loggers")) {
-		loggers = boost::json::value_to<std::vector<logger_config>>(json_obj.at("loggers"));
+		loggers = boost::json::value_to<std::vector<logger_config> >(json_obj.at("loggers"));
 	}
 	if (!json_obj.contains("rootLogger")) {
 		throw std::invalid_argument("Malformed JSON configuration file: \"rootLogger\" is mandatory");
 	}
 	output_config outputs = boost::json::value_to<output_config>(json_obj.at("logOutPut"));
-	logger_config root = boost::json::value_to<logger_config>(json_obj.at("rootLogger"));
+	const logger_config root = boost::json::value_to<logger_config>(json_obj.at("rootLogger"));
 	return log4cpp_config{pattern, outputs, loggers, root};
 }
 
@@ -208,8 +212,7 @@ log4cpp_config log4cpp_config::load_config(const std::string &json_file) {
 	while (ifs.good()) {
 		char buffer[4096];
 		ifs.read(buffer, sizeof(buffer) - 1);
-		size_t read_size = ifs.gcount();
-		if (read_size > 0) {
+		if (size_t read_size = ifs.gcount(); read_size > 0) {
 			buffer[read_size] = '\0';
 			a_string += std::string(buffer);
 			sparser.write(a_string, error_code);
@@ -227,14 +230,14 @@ log4cpp_config log4cpp_config::load_config(const std::string &json_file) {
 	return boost::json::value_to<log4cpp_config>(json_value);
 }
 
-std::string log4cpp::serialize(const log4cpp_config &obj) {
+std::string log4cpp_config::serialize(const log4cpp_config &obj) {
 	// 将对象序列化为JSON
-	boost::json::value json = boost::json::value_from(obj);
+	const boost::json::value json = boost::json::value_from(obj);
 	// 将JSON反序列化
 	return boost::json::serialize(json);
 }
 
-log4cpp_config::log4cpp_config(std::string _pattern, output_config &o, const std::vector<logger_config> &l,
+log4cpp_config::log4cpp_config(std::string _pattern, const output_config &o, const std::vector<logger_config> &l,
                                logger_config root) {
 	this->pattern = std::move(_pattern);
 	log_pattern::set_pattern(this->pattern);

@@ -16,8 +16,20 @@
 namespace log4cpp {
 	class log_output {
 	public:
+		/**
+		 * @brief Write log to output
+		 * @param level log level
+		 * @param fmt format string
+		 * @param args arguments
+		 */
 		virtual void log(log_level level, const char *__restrict fmt, va_list args) = 0;
 
+		/**
+		 * @brief Write log to output
+		 * @param level log level
+		 * @param fmt format string
+		 * @param ... arguments
+		 */
 		virtual void log(log_level level, const char *__restrict fmt, ...) = 0;
 
 		virtual ~log_output() = default;

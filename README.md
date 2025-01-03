@@ -40,17 +40,17 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 }
 ```
 
-explain:
+Description:
 
-* `${yy}`: A two digit representation of a year. Examples: 99 or 03
-* `${yyyy}`: A full numeric representation of a year, at least 4 digits, with - for years BCE. Examples: -0055, 0787,
-  1999, 2003, 10191
+* `${yy}`: A two digit representation of a year. e.g. 99 or 03
+* `${yyyy}`: A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999,
+  2003, 10191
 * `${M}`: Numeric representation of a month, without leading zeros. 1 through 12
 * `${MM}`: Numeric representation of a month, with leading zeros. 01 through 12
 * `${MMM}`: A short textual representation of a month, three letters. Jan through Dec
 * `${d}`: Day of the month without leading zeros. 1 to 31
 * `${dd}`: Day of the month, 2 digits with leading zeros. 01 to 31
-* `${h}`: 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem. Examples: AM
+* `${h}`: 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem. e.g. AM
   01 or PM 11
 * `${hh}`: 24-hour format of an hour with leading zeros. 00 through 23
 * `${m}`: Minutes without leading zeros. 1 to 59
@@ -58,98 +58,100 @@ explain:
 * `${s}`: Seconds without leading zeros. 1 to 59
 * `${ss}`: Seconds with leading zeros. 01 to 59
 * `${ms}`: Milliseconds with leading zeros. 001 to 999
-* `${TH}`: The name of the thread, if the name is empty, use thread id instead, e.g. T12345
-* `${\d+TH}`: The regular expression to match the thread id pattern, e.g. ${8TH}. max width is 16. if the name is empty,
-  use thread id instead, e.g. T12345
+* `${TH}`: The name of the thread, if the name is empty, use "T+thread id" instead, e.g. "main", "T12345"
+* `${\d+TH}`: The regular expression to match the thread id pattern, e.g. ${8TH}. `\d+` is the digit width, max width is
+  16
 * `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-* `${W}`: Log content, Examples: hello world!
+* `${W}`: Log message, e.g. hello world!
 
 _Warning: Some systems cannot set thread names, and only multiple threads can be distinguished by thread ID_
 
-#### 3.2.2 Configure output
+#### 3.2.2 Configure log output
 
-There are four types of configured output: console output(consoleOutPut), file output(fileOutPut), TCP output(
-tcpOutPut), UDP output(udpOutPut)
+There are four types of configured output: Console log output(consoleOutPut), File log output(fileOutPut), TCP log
+output(
+tcpOutPut), UDP log output(udpOutPut)
 
 A simple configuration file example:
 
 ```json
 {
   "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    },
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "append": false
-    },
-    "tcpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    },
-    "udpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+	"consoleOutPut": {
+	  "outStream": "stdout"
+	},
+	"fileOutPut": {
+	  "filePath": "log/log4cpp.log",
+	  "append": false
+	},
+	"tcpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	},
+	"udpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
 
-#### 3.2.3 Console Output
+#### 3.2.3 Console log output
 
 The function of the console output is to output logs to STDOUT or STDERR. Typical configuration is as follows:
 
 ```json
 {
   "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    }
+	"consoleOutPut": {
+	  "outStream": "stdout"
+	}
   }
 }
 ```
 
-Explanation:
+Description:
 
 * `outStream`: output stream, can be stdout or stderr
 
-#### 3.2.4 File Output
+#### 3.2.4 File log output
 
 The function of the file output is to output logs to a specified file. Typical configuration is as follows:
 
 ```json
 {
   "logOutPut": {
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "append": true
-    }
+	"fileOutPut": {
+	  "filePath": "log/log4cpp.log",
+	  "append": true
+	}
   }
 }
 ```
 
-Explanation:
+Description:
 
 * `filePath`: output file name
 * `append`: append or overwrite, Default append (true)
 
-#### 3.2.5 TCP exporter
+#### 3.2.5 TCP log output
 
-The TCP exporter will start a TCP server inside, accept TCP connections, and output logs to the connected client, which
+The TCP log output will start a TCP server inside, accept TCP connections, and output logs to the connected client,
+which
 is used to output logs to remote devices. The typical configuration is as follows:
 
 ```json
 {
   "logOutPut": {
-    "tcpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+	"tcpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
 
-Explanation:
+Description:
 
 * `localAddr`: Listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
 * `port`: Listening port
@@ -160,16 +162,16 @@ _Note: Logs are transmitted in plain text, pay attention to privacy and security
 be supported in the future. If encryption is required, it is recommended to encrypt the logs before passing them to
 log4cpp_
 
-#### 3.2.6 UDP exporter
+#### 3.2.6 UDP log output
 
-A UDP server will be started inside the UDP exporter to export logs to the connected client, which is used to export
+A UDP server will be started inside the UDP log output to export logs to the connected client, which is used to export
 logs to remote devices
 
-Unlike the TCP exporter, UDP is connectionless. Please note:
+Unlike the TCP log output, UDP is connectionless. Please note:
 
 * UDP is connectionless and cannot guarantee the integrity of the log
 * The client needs to actively send a "hello" message so that the server can obtain the client address and send logs
-* When the client exits, it needs to send a "goodbye" message so that the server can clean up the client address.
+* When the client exits, it needs to send a "bye" message so that the server can clean up the client address.
   Otherwise, the client address will be retained until it is cleaned up due to log sending failure or program exit
 
 The typical configuration is as follows:
@@ -177,15 +179,15 @@ The typical configuration is as follows:
 ```json
 {
   "logOutPut": {
-    "udpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+	"udpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
 
-Explanation:
+Description:
 
 * `localAddr`: listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
 * `port`: listening port
@@ -209,40 +211,39 @@ Default logger is an object, only `logLevel` and `logOutPuts`, no `name`, intern
 ```json
 {
   "loggers": [
-    {
-      "name": "consoleLogger",
-      "logLevel": "info",
-      "logOutPuts": [
-        "consoleOutPut"
-      ]
-    },
-    {
-      "name": "recordLogger",
-      "logLevel": "error",
-      "logOutPuts": [
-        "fileOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    }
+	{
+	  "name": "consoleLogger",
+	  "logLevel": "info",
+	  "logOutPuts": [
+		"consoleOutPut"
+	  ]
+	},
+	{
+	  "name": "recordLogger",
+	  "logLevel": "error",
+	  "logOutPuts": [
+		"fileOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	}
   ],
   "rootLogger": {
-    "logLevel": "info",
-    "logOutPuts": [
-      "fileOutPut",
-      "tcpOutPut",
-      "udpOutPut"
-    ]
+	"logLevel": "info",
+	"logOutPuts": [
+	  "fileOutPut",
+	  "tcpOutPut",
+	  "udpOutPut"
+	]
   }
 }
 ```
 
-### 3.4 Loading configuration files
+### 3.4 Loading configuration file
 
-There are two ways to load configuration files:
+There are two ways to load configuration file:
 
 1. If `log4cpp.json` exists in the current path, this configuration file will be automatically loaded
-
 2. If the configuration file is not in the current path, or the file name is not `log4cpp.json`, Need to load the
    configuration file manually
 
@@ -250,7 +251,7 @@ There are two ways to load configuration files:
 log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
 ```
 
-### 3.5 Use in code
+### 3.5 Coding
 
 First, you need to import the header file:
 
@@ -293,7 +294,7 @@ namespace log4cpp {
 }
 ```
 
-Explanation:
+Description:
 
 * `FATAL`: fatal error
 * `ERROR`: error
@@ -382,50 +383,50 @@ Configuration file example:
 {
   "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
   "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    },
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "append": true
-    },
-    "tcpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    },
-    "udpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+	"consoleOutPut": {
+	  "outStream": "stdout"
+	},
+	"fileOutPut": {
+	  "filePath": "log/log4cpp.log",
+	  "append": true
+	},
+	"tcpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	},
+	"udpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   },
   "loggers": [
-    {
-      "name": "consoleLogger",
-      "logLevel": "info",
-      "logOutPuts": [
-        "consoleOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    },
-    {
-      "name": "recordLogger",
-      "logLevel": "error",
-      "logOutPuts": [
-        "consoleOutPut",
-        "fileOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    }
+	{
+	  "name": "consoleLogger",
+	  "logLevel": "info",
+	  "logOutPuts": [
+		"consoleOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	},
+	{
+	  "name": "recordLogger",
+	  "logLevel": "error",
+	  "logOutPuts": [
+		"consoleOutPut",
+		"fileOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	}
   ],
   "rootLogger": {
-    "logLevel": "info",
-    "logOutPuts": [
-      "fileOutPut",
-      "tcpOutPut",
-      "udpOutPut"
-    ]
+	"logLevel": "info",
+	"logOutPuts": [
+	  "fileOutPut",
+	  "tcpOutPut",
+	  "udpOutPut"
+	]
   }
 }
 ```

@@ -58,8 +58,7 @@ std::shared_ptr<file_output> file_output::builder::build() {
 	if (this->instance == nullptr) {
 		throw std::runtime_error("Call new_builder() first");
 	}
-	auto pos = this->config.file_path.find_last_of('/');
-	if (pos != std::string::npos) {
+	if (const auto pos = this->config.file_path.find_last_of('/'); pos != std::string::npos) {
 		std::string path = this->config.file_path.substr(0, pos);
 		if (0 != access(path.c_str(), F_OK)) {
 #if defined(_MSC_VER) || defined(_WIN32)
@@ -75,7 +74,7 @@ std::shared_ptr<file_output> file_output::builder::build() {
 		openFlags |= O_APPEND;
 	}
 #if defined(_MSC_VER) || defined(_WIN32)
-	int mode = _S_IREAD|_S_IWRITE;
+	int mode = _S_IREAD | _S_IWRITE;
 #endif
 
 #ifdef __linux__
@@ -93,7 +92,7 @@ std::shared_ptr<file_output> file_output::builder::build() {
 }
 
 file_output::builder file_output::builder::new_builder() {
-	file_output::builder builder = file_output::builder{};
+	builder builder = file_output::builder{};
 	builder.instance = std::shared_ptr<file_output>(new file_output());
 	builder.config.append = true;
 	return builder;
@@ -113,20 +112,20 @@ file_output::~file_output() {
 void file_output::log(log_level level, const char *fmt, va_list args) {
 	char buffer[LOG_LINE_MAX];
 	buffer[0] = '\0';
-	size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt, args);
+	const size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt, args);
 	singleton_log_lock &lock = singleton_log_lock::get_instance();
 	lock.lock();
-	(void) write(this->fd, buffer, used_len);
+	(void)write(this->fd, buffer, used_len);
 	lock.unlock();
 }
 
 void file_output::log(log_level level, const char *fmt, ...) {
 	char buffer[LOG_LINE_MAX];
 	buffer[0] = '\0';
-	size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt);
+	const size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt);
 	singleton_log_lock &lock = singleton_log_lock::get_instance();
 	lock.lock();
-	(void) write(this->fd, buffer, used_len);
+	(void)write(this->fd, buffer, used_len);
 	lock.unlock();
 }
 
@@ -144,8 +143,10 @@ std::shared_ptr<file_output> file_output_config::get_instance(const file_output_
 }
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const file_output_config &obj) {
-	json = boost::json::object{{"filePath", obj.file_path},
-	                           {"append",   obj.append}};
+	json = boost::json::object{
+		{"filePath", obj.file_path},
+		{"append", obj.append}
+	};
 }
 
 file_output_config log4cpp::tag_invoke(boost::json::value_to_tag<file_output_config>, boost::json::value const &json) {

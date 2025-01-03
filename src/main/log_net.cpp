@@ -18,6 +18,11 @@
 
 using namespace log4cpp::net;
 
+#ifdef _WIN32
+// Windows socket initialization
+static socket_init net_init{};
+#endif
+
 net_addr::net_addr() {
 	this->family = net_family::NET_IPv4;
 	this->ip.addr4 = 0;
@@ -39,10 +44,10 @@ net_addr::net_addr(const char *addr) {
 		this->ip.addr6[3] = addr6.s6_addr32[3];
 #endif
 #if defined(_WIN32)
-		this->addr.addr6[0] = addr6.u.Word[0];
-		this->addr.addr6[1] = addr6.u.Word[1];
-		this->addr.addr6[2] = addr6.u.Word[2];
-		this->addr.addr6[3] = addr6.u.Word[3];
+		this->ip.addr6[0] = addr6.u.Word[0];
+		this->ip.addr6[1] = addr6.u.Word[1];
+		this->ip.addr6[2] = addr6.u.Word[2];
+		this->ip.addr6[3] = addr6.u.Word[3];
 #endif
 	}
 }
@@ -57,10 +62,8 @@ bool net_addr::operator==(const net_addr &rhs) const {
 	if (family == net_family::NET_IPv4) {
 		return ip.addr4 == rhs.ip.addr4;
 	}
-	else {
-		return ip.addr6[0] == rhs.ip.addr6[0] && ip.addr6[1] == rhs.ip.addr6[1] && ip.addr6[2] == rhs.ip.addr6[2] &&
-		       ip.addr6[3] == rhs.ip.addr6[3];
-	}
+	return ip.addr6[0] == rhs.ip.addr6[0] && ip.addr6[1] == rhs.ip.addr6[1] && ip.addr6[2] == rhs.ip.addr6[2] &&
+	       ip.addr6[3] == rhs.ip.addr6[3];
 }
 
 bool net_addr::operator!=(const net_addr &rhs) const {
@@ -71,21 +74,20 @@ std::string log4cpp::net::to_string(const net_addr &addr) {
 	std::string s;
 	if (addr.family == net_family::NET_IPv4) {
 		char buf[INET_ADDRSTRLEN];
-		unsigned char a, b, c, d;
-		a = (addr.ip.addr4 >> 24) & 0xff;
-		b = (addr.ip.addr4 >> 16) & 0xff;
-		c = (addr.ip.addr4 >> 8) & 0xff;
-		d = addr.ip.addr4 & 0xff;
+		const unsigned char a = (addr.ip.addr4 >> 24) & 0xff;
+		const unsigned char b = (addr.ip.addr4 >> 16) & 0xff;
+		const unsigned char c = (addr.ip.addr4 >> 8) & 0xff;
+		const unsigned char d = addr.ip.addr4 & 0xff;
 		snprintf(buf, sizeof(buf), "%u.%u.%u.%u", a, b, c, d);
 		s = std::string{buf};
 	}
 	else if (addr.family == net_family::NET_IPv6) {
 		char buf[INET6_ADDRSTRLEN];
 		int len = 0;
-		for (auto x: addr.ip.addr6) {
-			unsigned short a = (x >> 16), b = x & 0xffff;
-			int l = snprintf(buf + len, sizeof(buf) - len, "%x%x:", a, b);
-			if (l > 0) {
+		for (const auto x:addr.ip.addr6) {
+			const unsigned short a = x >> 16;
+			const unsigned short b = x & 0xffff;
+			if (const int l = snprintf(buf + len, sizeof(buf) - len, "%x%x:", a, b); l > 0) {
 				len += l;
 			}
 			else {
@@ -97,7 +99,7 @@ std::string log4cpp::net::to_string(const net_addr &addr) {
 	}
 	else {
 		throw std::invalid_argument(
-				"Invalid addr family \"" + std::to_string(static_cast<int> (addr.family)) + "\"");
+			"Invalid addr family \"" + std::to_string(static_cast<int>(addr.family)) + "\"");
 	}
 	return s;
 }
@@ -107,12 +109,12 @@ sock_addr::sock_addr() {
 	port = 0;
 }
 
-sock_addr::sock_addr(const char *ip, unsigned short port) {
+sock_addr::sock_addr(const char *ip, unsigned short p) {
 	this->addr = net_addr(ip);
-	this->port = port;
+	this->port = p;
 }
 
-sock_addr::sock_addr(const std::string &ip, unsigned short port) : sock_addr(ip.c_str(), port) {
+sock_addr::sock_addr(const std::string &ip, unsigned short p) : sock_addr(ip.c_str(), p) {
 }
 
 bool sock_addr::operator==(const sock_addr &rhs) const {

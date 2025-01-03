@@ -1,15 +1,15 @@
 #include <iostream>
+#include <memory>
 #include "logger_builder.h"
 #include "log_utils.h"
 
 using namespace log4cpp;
 
-logger_builder::builder::builder() {
-	this->log = new logger();
-}
 
-logger_builder::builder logger_builder::new_builder() {
-	return logger_builder::builder{};
+logger_builder::builder logger_builder::builder::new_builder() {
+	builder builder = logger_builder::builder{};
+	builder.log = std::make_shared<logger>();
+	return builder;
 }
 
 logger_builder::builder &logger_builder::builder::set_name(const std::string &name) {
@@ -74,6 +74,9 @@ logger_builder::builder &logger_builder::builder::set_udp_output(const std::shar
 	return *this;
 }
 
-logger *logger_builder::builder::build() {
+std::shared_ptr<logger> logger_builder::builder::build() {
+	if (this->log == nullptr) {
+		throw std::runtime_error("Call new_builder() first");
+	}
 	return this->log;
 }

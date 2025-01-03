@@ -39,29 +39,26 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 }
 ```
 
-解释:
+说明:
 
-* `${yy}`: A two digit representation of a year. Examples: 99 or 03
-* `${yyyy}`: A full numeric representation of a year, at least 4 digits, with - for years BCE. Examples: -0055, 0787,
-  1999, 2003, 10191
-* `${M}`: Numeric representation of a month, without leading zeros. 1 through 12
-* `${MM}`: Numeric representation of a month, with leading zeros. 01 through 12
-* `${MMM}`: A short textual representation of a month, three letters. Jan through Dec
-* `${d}`: Day of the month without leading zeros. 1 to 31
-* `${dd}`: Day of the month, 2 digits with leading zeros. 01 to 31
-* `${h}`: 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem. Examples: AM
-  01 or PM 11
-* `${hh}`: 24-hour format of an hour with leading zeros. 00 through 23
-* `${m}`: Minutes without leading zeros. 1 to 59
-* `${mm}`: Minutes with leading zeros. 01 to 59
-* `${s}`: Seconds without leading zeros. 1 to 59
-* `${ss}`: Seconds with leading zeros. 01 to 59
-* `${ms}`: Milliseconds with leading zeros. 001 to 999
-* `${TH}`: The name of the thread, if the name is empty, use thread id instead, e.g. T12345
-* `${\d+TH}`: The regular expression to match the thread id pattern, e.g. ${8TH}. max width is 16. if the name is empty,
-  use thread id instead, e.g. T12345
-* `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-* `${W}`: Log content, Examples: hello world!
+* `${yy}`: 2位数表示的年份. 如99, 03
+* `${yyyy}`: 完整的年份, 至少4位数, 用'-'表示公元前. 如-0055, 0787, 1999, 2003, 10191
+* `${M}`: 数字表示的月份, 无补0. 从1到12
+* `${MM}`: 数字表示的月份, 有补0的两位数. 从01到12
+* `${MMM}`: 月份的缩写, 3个字母. 从Jan到Dec
+* `${d}`: 月份中的第几天, 无补0. 从1到31
+* `${dd}`: 月份中的第几天, 有补0的两位数. 从01到31
+* `${h}`: 12小时制不补0的小时, AM和PM分别表示上午和下午. 如AM 01, PM 11
+* `${hh}`: 24小时制补0的小时. 从00到23
+* `${m}`: 无补0的分钟. 从1到59
+* `${mm}`: 有补0的分钟. 从01到59
+* `${s}`: 无补0的秒. 从1到59
+* `${ss}`: 有补0的秒. 从01到59
+* `${ms}`: 有补0的毫米. 从001到999
+* `${TH}`: 线程名. 如果线程名为空, 使用"T+线程ID"代替, 如"main", "T12345"
+* `${\d+TH}`: 线程ID正则表达式, 如`${8TH}`. `\d+`为位数, 最大为16
+* `${L}`: 日志级别, 取值FATAL, ERROR, WARN, INFO, DEBUG, TRACE
+* `${W}`: 日志正文, 如"hello world!"
 
 _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度为16. 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 
@@ -74,21 +71,21 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 ```json
 {
   "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    },
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "append": false
-    },
-    "tcpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    },
-    "udpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+	"consoleOutPut": {
+	  "outStream": "stdout"
+	},
+	"fileOutPut": {
+	  "filePath": "log/log4cpp.log",
+	  "append": false
+	},
+	"tcpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	},
+	"udpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -100,14 +97,14 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 ```json
 {
   "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    }
+	"consoleOutPut": {
+	  "outStream": "stdout"
+	}
   }
 }
 ```
 
-解释:
+说明:
 
 * `outStream`: 输出流, 可以是stdout或stderr
 
@@ -118,15 +115,15 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 ```json
 {
   "logOutPut": {
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "append": true
-    }
+	"fileOutPut": {
+	  "filePath": "log/log4cpp.log",
+	  "append": true
+	}
   }
 }
 ```
 
-解释:
+说明:
 
 * `filePath`: 输出文件名
 * `append`: 追加还是覆盖, 默认追加(true)
@@ -138,15 +135,15 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 ```json
 {
   "logOutPut": {
-    "tcpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+	"tcpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
 
-解释:
+说明:
 
 * `localAddr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
 * `port`: 监听端口
@@ -163,22 +160,22 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 
 * UDP是无连接的, 无法保证日志的完整性
 * 需要客户端主动发送"hello"消息, 以便服务器获取客户端地址, 以便发送日志
-* 客户端退出时需要发送"goodbye"消息, 以便服务器清理客户端地址, 否则客户端地址会一直保留直到因为日志发送失败而清理或程序退出
+* 客户端退出时需要发送"bye"消息, 以便服务器清理客户端地址, 否则客户端地址会一直保留直到因为日志发送失败而清理或程序退出
 
 典型配置如下:
 
 ```json
 {
   "logOutPut": {
-    "udpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+	"udpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
 
-解释:
+说明:
 
 * `localAddr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
 * `port`: 监听端口
@@ -200,30 +197,30 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 ```json
 {
   "loggers": [
-    {
-      "name": "consoleLogger",
-      "logLevel": "info",
-      "logOutPuts": [
-        "consoleOutPut"
-      ]
-    },
-    {
-      "name": "recordLogger",
-      "logLevel": "error",
-      "logOutPuts": [
-        "fileOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    }
+	{
+	  "name": "consoleLogger",
+	  "logLevel": "info",
+	  "logOutPuts": [
+		"consoleOutPut"
+	  ]
+	},
+	{
+	  "name": "recordLogger",
+	  "logLevel": "error",
+	  "logOutPuts": [
+		"fileOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	}
   ],
   "rootLogger": {
-    "logLevel": "info",
-    "logOutPuts": [
-      "fileOutPut",
-      "tcpOutPut",
-      "udpOutPut"
-    ]
+	"logLevel": "info",
+	"logOutPuts": [
+	  "fileOutPut",
+	  "tcpOutPut",
+	  "udpOutPut"
+	]
   }
 }
 ```
@@ -280,7 +277,7 @@ namespace log4cpp {
 }
 ```
 
-解释:
+说明:
 
 * `FATAL`: 致命错误
 * `ERROR`: 错误
@@ -369,50 +366,50 @@ endif ()
 {
   "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
   "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    },
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "append": true
-    },
-    "tcpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    },
-    "udpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+	"consoleOutPut": {
+	  "outStream": "stdout"
+	},
+	"fileOutPut": {
+	  "filePath": "log/log4cpp.log",
+	  "append": true
+	},
+	"tcpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	},
+	"udpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   },
   "loggers": [
-    {
-      "name": "consoleLogger",
-      "logLevel": "info",
-      "logOutPuts": [
-        "consoleOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    },
-    {
-      "name": "recordLogger",
-      "logLevel": "error",
-      "logOutPuts": [
-        "consoleOutPut",
-        "fileOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    }
+	{
+	  "name": "consoleLogger",
+	  "logLevel": "info",
+	  "logOutPuts": [
+		"consoleOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	},
+	{
+	  "name": "recordLogger",
+	  "logLevel": "error",
+	  "logOutPuts": [
+		"consoleOutPut",
+		"fileOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	}
   ],
   "rootLogger": {
-    "logLevel": "info",
-    "logOutPuts": [
-      "fileOutPut",
-      "tcpOutPut",
-      "udpOutPut"
-    ]
+	"logLevel": "info",
+	"logOutPuts": [
+	  "fileOutPut",
+	  "tcpOutPut",
+	  "udpOutPut"
+	]
   }
 }
 ```
