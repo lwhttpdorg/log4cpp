@@ -3,10 +3,12 @@
 #include <filesystem>
 #include <utility>
 
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
+
 #include "log4cpp_config.h"
-#include "console_output.h"
-#include "file_output.h"
-#include "tcp_output.h"
+#include "log_pattern.h"
 
 
 using namespace log4cpp;
@@ -185,7 +187,7 @@ log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, bo
 	}
 	std::vector<logger_config> loggers;
 	if (json_obj.contains("loggers")) {
-		loggers = boost::json::value_to<std::vector<logger_config> >(json_obj.at("loggers"));
+		loggers = boost::json::value_to<std::vector<logger_config>>(json_obj.at("loggers"));
 	}
 	if (!json_obj.contains("rootLogger")) {
 		throw std::invalid_argument("Malformed JSON configuration file: \"rootLogger\" is mandatory");

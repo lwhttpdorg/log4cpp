@@ -2,7 +2,7 @@
 
 ---
 
-[中文版本](README_ZH.md) | English
+[中文版本](README_ZH.md) | English Edition
 
 ---
 
@@ -59,7 +59,8 @@ Description:
 * `${ss}`: Seconds with leading zeros. 01 to 59
 * `${ms}`: Milliseconds with leading zeros. 001 to 999
 * `${TH}`: The name of the thread, if the name is empty, use "T+thread id" instead, e.g. "main", "T12345"
-* `${\d+TH}`: The regular expression to match the thread id pattern, e.g. ${8TH}. `\d+` is the digit width, default is 8, max width is
+* `${\d+TH}`: The regular expression to match the thread id pattern, e.g. ${8TH}. `\d+` is the digit width, default is
+  8, max width is
   16
 * `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 * `${W}`: Log message, e.g. hello world!
@@ -492,6 +493,14 @@ If your code modifies existing functions, Please make sure that the test cases c
 If your code modifies existing functions, please make sure that the ASAN test passes. Code that does not pass the ASAN
 test will not be merged
 
+**clang_rt.asan_dynamic-x86_64.dll is missing?**
+
+If `"ENABLE_ASAN=ON"` is set, and you are using the MSVC compiler, you may have this problem. The solution is:
+
+Copy
+`"D:\Program Files\Microsoft Visual Studio\<Visual Studio Version>\Professional\VC\Tools\MSVC\<MSVC Version>\bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll"`
+to the `cmake-build-debug/bin/`
+
 ## 4. License
 
-This project uses the [GPLv3] (LICENSE) license
+This project uses the [GPLv3](LICENSE) license

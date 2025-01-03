@@ -6,14 +6,15 @@
 
 #ifdef _WIN32
 
+#include <windows.h>
 #include <io.h>
 
 #endif
 
-#include "console_output.h"
-#include "main/log_utils.h"
-#include "udp_output.h"
 
+#include "log_pattern.h"
+#include "main/log_utils.h"
+#include "console_output.h"
 
 #ifdef _MSC_VER
 

@@ -34,12 +34,21 @@ set(BOOST_RUNTIME_LINK shared)
 set(BOOST_INSTALL_LAYOUT system)
 set(BOOST_ENABLE_PYTHON OFF)
 set(BOOST_ENABLE_MPI OFF)
-FetchContent_Declare(
-        Boost
-        URL https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-cmake.zip
-        URL_HASH SHA256=03530dec778bc1b85b070f0b077f3b01fd417133509bb19fe7c142e47777a87b
-        DOWNLOAD_EXTRACT_TIMESTAMP FALSE
-)
+if (${CMAKE_VERSION} VERSION_LESS "3.24")
+    FetchContent_Declare(
+            Boost
+            URL https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-cmake.zip
+            URL_HASH SHA256=03530dec778bc1b85b070f0b077f3b01fd417133509bb19fe7c142e47777a87b
+    )
+else ()
+    FetchContent_Declare(
+            Boost
+            URL https://github.com/boostorg/boost/releases/download/boost-1.87.0/boost-1.87.0-cmake.zip
+            URL_HASH SHA256=03530dec778bc1b85b070f0b077f3b01fd417133509bb19fe7c142e47777a87b
+            DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+    )
+endif ()
+
 FetchContent_MakeAvailable(Boost)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -53,6 +62,9 @@ endif ()
 target_link_libraries(${TARGET_NAME} Boost::json Boost::algorithm)
 
 if (CMAKE_HOST_WIN32)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        add_compile_definitions(WIN32_LEAN_AND_MEAN)
+    endif()
     target_link_libraries(${TARGET_NAME} ws2_32)
 endif ()
 

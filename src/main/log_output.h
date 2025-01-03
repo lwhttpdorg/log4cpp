@@ -1,12 +1,7 @@
 #pragma once
 
-#include <cstddef>
-#include <mutex>
-
-
 #include "log4cpp.hpp"
 #include "log_lock.h"
-#include "log_pattern.h"
 
 #define CONSOLE_OUTPUT_NAME  "consoleOutPut"
 #define FILE_OUTPUT_NAME     "fileOutPut"

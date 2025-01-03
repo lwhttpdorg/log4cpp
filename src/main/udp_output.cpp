@@ -1,8 +1,7 @@
 #if defined(_WIN32)
 #include <winsock2.h>
-#include <ws2tcpip.h>
 #include <windows.h>
-#include <io.h>
+#include <ws2tcpip.h>
 #endif
 
 #ifdef __linux__
@@ -10,6 +9,7 @@
 #include <netinet/in.h>
 #endif
 
+#include "log_pattern.h"
 #include "udp_output.h"
 
 
@@ -82,12 +82,22 @@ namespace log4cpp {
 				buffer[0] = '\0';
 				sockaddr_storage client_addr{};
 				socklen_t client_addr_len = sizeof(client_addr);
+#ifdef _WIN32
+				const int len = recvfrom(listen_fd, buffer, sizeof(buffer) - 1, 0,
+				                         reinterpret_cast<struct sockaddr *>(&client_addr),
+				                         &client_addr_len);
+				if (len <= 0) {
+					continue;
+				}
+#else
 				const size_t len = recvfrom(listen_fd, buffer, sizeof(buffer) - 1, 0,
-				                            reinterpret_cast<struct sockaddr *>(&client_addr),
-				                            &client_addr_len);
+											reinterpret_cast<struct sockaddr *>(&client_addr),
+											&client_addr_len);
 				if (len == 0) {
 					continue;
 				}
+#endif
+
 				net::sock_addr saddr{};
 				if (client_addr.ss_family == AF_INET) {
 					const sockaddr_in *client_addr_in = reinterpret_cast<struct sockaddr_in *>(&client_addr);

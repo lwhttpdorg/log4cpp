@@ -2,16 +2,6 @@
 #define  _CRT_SECURE_NO_WARNINGS
 #endif
 
-
-#include <cstdarg>
-
-#include <boost/json.hpp>
-#include <boost/algorithm/string.hpp>
-
-#include "../include/log4cpp.hpp"
-#include "log4cpp_config.h"
-#include "file_output.h"
-
 #ifdef _WIN32
 
 #include <windows.h>
@@ -20,6 +10,15 @@
 #undef ERROR
 #endif
 #endif
+
+#include <cstdarg>
+
+#include <boost/json.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include "../include/log4cpp.hpp"
+#include "file_output.h"
+
 
 using namespace log4cpp;
 

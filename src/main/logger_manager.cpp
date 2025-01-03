@@ -5,8 +5,9 @@
 #include <io.h>
 
 #endif
-#ifdef _MSC_VER
 
+#ifdef _MSC_VER
+#include <windows.h>
 #define F_OK 0
 #endif
 

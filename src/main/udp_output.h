@@ -3,6 +3,8 @@
 #include <memory>
 #include <thread>
 #include <unordered_set>
+#include <boost/json.hpp>
+
 #include "log_net.h"
 #include "log_output.h"
 

@@ -6,10 +6,8 @@
 #include <cstdarg>
 #include <stdexcept>
 
-#if defined(_MSC_VER)
-
+#ifdef _MSC_VER
 #include <windows.h>
-
 #ifdef ERROR
 #undef ERROR
 #endif
@@ -23,7 +21,6 @@
 
 #include <direct.h>
 #include <io.h>
-#include <processthreadsapi.h>
 
 #endif
 
@@ -42,6 +39,8 @@
 
 #include "log4cpp.hpp"
 #include "file_output.h"
+
+#include "log_pattern.h"
 
 
 using namespace log4cpp;

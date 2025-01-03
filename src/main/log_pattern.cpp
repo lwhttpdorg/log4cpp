@@ -4,6 +4,10 @@
 
 #include <chrono>
 #include <csignal>
+#include <regex>
+#include <cstdarg>
+#include <cstring>
+#include <array>
 
 #if defined(_WIN32)
 
@@ -21,9 +25,6 @@
 
 #include "log_pattern.h"
 #include "log_utils.h"
-
-#include <regex>
-#include <cstdarg>
 
 namespace log4cpp {
 	const char *DEFAULT_PATTERN = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}";

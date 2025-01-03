@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+
 #include "log4cpp.hpp"
 #include "log4cpp_config.h"
 

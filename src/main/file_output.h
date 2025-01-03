@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/json.hpp>
 #include "main/log_output.h"
 
 namespace log4cpp {

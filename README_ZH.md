@@ -2,7 +2,7 @@
 
 ---
 
-中文版本 | [English](README.md)
+中文版本 | [English Education](README.md)
 
 ---
 
@@ -366,50 +366,50 @@ endif ()
 {
   "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
   "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    },
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "append": true
-    },
-    "tcpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    },
-    "udpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+	"consoleOutPut": {
+	  "outStream": "stdout"
+	},
+	"fileOutPut": {
+	  "filePath": "log/log4cpp.log",
+	  "append": true
+	},
+	"tcpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	},
+	"udpOutPut": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   },
   "loggers": [
-    {
-      "name": "consoleLogger",
-      "logLevel": "info",
-      "logOutPuts": [
-        "consoleOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    },
-    {
-      "name": "recordLogger",
-      "logLevel": "error",
-      "logOutPuts": [
-        "consoleOutPut",
-        "fileOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    }
+	{
+	  "name": "consoleLogger",
+	  "logLevel": "info",
+	  "logOutPuts": [
+		"consoleOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	},
+	{
+	  "name": "recordLogger",
+	  "logLevel": "error",
+	  "logOutPuts": [
+		"consoleOutPut",
+		"fileOutPut",
+		"tcpOutPut",
+		"udpOutPut"
+	  ]
+	}
   ],
   "rootLogger": {
-    "logLevel": "info",
-    "logOutPuts": [
-      "fileOutPut",
-      "tcpOutPut",
-      "udpOutPut"
-    ]
+	"logLevel": "info",
+	"logOutPuts": [
+	  "fileOutPut",
+	  "tcpOutPut",
+	  "udpOutPut"
+	]
   }
 }
 ```
@@ -471,6 +471,14 @@ $ cmake -S . -B build -DENABLE_DEMO=ON
 #### 3.7.4 ASAN
 
 如果你的代码修改了现有功能, 请确保ASAN检测通过, 未经ASAN检测通过的代码不会合并
+
+**缺失clang_rt.asan_dynamic-x86_64.dll?**
+
+如果设置了`"ENABLE_ASAN=ON"`且使用的是MSVC编译器, 可能会遇到此问题. 解决办法是:
+
+复制
+`"D:\Program Files\Microsoft Visual Studio\<Visual Studio Version>\Professional\VC\Tools\MSVC\<MSVC Version>\bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll"`
+到`cmake-build-debug/bin/`
 
 ## 4. 许可
 

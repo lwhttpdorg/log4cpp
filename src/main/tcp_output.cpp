@@ -1,8 +1,7 @@
 #if defined(_WIN32)
 #include <winsock2.h>
-#include <ws2tcpip.h>
 #include <windows.h>
-#include <io.h>
+#include <ws2tcpip.h>
 #endif
 
 #ifdef __linux__
@@ -11,6 +10,7 @@
 #endif
 
 #include "log_net.h"
+#include "log_pattern.h"
 #include "tcp_output.h"
 
 namespace log4cpp {
@@ -88,15 +88,28 @@ namespace log4cpp {
 					FD_SET(client_fd, &read_fds);
 				}
 			}
-			for (auto client:clients) {
-				if (FD_ISSET(client, &tmp_fds)) {
+			for (auto it = clients.begin(); it != clients.end();) {
+				net::socket_fd fd = *it;
+				if (FD_ISSET(fd, &tmp_fds)) {
 					char buffer[LOG_LINE_MAX];
 					buffer[0] = '\0';
-					if (const size_t len = recv(client, buffer, sizeof(buffer), 0); len == 0) {
-						net::close_socket(client);
-						clients.erase(client);
-						FD_CLR(client, &read_fds);
+#ifdef _WIN32
+					const int len = recv(fd, buffer, sizeof(buffer), 0);
+					if (len <= 0) {
+#else
+					const size_t len = recv(fd, buffer, sizeof(buffer), 0);
+					if ( len == 0) {
+#endif
+						net::close_socket(fd);
+						it = clients.erase(it);
+						FD_CLR(fd, &read_fds);
 					}
+					else {
+						++it;
+					}
+				}
+				else {
+					++it;
 				}
 			}
 		}
@@ -162,7 +175,7 @@ namespace log4cpp {
 		singleton_log_lock &lock = singleton_log_lock::get_instance();
 		lock.lock();
 		for (auto &client:this->clients) {
-			send(client, buffer, used_len, 0);
+			(void)send(client, buffer, used_len, 0);
 		}
 		lock.unlock();
 	}

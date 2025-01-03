@@ -1,7 +1,10 @@
-#include <iostream>
 #include <memory>
+
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
+
 #include "logger_builder.h"
-#include "log_utils.h"
 
 using namespace log4cpp;
 
