@@ -395,58 +395,6 @@ endif ()
 
 [参考配置文件示例](demo/log4cpp.json)
 
-```json
-{
-  "layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
-  "Appenders": {
-	"consoleAppender": {
-	  "outStream": "stdout"
-	},
-	"fileAppender": {
-	  "filePath": "log/log4cpp.log",
-	  "append": true
-	},
-	"tcpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	},
-	"udpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	}
-  },
-  "layouts": [
-	{
-	  "name": "consoleLogger",
-	  "logLevel": "info",
-	  "Appenders": [
-		"consoleAppender",
-		"tcpAppender",
-		"udpAppender"
-	  ]
-	},
-	{
-	  "name": "recordLogger",
-	  "logLevel": "error",
-	  "Appenders": [
-		"consoleAppender",
-		"fileAppender",
-		"tcpAppender",
-		"udpAppender"
-	  ]
-	}
-  ],
-  "rootLogger": {
-	"logLevel": "info",
-	"Appenders": [
-	  "fileAppender",
-	  "tcpAppender",
-	  "udpAppender"
-	]
-  }
-}
-```
-
 ### 3.7 贡献
 
 欢迎提交PR, 再提交PR之前有些事项需了解:

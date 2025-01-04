@@ -16,13 +16,13 @@
       * [3.2.1 Configure layout pattern](#321-configure-layout-pattern)
       * [3.2.2 Configure Appender](#322-configure-appender)
       * [3.2.3 Console Appender](#323-console-appender)
-      * [3.2.4 File appender](#324-file-appender)
+      * [3.2.4 File Appender](#324-file-appender)
       * [3.2.5 TCP Appender](#325-tcp-appender)
       * [3.2.6 UDP Appender](#326-udp-appender)
     * [3.3 Configure Layouts](#33-configure-layouts)
     * [3.4 Loading configuration file](#34-loading-configuration-file)
     * [3.5 Coding](#35-coding)
-    * [3.6 Complete example](#36-complete-example)
+    * [3.6 Full example](#36-full-example)
     * [3.7 Contribution](#37-contribution)
       * [3.7.1 boost library](#371-boost-library)
       * [3.7.2 CMake compile options](#372-cmake-compile-options)
@@ -94,9 +94,8 @@ _Warning: Some systems cannot set thread names, and only multiple threads can be
 
 #### 3.2.2 Configure Appender
 
-There are four types of configured output: Console log appender(consoleAppender), File log appender(fileAppender), TCP
-log
-appender(tcpAppender), UDP log output(udpAppender)
+There are four types of appender: Console appender(`consoleAppender`), File appender(`fileAppender`), TCP appender(
+`tcpAppender`), UDP appender(`udpAppender`)
 
 A simple configuration file example:
 
@@ -139,7 +138,7 @@ Description:
 
 * `outStream`: output stream, can be stdout or stderr
 
-#### 3.2.4 File appender
+#### 3.2.4 File Appender
 
 The function of the file appender is to output logs to a specified file. Typical configuration is as follows:
 
@@ -147,8 +146,7 @@ The function of the file appender is to output logs to a specified file. Typical
 {
   "Appenders": {
 	"fileAppender": {
-	  "filePath": "log/log4cpp.log",
-	  "append": true
+	  "filePath": "log/log4cpp.log"
 	}
   }
 }
@@ -157,11 +155,10 @@ The function of the file appender is to output logs to a specified file. Typical
 Description:
 
 * `filePath`: output file name
-* `append`: append or overwrite, Default append (true)
 
 #### 3.2.5 TCP Appender
 
-The TCP log appender will start a TCP server inside, accept TCP connections, and output logs to the connected client,
+The TCP appender will start a TCP server inside, accept TCP connections, and output logs to the connected client,
 which is used to output logs to remote devices. The typical configuration is as follows:
 
 ```json
@@ -223,7 +220,7 @@ There are two types of Layouts:
 * **Named layout**: configuration name `layouts`
 * **Root layout**: configuration name `rootLayout`
 
-If there is no layout with a specified name when getLayout, the default layout is returned
+If there is no layout with a specified name when getLayout, the `rootLayout` is returned
 
 _Note: The named layout is optional, but the root layout must be present_
 
@@ -234,7 +231,7 @@ Named layouts are an array, and each layout configuration includes:
 * `Appenders`: appender, Must be configured in `Appenders` before it can be referenced here. Appender can be
   `consoleAppender`, `fileAppender`, `tcpAppender`, `udpAppender`
 
-Default layout is an object, only `logLevel` and `Appenders`, no `name`, internal implementation of `name` is `root`
+Root layout is an object, only `logLevel` and `Appenders`, no `name`, internal implementation of `name` is `root`
 
 ```json
 {
@@ -286,7 +283,6 @@ First, you need to import the header file:
 
 ```c++
 #include "log4cpp.hpp"
-
 ```
 
 Then, get the layout instance
@@ -335,7 +331,7 @@ Description:
 * `DEBUG`: debugging
 * `TRACE`: tracing
 
-### 3.6 Complete example
+### 3.6 Full example
 
 ```c++
 #include <thread>
@@ -413,7 +409,7 @@ Output log example:
 2025-01-02 22:53:04:329 [    main] [FATAL] -- this is a fatal
 ```
 
-Configuration file example:
+Configuration file:
 
 [A sample configuration file is here](demo/log4cpp.json)
 
