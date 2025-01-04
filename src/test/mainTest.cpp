@@ -114,7 +114,9 @@ TEST(NetAppenderTest, TCPUDPAppenderTest) {
 	unsigned short tcp_port = tcp_config->port;
 	unsigned short udp_port = udp_config->port;
 
+#ifdef _WIN32
 	winsock_init init;
+#endif
 	std::atomic_bool tcp_running(false);
 	std::atomic_bool udp_running(false);
 
