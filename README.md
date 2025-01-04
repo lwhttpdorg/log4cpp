@@ -7,28 +7,30 @@
 ---
 
 <!-- TOC -->
+
 * [log4cpp](#log4cpp)
-  * [1. Description](#1-description)
-  * [2. Requirements](#2-requirements)
-  * [3. Usage](#3-usage)
-    * [3.1 Use in CMake projects](#31-use-in-cmake-projects)
-    * [3.2 Configuration file](#32-configuration-file)
-      * [3.2.1 Configure layout pattern](#321-configure-layout-pattern)
-      * [3.2.2 Configure Appender](#322-configure-appender)
-      * [3.2.3 Console Appender](#323-console-appender)
-      * [3.2.4 File Appender](#324-file-appender)
-      * [3.2.5 TCP Appender](#325-tcp-appender)
-      * [3.2.6 UDP Appender](#326-udp-appender)
-    * [3.3 Configure Layouts](#33-configure-layouts)
-    * [3.4 Loading configuration file](#34-loading-configuration-file)
-    * [3.5 Coding](#35-coding)
-    * [3.6 Full example](#36-full-example)
-    * [3.7 Contribution](#37-contribution)
-      * [3.7.1 boost library](#371-boost-library)
-      * [3.7.2 CMake compile options](#372-cmake-compile-options)
-      * [3.7.3 Test](#373-test)
-      * [3.7.4 ASAN](#374-asan)
-  * [4. License](#4-license)
+    * [1. Description](#1-description)
+    * [2. Requirements](#2-requirements)
+    * [3. Usage](#3-usage)
+        * [3.1 Use in CMake projects](#31-use-in-cmake-projects)
+        * [3.2 Configuration file](#32-configuration-file)
+            * [3.2.1 Configure layout pattern](#321-configure-layout-pattern)
+            * [3.2.2 Configure Appender](#322-configure-appender)
+            * [3.2.3 Console Appender](#323-console-appender)
+            * [3.2.4 File Appender](#324-file-appender)
+            * [3.2.5 TCP Appender](#325-tcp-appender)
+            * [3.2.6 UDP Appender](#326-udp-appender)
+        * [3.3 Configure Layouts](#33-configure-layouts)
+        * [3.4 Loading configuration file](#34-loading-configuration-file)
+        * [3.5 Coding](#35-coding)
+        * [3.6 Full example](#36-full-example)
+        * [3.7 Contribution](#37-contribution)
+            * [3.7.1 boost library](#371-boost-library)
+            * [3.7.2 CMake compile options](#372-cmake-compile-options)
+            * [3.7.3 Test](#373-test)
+            * [3.7.4 ASAN](#374-asan)
+    * [4. License](#4-license)
+
 <!-- TOC -->
 
 ## 1. Description
@@ -83,10 +85,10 @@ Description:
 * `${s}`: Seconds without leading zeros. 1 to 59
 * `${ss}`: Seconds with leading zeros. 01 to 59
 * `${ms}`: Milliseconds with leading zeros. 001 to 999
-* `${TH}`: The name of the thread, if the name is empty, use "T+thread id" instead, e.g. "main", "T12345"
-* `${\d+TH}`: The regular expression to match the thread id, e.g. ${8TH}. `\d+` is the digit width, default is
-  8, max width is
-  16
+* `${<n>TN}`: Thread name. e.g. `${8TN}`. `<n>` is the name length, align left, default is 16, max width is 16. If the
+  name is empty, use "T+thread id" instead. e.g. "main"
+* `${<n>TH}`: Thread id, e.g. `${8TH}`. `<n>` is the digit width, left padding with 0, default is 8, max width is 8.
+  e.g. "T12345"
 * `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 * `${W}`: Log message, e.g. hello world!
 

@@ -12,8 +12,11 @@
 #if defined(_WIN32)
 
 #include <windows.h>
-#include <processthreadsapi.h>
 
+#endif
+
+#ifdef _MSC_VER
+#include <processthreadsapi.h>
 #endif
 
 #ifdef __linux__
@@ -32,8 +35,8 @@ namespace log4cpp {
 	constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
 	constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
 	constexpr std::array<const char *, 12> MONTH_NAME = {
-			"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-			"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 	};
 
 	std::string layout_pattern::_pattern = DEFAULT_LAYOUT_PATTERN;
@@ -45,12 +48,12 @@ namespace log4cpp {
 
 	unsigned long get_thread_name_id(char *thread_name, size_t len) {
 		thread_name[0] = '\0';
-#if defined(_MSC_VER) || defined(_WIN32)
+#if defined(_MSC_VER)
 		(void)len;
 		unsigned long tid = GetCurrentThreadId();
 #endif
 
-#ifdef _PTHREAD_H
+#ifdef __GNUC__
 		unsigned long tid = pthread_self();
 		pthread_getname_np(pthread_self(), thread_name, len);
 #elif __linux__
@@ -89,14 +92,14 @@ namespace log4cpp {
 	const char *FULL_SECOND = "${ss}";
 	/* Milliseconds with leading zeros. 001 to 999 */
 	const char *MILLISECOND = "${ms}";
-	/* The name of the thread, if the name is empty, use thread id instead, e.g. T12345 */
-	const char *THREAD_ID = "${TH}";
-	// The regular expression to match the thread id pattern, e.g. ${8TH}. max width is 16. if the name is empty, use thread id instead, e.g. T12345
-	const std::regex THREAD_ID_REGEX(R"(\$\{\d{1,2}TH\})");
+	/* The regular expression to match the thread name pattern, e.g. ${8TN}. max width is 16. e.g. "main". If the name is empty, use thread id instead */
+	const std::regex THREAD_NAME_REGEX(R"(\$\{(\d{1,2})?TN\})");
+	/* The regular expression to match the thread id pattern, e.g. ${8TH}. max width is 8. e.g. T12345 */
+	const std::regex THREAD_ID_REGEX(R"(\$\{(\d{1,2})?TH\})");
 	/* Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE */
 	const char *LOG_LEVEL = "${L}";
 	/* Log message, e.g.: hello world! */
-	const char *LOG_CONTENT = "${W}";
+	const char *LOG_MESSAGE = "${W}";
 
 	size_t layout_pattern::format_with_pattern(char *buf, size_t len, log_level level, const char *msg) {
 		const auto now = std::chrono::system_clock::now();
@@ -170,25 +173,35 @@ namespace log4cpp {
 			log4c_scnprintf(millisecond, 4, "%03d", static_cast<int>(now_ms.count()));
 			replace(buf, len, MILLISECOND, millisecond);
 		}
-		if (_pattern.find(THREAD_ID) != std::string::npos) {
-			char thread_name[THREAD_NAME_MAX_LEN];
-			const unsigned long tid = get_thread_name_id(thread_name, sizeof(thread_name));
-			char thread_id[THREAD_NAME_MAX_LEN + 1];
-			thread_id[0] = '\0';
-			if (thread_name[0] != '\0') {
-				log4c_scnprintf(thread_id, sizeof(thread_id), "%s", thread_name);
+		if (std::smatch match; std::regex_search(_pattern, match, THREAD_NAME_REGEX)) {
+			size_t width = THREAD_NAME_MAX_LEN;
+			if (match[1].matched) {
+				const std::string width_str = match[1].str();
+				width = std::stoul(width_str);
 			}
-			else {
-				log4c_scnprintf(thread_id, sizeof(thread_id), "T%0*u", THREAD_ID_WIDTH_MAX, tid);
-			}
-			replace(buf, len, THREAD_ID, thread_id);
-		}
-		if (std::smatch match; std::regex_search(_pattern, match, THREAD_ID_REGEX)) {
-			const std::string m = match[0];
-			const std::string num = m.substr(2, m.size() - 3);
-			size_t width = std::stoul(num);
 			if (THREAD_NAME_MAX_LEN < width) {
 				width = THREAD_NAME_MAX_LEN;
+			}
+			char _name[THREAD_NAME_MAX_LEN];
+			const unsigned long tid = get_thread_name_id(_name, sizeof(_name));
+			char thread_name[THREAD_NAME_MAX_LEN];
+			if (_name[0] != '\0') {
+				log4c_scnprintf(thread_name, sizeof(thread_name), "%-*s", width, _name);
+			}
+			else {
+				log4c_scnprintf(thread_name, sizeof(thread_name), "T%0*u", width, tid);
+			}
+			const std::string full_match_str = match[0];
+			replace(buf, len, full_match_str.c_str(), thread_name);
+		}
+		if (std::smatch match; std::regex_search(_pattern, match, THREAD_ID_REGEX)) {
+			size_t width = THREAD_ID_WIDTH_MAX;
+			if (match[1].matched) {
+				const std::string width_str = match[1].str();
+				width = std::stoul(width_str);
+			}
+			if (THREAD_ID_WIDTH_MAX < width) {
+				width = THREAD_ID_WIDTH_MAX;
 			}
 
 			char thread_name[THREAD_NAME_MAX_LEN];
@@ -197,7 +210,8 @@ namespace log4cpp {
 			char thread_id[THREAD_NAME_MAX_LEN + 1];
 			thread_id[0] = '\0';
 			log4c_scnprintf(thread_id, sizeof(thread_id), "T%0*u", width, tid);
-			replace(buf, len, m.c_str(), thread_id);
+			const std::string full_match_str = match[0];
+			replace(buf, len, full_match_str.c_str(), thread_id);
 		}
 		// replace ${L} with log level, log level fixed length is 5, align left, fill with space
 		if (_pattern.find(LOG_LEVEL) != std::string::npos) {
@@ -205,8 +219,8 @@ namespace log4cpp {
 			log4c_scnprintf(log_level, 6, "%-5s", to_string(level).c_str());
 			replace(buf, len, LOG_LEVEL, log_level);
 		}
-		if (_pattern.find(LOG_CONTENT) != std::string::npos) {
-			replace(buf, len, LOG_CONTENT, msg);
+		if (_pattern.find(LOG_MESSAGE) != std::string::npos) {
+			replace(buf, len, LOG_MESSAGE, msg);
 		}
 		return 0;
 	}
