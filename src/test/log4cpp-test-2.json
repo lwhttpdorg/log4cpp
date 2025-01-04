@@ -1,5 +1,5 @@
 {
-  "layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
+  "layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
   "Appenders": {
     "consoleAppender": {
       "outStream": "stdout"

@@ -338,10 +338,14 @@ Description:
 ```c++
 #include <thread>
 
+#ifdef __GNUC__
+#include <pthread.h>
+#endif
+
 #include "log4cpp.hpp"
 
 void set_thread_name(const char *name) {
-#ifdef _PTHREAD_H
+#ifdef __GNUC__
 	pthread_setname_np(pthread_self(), name);
 #elif __linux__
 	prctl(PR_SET_NAME, reinterpret_cast<unsigned long>("child"));
