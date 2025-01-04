@@ -1,8 +1,12 @@
 #include <atomic>
 #include <cstdio>
 
-#include "net_comm.h"
+#ifndef _WIN32
+#include <cerrno>
+#include <cstring>
+#endif
 
+#include "net_comm.h"
 #include "main/log_net.h"
 
 int tcpAppenderTest(std::atomic_bool &running, unsigned int log_count, unsigned port) {
