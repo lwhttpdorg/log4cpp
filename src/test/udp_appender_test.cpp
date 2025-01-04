@@ -1,5 +1,6 @@
 #include <atomic>
 #include <cstdio>
+#include <cstring>
 
 #include "net_comm.h"
 
