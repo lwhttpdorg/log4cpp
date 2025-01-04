@@ -488,4 +488,4 @@ to the `cmake-build-debug/bin/`
 
 ## 4. License
 
-This project uses the [GPLv3](LICENSE) license
+This project uses the [LGPLv3](LICENSE) license
