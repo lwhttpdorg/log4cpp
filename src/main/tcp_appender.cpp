@@ -10,19 +10,19 @@
 #endif
 
 #include "log_net.h"
-#include "log_pattern.h"
-#include "tcp_output.h"
+#include "layout_pattern.h"
+#include "tcp_appender.h"
 
 namespace log4cpp {
-	std::atomic_bool tcp_output::running{true};
+	std::atomic_bool tcp_appender::running{true};
 
 	net::socket_fd create_tcp_socket(const net::sock_addr &saddr) {
 		net::socket_fd fd;
 		if (saddr.addr.family == net::net_family::NET_IPv4) {
-			fd = socket(AF_INET, SOCK_STREAM, 0);
+			fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		}
 		else {
-			fd = socket(AF_INET6, SOCK_STREAM, 0);
+			fd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 		}
 		if (fd == net::INVALID_FD) {
 			return net::INVALID_FD;
@@ -62,14 +62,14 @@ namespace log4cpp {
 		return fd;
 	}
 
-	void accept_worker(int listen_fd, std::unordered_set<net::socket_fd> &clients) {
+	void accept_worker(int listen_fd, log_lock lock, std::unordered_set<net::socket_fd> &clients) {
 		fd_set read_fds;
 		FD_ZERO(&read_fds);
 		FD_SET(listen_fd, &read_fds);
 		timeval timeout{};
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
-		while (tcp_output::running) {
+		while (tcp_appender::running) {
 			fd_set tmp_fds = read_fds;
 			const int ret = select(listen_fd + 1, &tmp_fds, nullptr, nullptr, &timeout);
 			if (ret == -1) {
@@ -84,10 +84,12 @@ namespace log4cpp {
 				net::socket_fd client_fd = accept(listen_fd, reinterpret_cast<struct sockaddr *>(&client_addr),
 				                                  &client_addr_len);
 				if (net::INVALID_FD != client_fd) {
+					std::lock_guard lock_guard(lock);
 					clients.insert(client_fd);
 					FD_SET(client_fd, &read_fds);
 				}
 			}
+			std::lock_guard lock_guard(lock);
 			for (auto it = clients.begin(); it != clients.end();) {
 				net::socket_fd fd = *it;
 				if (FD_ISSET(fd, &tmp_fds)) {
@@ -99,6 +101,11 @@ namespace log4cpp {
 #else
 					const size_t len = recv(fd, buffer, sizeof(buffer), 0);
 					if ( len == 0) {
+#endif
+#ifdef _WIN32
+						shutdown(fd, SD_BOTH);
+#else
+						shutdown(fd, SHUT_RDWR);
 #endif
 						net::close_socket(fd);
 						it = clients.erase(it);
@@ -115,25 +122,25 @@ namespace log4cpp {
 		}
 	}
 
-	tcp_output::builder &tcp_output::builder::set_local_addr(const net::net_addr &addr) {
+	tcp_appender::builder &tcp_appender::builder::set_local_addr(const net::net_addr &addr) {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call new_builder() first");
+			throw std::runtime_error("Call tcp_appender::builder::new_builder() first");
 		}
 		this->config.local_addr = addr;
 		return *this;
 	}
 
-	tcp_output::builder &tcp_output::builder::set_port(unsigned short port) {
+	tcp_appender::builder &tcp_appender::builder::set_port(unsigned short port) {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call new_builder() first");
+			throw std::runtime_error("Call tcp_appender::builder::new_builder() first");
 		}
 		this->config.port = port;
 		return *this;
 	}
 
-	std::shared_ptr<tcp_output> tcp_output::builder::build() {
+	std::shared_ptr<tcp_appender> tcp_appender::builder::build() {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call new_builder() first");
+			throw std::runtime_error("Call tcp_appender::builder::new_builder() first");
 		}
 		net::sock_addr saddr;
 		saddr.addr = this->config.local_addr;
@@ -143,78 +150,80 @@ namespace log4cpp {
 			throw std::runtime_error("Can not create tcp socket");
 		}
 		this->instance->fd = server_fd;
-		this->instance->accept_thread = std::thread(accept_worker, server_fd, std::ref(this->instance->clients));
+		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
+		                                            std::ref(this->instance->clients));
 		return this->instance;
 	}
 
-	tcp_output::builder tcp_output::builder::new_builder() {
-		builder builder = tcp_output::builder{};
-		builder.instance = std::shared_ptr<tcp_output>(new tcp_output());
+	tcp_appender::builder tcp_appender::builder::new_builder() {
+		builder builder = tcp_appender::builder{};
+		builder.instance = std::shared_ptr<tcp_appender>(new tcp_appender());
 		return builder;
 	}
 
-	tcp_output::tcp_output() {
+	tcp_appender::tcp_appender() {
 		this->fd = net::INVALID_FD;
 	}
 
-	tcp_output::~tcp_output() {
+	tcp_appender::~tcp_appender() {
 		running = false;
 		this->accept_thread.join();
 		if (net::INVALID_FD != this->fd) {
 			net::close_socket(this->fd);
 		}
 		for (auto &client:this->clients) {
+#ifdef _WIN32
+			shutdown(client, SD_BOTH);
+#else
+			shutdown(client, SHUT_RDWR);
+#endif
 			net::close_socket(client);
 		}
 	}
 
-	void tcp_output::log(log_level level, const char *fmt, va_list args) {
+	void tcp_appender::log(log_level level, const char *fmt, va_list args) {
 		char buffer[LOG_LINE_MAX];
 		buffer[0] = '\0';
-		const size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt, args);
-		singleton_log_lock &lock = singleton_log_lock::get_instance();
-		lock.lock();
+		const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), level, fmt, args);
+		std::lock_guard lock_guard(this->lock);
 		for (auto &client:this->clients) {
 			(void)send(client, buffer, used_len, 0);
 		}
-		lock.unlock();
 	}
 
-	void tcp_output::log(log_level level, const char *fmt, ...) {
+	void tcp_appender::log(log_level level, const char *fmt, ...) {
 		char buffer[LOG_LINE_MAX];
 		buffer[0] = '\0';
-		const size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt);
-		singleton_log_lock &lock = singleton_log_lock::get_instance();
-		lock.lock();
+		const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), level, fmt);
+		std::lock_guard lock_guard(this->lock);
 		for (auto &client:this->clients) {
 			(void)send(client, buffer, used_len, 0);
 		}
-		lock.unlock();
 	}
 
-	std::shared_ptr<tcp_output> tcp_output_config::get_instance(const tcp_output_config &config) {
-		static std::shared_ptr<tcp_output> instance = nullptr;
-		static log_lock instance_lock;
+	std::shared_ptr<tcp_appender> tcp_appender_config::instance = nullptr;
+	log_lock tcp_appender_config::instance_lock;
+
+	std::shared_ptr<tcp_appender> tcp_appender_config::get_instance(const tcp_appender_config &config) {
 		if (instance == nullptr) {
-			instance_lock.lock();
+			std::lock_guard lock(instance_lock);
 			if (instance == nullptr) {
-				instance = tcp_output::builder::new_builder().set_local_addr(config.local_addr).set_port(
+				instance = tcp_appender::builder::new_builder().set_local_addr(config.local_addr).set_port(
 					config.port).build();
 			}
-			instance_lock.unlock();
 		}
 		return instance;
 	}
 
-	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, tcp_output_config const &obj) {
+	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, tcp_appender_config const &obj) {
 		json = boost::json::object{
 			{"localAddr", net::to_string(obj.local_addr)},
 			{"port", obj.port}
 		};
 	}
 
-	tcp_output_config tag_invoke(boost::json::value_to_tag<tcp_output_config>, boost::json::value const &json) {
-		tcp_output_config config;
+	tcp_appender_config tag_invoke(boost::json::value_to_tag<tcp_appender_config>, boost::json::value const &json) {
+		tcp_appender_config config;
 		config.local_addr = net::net_addr(boost::json::value_to<std::string>(json.at("localAddr")));
 		config.port = boost::json::value_to<unsigned short>(json.at("port"));
 		return config;

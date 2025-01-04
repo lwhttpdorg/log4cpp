@@ -9,12 +9,15 @@ FetchContent_MakeAvailable(googletest)
 
 set(TEST_TARGET_NAME "MainTests")
 
-file(COPY ./test-log4cpp-1.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
-file(COPY ./test-log4cpp-2.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+file(GLOB TEST_CONFIG_FILES "*.json")
+
+file(COPY ${TEST_CONFIG_FILES} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
 add_test(NAME mainTest COMMAND ${TEST_TARGET_NAME} --exe $<TARGET_FILE:${TEST_TARGET_NAME}> WORKING_DIRECTORY "./")
 
-add_executable(${TEST_TARGET_NAME} mainTest.cpp)
+include_directories(../)
+
+add_executable(${TEST_TARGET_NAME} mainTest.cpp tcp_appender_test.cpp udp_appender_test.cpp)
 target_link_libraries(${TEST_TARGET_NAME} GTest::gtest_main log4cpp)
 
 include(GoogleTest)

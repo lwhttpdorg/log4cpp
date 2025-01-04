@@ -6,6 +6,31 @@
 
 ---
 
+<!-- TOC -->
+* [log4cpp](#log4cpp)
+  * [1. 简述](#1-简述)
+  * [2. 要求](#2-要求)
+  * [3. 使用](#3-使用)
+    * [3.1 在CMake项目中使用](#31-在cmake项目中使用)
+    * [3.2 配置文件](#32-配置文件)
+      * [3.2.1 配置输出格式](#321-配置输出格式)
+      * [3.2.2 配置输出器](#322-配置输出器)
+      * [3.2.3 控制台输出器](#323-控制台输出器)
+      * [3.2.4 文件输出器](#324-文件输出器)
+      * [3.2.5 TCP输出器](#325-tcp输出器)
+      * [3.2.6 UDP输出器](#326-udp输出器)
+    * [3.3 配置logger](#33-配置logger)
+    * [3.4 加载配置文件](#34-加载配置文件)
+    * [3.5 在代码中使用](#35-在代码中使用)
+    * [3.6 完整示例](#36-完整示例)
+    * [3.7 贡献](#37-贡献)
+      * [3.7.1 boost库](#371-boost库)
+      * [3.7.2 CMake编译选项](#372-cmake编译选项)
+      * [3.7.3 测试](#373-测试)
+      * [3.7.4 ASAN](#374-asan)
+  * [4. 许可](#4-许可)
+<!-- TOC -->
+
 ## 1. 简述
 
 log4cpp是一个简单的C++日志库, 支持多线程, 支持自定义输出格式, 支持配置文件, 支持控制台, 文件, TCP, UDP输出
@@ -35,7 +60,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -64,28 +89,29 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 
 #### 3.2.2 配置输出器
 
-配置输出器有四种类型: 控制台输出器(consoleOutPut), 文件输出器(fileOutPut), TCP输出器(tcpOutPut), UDP输出器(udpOutPut)
+配置输出器有四种类型: 控制台输出器(consoleAppender), 文件输出器(fileAppender), TCP输出器(tcpAppender), UDP输出器(
+udpAppender)
 
 一个简单的配置文件示例:
 
 ```json
 {
-  "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    },
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "append": false
-    },
-    "tcpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    },
-    "udpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+  "Appenders": {
+	"consoleAppender": {
+	  "outStream": "stdout"
+	},
+	"fileAppender": {
+	  "filePath": "log/log4cpp.log",
+	  "append": false
+	},
+	"tcpAppender": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	},
+	"udpAppender": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -96,10 +122,10 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 
 ```json
 {
-  "logOutPut": {
-    "consoleOutPut": {
-      "outStream": "stdout"
-    }
+  "Appenders": {
+	"consoleAppender": {
+	  "outStream": "stdout"
+	}
   }
 }
 ```
@@ -114,11 +140,11 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 
 ```json
 {
-  "logOutPut": {
-    "fileOutPut": {
-      "filePath": "log/log4cpp.log",
-      "append": true
-    }
+  "Appenders": {
+	"fileAppender": {
+	  "filePath": "log/log4cpp.log",
+	  "append": true
+	}
   }
 }
 ```
@@ -134,11 +160,11 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 
 ```json
 {
-  "logOutPut": {
-    "tcpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+  "Appenders": {
+	"tcpAppender": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -166,11 +192,11 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 
 ```json
 {
-  "logOutPut": {
-    "udpOutPut": {
-      "localAddr": "0.0.0.0",
-      "port": 9443
-    }
+  "Appenders": {
+	"udpAppender": {
+	  "localAddr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -182,7 +208,7 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 
 ### 3.3 配置logger
 
-logger分为命名logger(配置名`loggers`)和默认logger(配置名`rootLogger`), getLogger时如果没有指定名称的logger, 则返回默认logger
+logger分为命名logger(配置名`layouts`)和默认logger(配置名`rootLogger`), getLogger时如果没有指定名称的logger, 则返回默认logger
 
 _注意: 命名logger可以没有, 但是默认logger必须有_
 
@@ -190,37 +216,38 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 
 * `name`: logger名称, 用于获取logger, 不能重复, 不能是`root`
 * `logLevel`: log级别, 只有大于等于此级别的log才会输出
-* `logOutPuts`: 输出器, 只有配置的输出器才会输出. 输出器可以是`consoleOutPut`, `fileOutPut`, `tcpOutPut`, `udpOutPut`
+* `Appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`consoleAppender`, `fileAppender`, `tcpAppender`,
+  `udpAppender`
 
-默认logger是一个对象, 只有`logLevel`和`logOutPuts`, 没有`name`, 内部实现`name`为`root`
+默认logger是一个对象, 只有`logLevel`和`Appenders`, 没有`name`, 内部实现`name`为`root`
 
 ```json
 {
-  "loggers": [
-    {
-      "name": "consoleLogger",
-      "logLevel": "info",
-      "logOutPuts": [
-        "consoleOutPut"
-      ]
-    },
-    {
-      "name": "recordLogger",
-      "logLevel": "error",
-      "logOutPuts": [
-        "fileOutPut",
-        "tcpOutPut",
-        "udpOutPut"
-      ]
-    }
+  "layouts": [
+	{
+	  "name": "consoleLogger",
+	  "logLevel": "info",
+	  "Appenders": [
+		"consoleAppender"
+	  ]
+	},
+	{
+	  "name": "recordLogger",
+	  "logLevel": "error",
+	  "Appenders": [
+		"fileAppender",
+		"tcpAppender",
+		"udpAppender"
+	  ]
+	}
   ],
   "rootLogger": {
-    "logLevel": "info",
-    "logOutPuts": [
-      "fileOutPut",
-      "tcpOutPut",
-      "udpOutPut"
-    ]
+	"logLevel": "info",
+	"Appenders": [
+	  "fileAppender",
+	  "tcpAppender",
+	  "udpAppender"
+	]
   }
 }
 ```
@@ -370,51 +397,51 @@ endif ()
 
 ```json
 {
-  "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
-  "logOutPut": {
-	"consoleOutPut": {
+  "layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
+  "Appenders": {
+	"consoleAppender": {
 	  "outStream": "stdout"
 	},
-	"fileOutPut": {
+	"fileAppender": {
 	  "filePath": "log/log4cpp.log",
 	  "append": true
 	},
-	"tcpOutPut": {
+	"tcpAppender": {
 	  "localAddr": "0.0.0.0",
 	  "port": 9443
 	},
-	"udpOutPut": {
+	"udpAppender": {
 	  "localAddr": "0.0.0.0",
 	  "port": 9443
 	}
   },
-  "loggers": [
+  "layouts": [
 	{
 	  "name": "consoleLogger",
 	  "logLevel": "info",
-	  "logOutPuts": [
-		"consoleOutPut",
-		"tcpOutPut",
-		"udpOutPut"
+	  "Appenders": [
+		"consoleAppender",
+		"tcpAppender",
+		"udpAppender"
 	  ]
 	},
 	{
 	  "name": "recordLogger",
 	  "logLevel": "error",
-	  "logOutPuts": [
-		"consoleOutPut",
-		"fileOutPut",
-		"tcpOutPut",
-		"udpOutPut"
+	  "Appenders": [
+		"consoleAppender",
+		"fileAppender",
+		"tcpAppender",
+		"udpAppender"
 	  ]
 	}
   ],
   "rootLogger": {
 	"logLevel": "info",
-	"logOutPuts": [
-	  "fileOutPut",
-	  "tcpOutPut",
-	  "udpOutPut"
+	"Appenders": [
+	  "fileAppender",
+	  "tcpAppender",
+	  "udpAppender"
 	]
   }
 }

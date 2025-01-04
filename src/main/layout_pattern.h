@@ -6,7 +6,7 @@
 namespace log4cpp {
 	constexpr unsigned short LOG_LINE_MAX = 512;
 
-	class log_pattern {
+	class layout_pattern {
 	private:
 		// The pattern to format the log message
 		static std::string _pattern;

@@ -4,7 +4,7 @@
 #include <string>
 #include "log4cpp.hpp"
 
-/* formatted output to a string
+/* format a string
  * buf: the buffer to store the formatted string
  * size: the size of the buffer
  * fmt: the format string
@@ -13,7 +13,7 @@
  */
 size_t log4c_vscnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, va_list args);
 
-/* formatted output to a string
+/* format to a string
  * buf: the buffer to store the formatted string
  * size: the size of the buffer
  * fmt: the format string

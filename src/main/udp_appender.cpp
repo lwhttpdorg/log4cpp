@@ -9,23 +9,23 @@
 #include <netinet/in.h>
 #endif
 
-#include "log_pattern.h"
-#include "udp_output.h"
+#include "layout_pattern.h"
+#include "udp_appender.h"
 
 
 namespace log4cpp {
 	const char *UDP_OUTPUT_HELLO = "hello";
 	const char *UDP_OUTPUT_GOODBYE = "bye";
 
-	std::atomic_bool udp_output::running{true};
+	std::atomic_bool udp_appender::running{true};
 
 	net::socket_fd create_udp_socket(const net::sock_addr &saddr) {
 		net::socket_fd fd;
 		if (saddr.addr.family == net::net_family::NET_IPv4) {
-			fd = socket(AF_INET, SOCK_DGRAM, 0);
+			fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		}
 		else {
-			fd = socket(AF_INET6, SOCK_DGRAM, 0);
+			fd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 		}
 		if (fd == net::INVALID_FD) {
 			return net::INVALID_FD;
@@ -61,14 +61,14 @@ namespace log4cpp {
 		return fd;
 	}
 
-	void accept_worker(const int listen_fd, std::unordered_set<net::sock_addr> &clients) {
+	void accept_worker(const int listen_fd, log_lock lock, std::unordered_set<net::sock_addr> &clients) {
 		fd_set read_fds;
 		FD_ZERO(&read_fds);
 		FD_SET(listen_fd, &read_fds);
 		timeval timeout{};
 		timeout.tv_sec = 1;
 		timeout.tv_usec = 0;
-		while (udp_output::running) {
+		while (udp_appender::running) {
 			fd_set tmp_fds = read_fds;
 			const int ret = select(listen_fd + 1, &tmp_fds, nullptr, nullptr, &timeout);
 			if (ret == -1) {
@@ -113,34 +113,36 @@ namespace log4cpp {
 				}
 				buffer[len] = '\0';
 				if (strcmp(buffer, UDP_OUTPUT_HELLO) == 0) {
+					std::lock_guard lock_guard(lock);
 					clients.insert(saddr);
 				}
 				else if (strcmp(buffer, UDP_OUTPUT_GOODBYE) == 0) {
+					std::lock_guard lock_guard(lock);
 					clients.erase(saddr);
 				}
 			}
 		}
 	}
 
-	udp_output::builder &udp_output::builder::set_local_addr(const net::net_addr &addr) {
+	udp_appender::builder &udp_appender::builder::set_local_addr(const net::net_addr &addr) {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call new_builder() first");
+			throw std::runtime_error("Call udp_appender::builder::new_builder() first");
 		}
 		this->config.local_addr = addr;
 		return *this;
 	}
 
-	udp_output::builder &udp_output::builder::set_port(unsigned short port) {
+	udp_appender::builder &udp_appender::builder::set_port(unsigned short port) {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call new_builder() first");
+			throw std::runtime_error("Call udp_appender::builder::new_builder() first");
 		}
 		this->config.port = port;
 		return *this;
 	}
 
-	std::shared_ptr<udp_output> udp_output::builder::build() {
+	std::shared_ptr<udp_appender> udp_appender::builder::build() {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call new_builder() first");
+			throw std::runtime_error("Call udp_appender::builder::new_builder() first");
 		}
 		net::sock_addr saddr;
 		saddr.addr = this->config.local_addr;
@@ -150,21 +152,22 @@ namespace log4cpp {
 			throw std::runtime_error("Can not create tcp socket");
 		}
 		this->instance->fd = server_fd;
-		this->instance->accept_thread = std::thread(accept_worker, server_fd, std::ref(this->instance->clients));
+		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
+		                                            std::ref(this->instance->clients));
 		return this->instance;
 	}
 
-	udp_output::builder udp_output::builder::new_builder() {
-		builder builder = udp_output::builder{};
-		builder.instance = std::shared_ptr<udp_output>(new udp_output());
+	udp_appender::builder udp_appender::builder::new_builder() {
+		builder builder = udp_appender::builder{};
+		builder.instance = std::shared_ptr<udp_appender>(new udp_appender());
 		return builder;
 	}
 
-	udp_output::udp_output() {
+	udp_appender::udp_appender() {
 		this->fd = net::INVALID_FD;
 	}
 
-	udp_output::~udp_output() {
+	udp_appender::~udp_appender() {
 		running = false;
 		this->accept_thread.join();
 		if (this->fd != net::INVALID_FD) {
@@ -172,12 +175,11 @@ namespace log4cpp {
 		}
 	}
 
-	void udp_output::log(log_level level, const char *fmt, va_list args) {
+	void udp_appender::log(log_level level, const char *fmt, va_list args) {
 		char buffer[LOG_LINE_MAX];
 		buffer[0] = '\0';
-		const size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt, args);
-		singleton_log_lock &lock = singleton_log_lock::get_instance();
-		lock.lock();
+		const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), level, fmt, args);
+		std::lock_guard lock_guard(this->lock);
 		for (auto &client:this->clients) {
 			if (client.addr.family == net::net_family::NET_IPv4) {
 				sockaddr_in client_addr{};
@@ -196,15 +198,13 @@ namespace log4cpp {
 				             sizeof(client_addr));
 			}
 		}
-		lock.unlock();
 	}
 
-	void udp_output::log(log_level level, const char *fmt, ...) {
+	void udp_appender::log(log_level level, const char *fmt, ...) {
 		char buffer[LOG_LINE_MAX];
 		buffer[0] = '\0';
-		const size_t used_len = log_pattern::format(buffer, sizeof(buffer), level, fmt);
-		singleton_log_lock &lock = singleton_log_lock::get_instance();
-		lock.lock();
+		const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), level, fmt);
+		std::lock_guard lock_guard(this->lock);
 		for (auto &client:this->clients) {
 			if (client.addr.family == net::net_family::NET_IPv4) {
 				sockaddr_in client_addr{};
@@ -223,32 +223,31 @@ namespace log4cpp {
 				             sizeof(client_addr));
 			}
 		}
-		lock.unlock();
 	}
 
-	std::shared_ptr<udp_output> udp_output_config::get_instance(const udp_output_config &config) {
-		static std::shared_ptr<udp_output> instance = nullptr;
-		static log_lock instance_lock;
+	std::shared_ptr<udp_appender> udp_appender_config::instance = nullptr;
+	log_lock udp_appender_config::instance_lock;
+
+	std::shared_ptr<udp_appender> udp_appender_config::get_instance(const udp_appender_config &config) {
 		if (instance == nullptr) {
-			instance_lock.lock();
+			std::lock_guard lock(udp_appender_config::instance_lock);
 			if (instance == nullptr) {
-				instance = udp_output::builder::new_builder().set_local_addr(config.local_addr).set_port(
+				instance = udp_appender::builder::new_builder().set_local_addr(config.local_addr).set_port(
 					config.port).build();
 			}
-			instance_lock.unlock();
 		}
 		return instance;
 	}
 
-	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, const udp_output_config &obj) {
+	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, const udp_appender_config &obj) {
 		json = boost::json::object{
 			{"localAddr", net::to_string(obj.local_addr)},
 			{"port", obj.port}
 		};
 	}
 
-	udp_output_config tag_invoke(boost::json::value_to_tag<udp_output_config>, boost::json::value const &json) {
-		udp_output_config config;
+	udp_appender_config tag_invoke(boost::json::value_to_tag<udp_appender_config>, boost::json::value const &json) {
+		udp_appender_config config;
 		config.local_addr = net::net_addr(boost::json::value_to<std::string>(json.at("localAddr")));
 		config.port = boost::json::value_to<unsigned short>(json.at("port"));
 		return config;

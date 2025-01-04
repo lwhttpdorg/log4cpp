@@ -36,21 +36,21 @@ namespace log4cpp {
 	 */
 	log_level from_string(const std::string &s);
 
-	class log_output;
+	class log_appender;
 
-	class logger final {
+	class layout final {
 	public:
-		logger();
+		layout();
 
-		explicit logger(const std::string &log_name, log_level _level = log_level::WARN);
+		explicit layout(const std::string &log_name, log_level _level = log_level::WARN);
 
-		logger(const logger &other);
+		layout(const layout &other);
 
-		logger(logger &&other) noexcept;
+		layout(layout &&other) noexcept;
 
-		logger &operator=(const logger &other);
+		layout &operator=(const layout &other);
 
-		logger &operator=(logger &&other) noexcept;
+		layout &operator=(layout &&other) noexcept;
 
 		/**
 		 * write log message to output.
@@ -102,9 +102,9 @@ namespace log4cpp {
 		 */
 		void trace(const char *__restrict fmt, ...) const;
 
-		~logger() = default;
+		~layout() = default;
 
-		friend class logger_builder;
+		friend class layout_builder;
 
 		friend class log4cpp_config;
 
@@ -113,16 +113,16 @@ namespace log4cpp {
 		std::string name;
 		/* The log level. */
 		log_level level;
-		/* The log outputs. */
-		std::list<std::shared_ptr<log_output>> outputs;
+		/* The log appenders. */
+		std::list<std::shared_ptr<log_appender>> appenders;
 	};
 
-	/*********************** logger_manager ***********************/
+	/*********************** layout_manager ***********************/
 	class log4cpp_config;
 
 	class log_lock;
 
-	class logger_manager final {
+	class layout_manager final {
 	public:
 		/**
 		 * Load log4cpp configuration from json file.
@@ -130,32 +130,35 @@ namespace log4cpp {
 		 */
 		static void load_config(const std::string &json_filepath);
 
+		static const log4cpp_config *get_config();
+
 		/**
 		 * Get logger by name.
 		 * @param name The logger name.
-		 * @return If the logger exists, return the logger, otherwise return rootLogger.
+		 * @return If the logger exists, return the logger, otherwise return rootLayout.
 		 */
-		static std::shared_ptr<logger> get_logger(const std::string &name);
+		static std::shared_ptr<layout> get_layout(const std::string &name);
 
 	private:
-		logger_manager() = default;
+		layout_manager() = default;
 
-		~logger_manager() = default;
+		~layout_manager() = default;
 
-		static void build_output();
+		static void build_appender();
 
-		static void build_logger();
+		static void build_layout();
 
-		static void build_root_logger();
+		static void build_root_layout();
 
 	private:
+		static log_lock lock;
 		static bool initialized;
 		static log4cpp_config config;
-		static std::shared_ptr<log_output> console_out;
-		static std::shared_ptr<log_output> file_out;
-		static std::shared_ptr<log_output> tcp_out;
-		static std::shared_ptr<log_output> udp_out;
-		static std::unordered_map<std::string, std::shared_ptr<logger>> loggers;
-		static std::shared_ptr<logger> root_logger;
+		static std::shared_ptr<log_appender> console_appender;
+		static std::shared_ptr<log_appender> file_appender;
+		static std::shared_ptr<log_appender> tcp_appender;
+		static std::shared_ptr<log_appender> udp_appender;
+		static std::unordered_map<std::string, std::shared_ptr<layout>> layouts;
+		static std::shared_ptr<layout> root_layout;
 	};
 }

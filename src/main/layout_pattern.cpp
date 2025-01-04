@@ -23,11 +23,11 @@
 
 #endif
 
-#include "log_pattern.h"
+#include "layout_pattern.h"
 #include "log_utils.h"
 
 namespace log4cpp {
-	const char *DEFAULT_PATTERN = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}";
+	const char *DEFAULT_LAYOUT_PATTERN = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}";
 
 	constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
 	constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
@@ -36,9 +36,9 @@ namespace log4cpp {
 			"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 	};
 
-	std::string log_pattern::_pattern = DEFAULT_PATTERN;
+	std::string layout_pattern::_pattern = DEFAULT_LAYOUT_PATTERN;
 
-	void log_pattern::set_pattern(const std::string &pattern) {
+	void layout_pattern::set_pattern(const std::string &pattern) {
 		_pattern = pattern;
 	}
 
@@ -98,7 +98,7 @@ namespace log4cpp {
 	/* Log message, e.g.: hello world! */
 	const char *LOG_CONTENT = "${W}";
 
-	size_t log_pattern::format_with_pattern(char *buf, size_t len, log_level level, const char *msg) {
+	size_t layout_pattern::format_with_pattern(char *buf, size_t len, log_level level, const char *msg) {
 		const auto now = std::chrono::system_clock::now();
 		const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 		const std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -211,7 +211,7 @@ namespace log4cpp {
 		return 0;
 	}
 
-	size_t log_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, va_list args) {
+	size_t layout_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, va_list args) {
 		char message[LOG_LINE_MAX];
 		message[0] = '\0';
 		log4c_vscnprintf(message, sizeof(message), fmt, args);
@@ -222,7 +222,7 @@ namespace log4cpp {
 		return used_len;
 	}
 
-	size_t log_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, ...) {
+	size_t layout_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, ...) {
 		char message[LOG_LINE_MAX];
 		message[0] = '\0';
 		va_list args;

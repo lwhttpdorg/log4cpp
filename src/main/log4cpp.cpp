@@ -17,7 +17,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "../include/log4cpp.hpp"
-#include "file_output.h"
+#include "file_appender.h"
 
 
 using namespace log4cpp;
@@ -81,23 +81,23 @@ log_level log4cpp::from_string(const std::string &s) {
 	return level;
 }
 
-/**************************logger*****************************/
-logger::logger() {
+/**************************layout*****************************/
+layout::layout() {
 	this->level = log_level::WARN;
 }
 
-logger::logger(const std::string &log_name, log_level _level) {
+layout::layout(const std::string &log_name, log_level _level) {
 	this->name = log_name;
 	this->level = _level;
 }
 
-void logger::log(log_level _level, const char *fmt, va_list args) const {
-	for (auto &l:this->outputs) {
+void layout::log(log_level _level, const char *fmt, va_list args) const {
+	for (auto &l:this->appenders) {
 		l->log(_level, fmt, args);
 	}
 }
 
-void logger::trace(const char *__restrict fmt, ...) const {
+void layout::trace(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::TRACE) {
 		va_list args;
 		va_start(args, fmt);
@@ -106,7 +106,7 @@ void logger::trace(const char *__restrict fmt, ...) const {
 	}
 }
 
-void logger::info(const char *__restrict fmt, ...) const {
+void layout::info(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::INFO) {
 		va_list args;
 		va_start(args, fmt);
@@ -115,7 +115,7 @@ void logger::info(const char *__restrict fmt, ...) const {
 	}
 }
 
-void logger::debug(const char *__restrict fmt, ...) const {
+void layout::debug(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::DEBUG) {
 		va_list args;
 		va_start(args, fmt);
@@ -124,7 +124,7 @@ void logger::debug(const char *__restrict fmt, ...) const {
 	}
 }
 
-void logger::warn(const char *__restrict fmt, ...) const {
+void layout::warn(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::WARN) {
 		va_list args;
 		va_start(args, fmt);
@@ -133,7 +133,7 @@ void logger::warn(const char *__restrict fmt, ...) const {
 	}
 }
 
-void logger::error(const char *__restrict fmt, ...) const {
+void layout::error(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::ERROR) {
 		va_list args;
 		va_start(args, fmt);
@@ -142,7 +142,7 @@ void logger::error(const char *__restrict fmt, ...) const {
 	}
 }
 
-void logger::fatal(const char *__restrict fmt, ...) const {
+void layout::fatal(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::FATAL) {
 		va_list args;
 		va_start(args, fmt);
@@ -151,32 +151,32 @@ void logger::fatal(const char *__restrict fmt, ...) const {
 	}
 }
 
-logger::logger(const logger &other) {
+layout::layout(const layout &other) {
 	this->name = other.name;
 	this->level = other.level;
-	this->outputs = other.outputs;
+	this->appenders = other.appenders;
 }
 
-logger::logger(logger &&other) noexcept {
+layout::layout(layout &&other) noexcept {
 	this->name = std::move(other.name);
 	this->level = other.level;
-	this->outputs = std::move(other.outputs);
+	this->appenders = std::move(other.appenders);
 }
 
-logger &logger::operator=(const logger &other) {
+layout &layout::operator=(const layout &other) {
 	if (this != &other) {
 		this->name = other.name;
 		this->level = other.level;
-		this->outputs = other.outputs;
+		this->appenders = other.appenders;
 	}
 	return *this;
 }
 
-logger &logger::operator=(logger &&other) noexcept {
+layout &layout::operator=(layout &&other) noexcept {
 	if (this != &other) {
 		this->name = std::move(other.name);
 		this->level = other.level;
-		this->outputs = std::move(other.outputs);
+		this->appenders = std::move(other.appenders);
 	}
 	return *this;
 }

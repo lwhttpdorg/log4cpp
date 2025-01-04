@@ -8,106 +8,106 @@
 #endif
 
 #include "log4cpp_config.h"
-#include "log_pattern.h"
+#include "layout_pattern.h"
 
 
 using namespace log4cpp;
 
-bool valid_output(const std::string &name) {
-	bool valid_output = true;
-	if ((name != CONSOLE_OUTPUT_NAME) && (name != FILE_OUTPUT_NAME) && (name != TCP_OUTPUT_NAME) &&
-	    (name != UDP_OUTPUT_NAME)) {
-		valid_output = false;
+bool valid_appender(const std::string &name) {
+	bool valid = true;
+	if ((name != CONSOLE_APPENDER) && (name != FILE_APPENDER) && (name != TCP_APPENDER) &&
+	    (name != UDP_APPENDER)) {
+		valid = false;
 	}
-	return valid_output;
+	return valid;
 }
 
-void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const output_config &obj) {
+void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const appender_config &obj) {
 	json = boost::json::object{};
-	if (obj.OUT_FLAGS & CONSOLE_OUT_CFG) {
-		json.at(CONSOLE_OUTPUT_NAME) = boost::json::value_from(obj.console_cfg);
+	if (obj.APPENDER_FLAGS & CONSOLE_APPENDER_CFG) {
+		json.at(CONSOLE_APPENDER) = boost::json::value_from(obj.console_cfg);
 	}
-	if (obj.OUT_FLAGS & FILE_OUT_CFG) {
-		json.at(FILE_OUTPUT_NAME) = boost::json::value_from(obj.file_cfg);
+	if (obj.APPENDER_FLAGS & FILE_APPENDER_CFG) {
+		json.at(FILE_APPENDER) = boost::json::value_from(obj.file_cfg);
 	}
-	if (obj.OUT_FLAGS & TCP_OUT_CFG) {
-		json.at(TCP_OUTPUT_NAME) = boost::json::value_from(obj.tcp_cfg);
+	if (obj.APPENDER_FLAGS & TCP_APPENDER_CFG) {
+		json.at(TCP_APPENDER) = boost::json::value_from(obj.tcp_cfg);
 	}
-	if (obj.OUT_FLAGS & UDP_OUT_CFG) {
-		json.at(UDP_OUTPUT_NAME) = boost::json::value_from(obj.udp_cfg);
+	if (obj.APPENDER_FLAGS & UDP_APPENDER_CFG) {
+		json.at(UDP_APPENDER) = boost::json::value_from(obj.udp_cfg);
 	}
 }
 
-output_config log4cpp::tag_invoke(boost::json::value_to_tag<output_config>, boost::json::value const &json) {
-	output_config output_cfg{};
+appender_config log4cpp::tag_invoke(boost::json::value_to_tag<appender_config>, boost::json::value const &json) {
+	appender_config append_cfg{};
 	auto json_obj = json.as_object();
-	if (json_obj.contains(CONSOLE_OUTPUT_NAME)) {
-		output_cfg.console_cfg = boost::json::value_to<console_output_config>(json_obj.at(CONSOLE_OUTPUT_NAME));
-		output_cfg.OUT_FLAGS |= CONSOLE_OUT_CFG;
+	if (json_obj.contains(CONSOLE_APPENDER)) {
+		append_cfg.console_cfg = boost::json::value_to<console_appender_config>(json_obj.at(CONSOLE_APPENDER));
+		append_cfg.APPENDER_FLAGS |= CONSOLE_APPENDER_CFG;
 	}
-	if (json_obj.contains(FILE_OUTPUT_NAME)) {
-		output_cfg.file_cfg = boost::json::value_to<file_output_config>(json_obj.at(FILE_OUTPUT_NAME));
-		output_cfg.OUT_FLAGS |= FILE_OUT_CFG;
+	if (json_obj.contains(FILE_APPENDER)) {
+		append_cfg.file_cfg = boost::json::value_to<file_appender_config>(json_obj.at(FILE_APPENDER));
+		append_cfg.APPENDER_FLAGS |= FILE_APPENDER_CFG;
 	}
-	if (json_obj.contains(TCP_OUTPUT_NAME)) {
-		output_cfg.tcp_cfg = boost::json::value_to<tcp_output_config>(json_obj.at(TCP_OUTPUT_NAME));
-		output_cfg.OUT_FLAGS |= TCP_OUT_CFG;
+	if (json_obj.contains(TCP_APPENDER)) {
+		append_cfg.tcp_cfg = boost::json::value_to<tcp_appender_config>(json_obj.at(TCP_APPENDER));
+		append_cfg.APPENDER_FLAGS |= TCP_APPENDER_CFG;
 	}
-	if (json_obj.contains(UDP_OUTPUT_NAME)) {
-		output_cfg.udp_cfg = boost::json::value_to<udp_output_config>(json_obj.at(UDP_OUTPUT_NAME));
-		output_cfg.OUT_FLAGS |= UDP_OUT_CFG;
+	if (json_obj.contains(UDP_APPENDER)) {
+		append_cfg.udp_cfg = boost::json::value_to<udp_appender_config>(json_obj.at(UDP_APPENDER));
+		append_cfg.APPENDER_FLAGS |= UDP_APPENDER_CFG;
 	}
-	return output_cfg;
+	return append_cfg;
 }
 
-logger_config::logger_config() {
+layout_config::layout_config() {
 	this->level = log_level::WARN;
 }
 
-logger_config::logger_config(const logger_config &other) {
+layout_config::layout_config(const layout_config &other) {
 	this->name = other.name;
 	this->level = other.level;
-	this->_outputs = other._outputs;
+	this->layout_flag = other.layout_flag;
 }
 
-logger_config::logger_config(logger_config &&other) noexcept {
+layout_config::layout_config(layout_config &&other) noexcept {
 	this->name = std::move(other.name);
 	this->level = other.level;
-	this->_outputs = other._outputs;
+	this->layout_flag = other.layout_flag;
 }
 
-logger_config &logger_config::operator=(const logger_config &other) {
+layout_config &layout_config::operator=(const layout_config &other) {
 	if (this != &other) {
 		this->name = other.name;
 		this->level = other.level;
-		this->_outputs = other._outputs;
+		this->layout_flag = other.layout_flag;
 	}
 	return *this;
 }
 
-logger_config &logger_config::operator=(logger_config &&other) noexcept {
+layout_config &layout_config::operator=(layout_config &&other) noexcept {
 	if (this != &other) {
 		this->name = std::move(other.name);
 		this->level = other.level;
-		this->_outputs = other._outputs;
+		this->layout_flag = other.layout_flag;
 	}
 	return *this;
 }
 
-std::string logger_config::get_logger_name() const {
+std::string layout_config::get_logger_name() const {
 	return this->name;
 }
 
-log_level logger_config::get_logger_level() const {
+log_level layout_config::get_logger_level() const {
 	return this->level;
 }
 
-unsigned char logger_config::get_outputs() const {
-	return _outputs;
+unsigned char layout_config::get_layout_flag() const {
+	return layout_flag;
 }
 
-logger_config log4cpp::tag_invoke(boost::json::value_to_tag<logger_config>, boost::json::value const &json) {
-	logger_config obj;
+layout_config log4cpp::tag_invoke(boost::json::value_to_tag<layout_config>, boost::json::value const &json) {
+	layout_config obj;
 	auto json_obj = json.as_object();
 	if (json_obj.contains("name")) {
 		obj.name = boost::json::value_to<std::string>(json_obj.at("name"));
@@ -118,83 +118,83 @@ logger_config log4cpp::tag_invoke(boost::json::value_to_tag<logger_config>, boos
 	if (!json_obj.contains("logLevel")) {
 		throw std::invalid_argument("Malformed JSON configuration file: \"logLevel\" is mandatory");
 	}
-	if (!json_obj.contains("logOutPuts")) {
-		throw std::invalid_argument("Malformed JSON configuration file: \"logOutPuts\" is mandatory");
+	if (!json_obj.contains("Appenders")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"Appenders\" is mandatory");
 	}
 	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json_obj.at("logLevel")));
-	std::vector<std::string> outputs = boost::json::value_to<std::vector<std::string>>(json_obj.at("logOutPuts"));
-	for (auto &output:outputs) {
-		if (!valid_output(output)) {
+	std::vector<std::string> appenders = boost::json::value_to<std::vector<std::string>>(json_obj.at("Appenders"));
+	for (auto &appender:appenders) {
+		if (!valid_appender(appender)) {
 			throw std::invalid_argument(
-				"Malformed JSON configuration file: invalid loggers::logOutPuts \"" + output + "\"");
+				"Malformed JSON configuration file: invalid layouts::Appenders \"" + appender + "\"");
 		}
-		if (output == CONSOLE_OUTPUT_NAME) {
-			obj._outputs |= CONSOLE_OUT_CFG;
+		if (appender == CONSOLE_APPENDER) {
+			obj.layout_flag |= CONSOLE_APPENDER_CFG;
 		}
-		else if (output == FILE_OUTPUT_NAME) {
-			obj._outputs |= FILE_OUT_CFG;
+		else if (appender == FILE_APPENDER) {
+			obj.layout_flag |= FILE_APPENDER_CFG;
 		}
-		else if (output == TCP_OUTPUT_NAME) {
-			obj._outputs |= TCP_OUT_CFG;
+		else if (appender == TCP_APPENDER) {
+			obj.layout_flag |= TCP_APPENDER_CFG;
 		}
-		else if (output == UDP_OUTPUT_NAME) {
-			obj._outputs |= UDP_OUT_CFG;
+		else if (appender == UDP_APPENDER) {
+			obj.layout_flag |= UDP_APPENDER_CFG;
 		}
 	}
 	return obj;
 }
 
-void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const logger_config &obj) {
-	std::vector<std::string> outputs;
-	if (obj._outputs & CONSOLE_OUT_CFG) {
-		outputs.emplace_back(CONSOLE_OUTPUT_NAME);
+void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const layout_config &obj) {
+	std::vector<std::string> appenders;
+	if (obj.layout_flag & CONSOLE_APPENDER_CFG) {
+		appenders.emplace_back(CONSOLE_APPENDER);
 	}
-	if (obj._outputs & FILE_OUT_CFG) {
-		outputs.emplace_back(FILE_OUTPUT_NAME);
+	if (obj.layout_flag & FILE_APPENDER_CFG) {
+		appenders.emplace_back(FILE_APPENDER);
 	}
-	if (obj._outputs & TCP_OUT_CFG) {
-		outputs.emplace_back(TCP_OUTPUT_NAME);
+	if (obj.layout_flag & TCP_APPENDER_CFG) {
+		appenders.emplace_back(TCP_APPENDER);
 	}
-	if (obj._outputs & UDP_OUT_CFG) {
-		outputs.emplace_back(UDP_OUTPUT_NAME);
+	if (obj.layout_flag & UDP_APPENDER_CFG) {
+		appenders.emplace_back(UDP_APPENDER);
 	}
 
 	json = boost::json::object{
 		{"name", obj.name},
 		{"logLevel", log4cpp::to_string(obj.level)},
-		{"logOutPuts", boost::json::value_from(outputs)}
+		{"Appenders", boost::json::value_from(appenders)}
 	};
 }
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const log4cpp_config &obj) {
 	json = boost::json::object{
-		{"pattern", obj.pattern},
-		{"logOutPut", boost::json::value_from(obj.output)},
-		{"loggers", boost::json::value_from(obj.loggers)},
-		{"rootLogger", boost::json::value_from(obj.root_logger)}
+		{"layout_pattern", obj.layout_pattern},
+		{"Appenders", boost::json::value_from(obj.appender)},
+		{"layouts", boost::json::value_from(obj.layouts)},
+		{"rootLayout", boost::json::value_from(obj.root_layout)}
 	};
 }
 
 log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, boost::json::value const &json) {
 	auto json_obj = json.as_object();
 	std::string pattern;
-	if (json_obj.contains("pattern")) {
-		pattern = boost::json::value_to<std::string>(json_obj.at("pattern"));
-		log_pattern::set_pattern(pattern);
+	if (json_obj.contains("layout_pattern")) {
+		pattern = boost::json::value_to<std::string>(json_obj.at("layout_pattern"));
+		layout_pattern::set_pattern(pattern);
 	}
-	if (!json_obj.contains("logOutPut")) {
-		throw std::invalid_argument("Malformed JSON configuration file: \"logOutPut\" is mandatory");
+	if (!json_obj.contains("Appenders")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"Appender\" is mandatory");
 	}
-	std::vector<logger_config> loggers;
-	if (json_obj.contains("loggers")) {
-		loggers = boost::json::value_to<std::vector<logger_config>>(json_obj.at("loggers"));
+	std::vector<layout_config> layouts;
+	if (json_obj.contains("layouts")) {
+		layouts = boost::json::value_to<std::vector<layout_config>>(json_obj.at("layouts"));
 	}
-	if (!json_obj.contains("rootLogger")) {
-		throw std::invalid_argument("Malformed JSON configuration file: \"rootLogger\" is mandatory");
+	if (!json_obj.contains("rootLayout")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"rootLayout\" is mandatory");
 	}
-	output_config outputs = boost::json::value_to<output_config>(json_obj.at("logOutPut"));
-	const logger_config root = boost::json::value_to<logger_config>(json_obj.at("rootLogger"));
-	return log4cpp_config{pattern, outputs, loggers, root};
+	appender_config appenders = boost::json::value_to<appender_config>(json_obj.at("Appenders"));
+	const layout_config root = boost::json::value_to<layout_config>(json_obj.at("rootLayout"));
+	return log4cpp_config{pattern, appenders, layouts, root};
 }
 
 log4cpp_config log4cpp_config::load_config(const std::string &json_file) {
@@ -239,50 +239,66 @@ std::string log4cpp_config::serialize(const log4cpp_config &obj) {
 	return boost::json::serialize(json);
 }
 
-log4cpp_config::log4cpp_config(std::string _pattern, const output_config &o, const std::vector<logger_config> &l,
-                               logger_config root) {
-	this->pattern = std::move(_pattern);
-	log_pattern::set_pattern(this->pattern);
-	this->output = o;
-	this->loggers = l;
-	this->root_logger = std::move(root);
+log4cpp_config::log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<layout_config> &l,
+                               layout_config root) {
+	this->layout_pattern = std::move(_pattern);
+	layout_pattern::set_pattern(this->layout_pattern);
+	this->appender = o;
+	this->layouts = l;
+	this->root_layout = std::move(root);
 }
 
 
 log4cpp_config::log4cpp_config(const log4cpp_config &other) {
-	this->pattern = other.pattern;
-	log_pattern::set_pattern(this->pattern);
-	this->output = other.output;
-	this->loggers = other.loggers;
-	this->root_logger = other.root_logger;
+	this->layout_pattern = other.layout_pattern;
+	layout_pattern::set_pattern(this->layout_pattern);
+	this->appender = other.appender;
+	this->layouts = other.layouts;
+	this->root_layout = other.root_layout;
 }
 
 log4cpp_config::log4cpp_config(log4cpp_config &&other) noexcept {
-	this->pattern = std::move(other.pattern);
-	log_pattern::set_pattern(this->pattern);
-	this->output = std::move(other.output);
-	this->loggers = std::move(other.loggers);
-	this->root_logger = std::move(other.root_logger);
+	this->layout_pattern = std::move(other.layout_pattern);
+	layout_pattern::set_pattern(this->layout_pattern);
+	this->appender = std::move(other.appender);
+	this->layouts = std::move(other.layouts);
+	this->root_layout = std::move(other.root_layout);
 }
 
 log4cpp_config &log4cpp_config::operator=(const log4cpp_config &other) {
 	if (this != &other) {
-		this->pattern = other.pattern;
-		log_pattern::set_pattern(this->pattern);
-		this->output = other.output;
-		this->loggers = other.loggers;
-		this->root_logger = other.root_logger;
+		this->layout_pattern = other.layout_pattern;
+		layout_pattern::set_pattern(this->layout_pattern);
+		this->appender = other.appender;
+		this->layouts = other.layouts;
+		this->root_layout = other.root_layout;
 	}
 	return *this;
 }
 
 log4cpp_config &log4cpp_config::operator=(log4cpp_config &&other) noexcept {
 	if (this != &other) {
-		this->pattern = std::move(other.pattern);
-		log_pattern::set_pattern(this->pattern);
-		this->output = std::move(other.output);
-		this->loggers = std::move(other.loggers);
-		this->root_logger = std::move(other.root_logger);
+		this->layout_pattern = std::move(other.layout_pattern);
+		layout_pattern::set_pattern(this->layout_pattern);
+		this->appender = std::move(other.appender);
+		this->layouts = std::move(other.layouts);
+		this->root_layout = std::move(other.root_layout);
 	}
 	return *this;
+}
+
+const std::string &log4cpp_config::get_layout_pattern() const {
+	return layout_pattern;
+}
+
+const appender_config &log4cpp_config::get_appender() const {
+	return appender;
+}
+
+const std::vector<layout_config> &log4cpp_config::get_layouts() const {
+	return layouts;
+}
+
+const layout_config &log4cpp_config::get_root_layout() const {
+	return root_layout;
 }

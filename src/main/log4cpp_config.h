@@ -1,45 +1,73 @@
 #pragma once
 
 #include "../include/log4cpp.hpp"
-#include "console_output.h"
-#include "file_output.h"
-#include "tcp_output.h"
-#include "udp_output.h"
+#include "console_appender.h"
+#include "file_appender.h"
+#include "tcp_appender.h"
+#include "udp_appender.h"
 
 namespace log4cpp {
-	constexpr unsigned char CONSOLE_OUT_CFG = 0x01;
-	constexpr unsigned char FILE_OUT_CFG = 0x02;
-	constexpr unsigned char TCP_OUT_CFG = 0x04;
-	constexpr unsigned char UDP_OUT_CFG = 0x08;
+	constexpr unsigned char CONSOLE_APPENDER_CFG = 0x01;
+	constexpr unsigned char FILE_APPENDER_CFG = 0x02;
+	constexpr unsigned char TCP_APPENDER_CFG = 0x04;
+	constexpr unsigned char UDP_APPENDER_CFG = 0x08;
 
-	class output_config {
-		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, output_config const &obj);
+	class appender_config {
+		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, appender_config const &obj);
 
-		friend output_config tag_invoke(boost::json::value_to_tag<output_config>, boost::json::value const &json);
+		friend appender_config tag_invoke(boost::json::value_to_tag<appender_config>, boost::json::value const &json);
 
 	public:
-		unsigned char OUT_FLAGS{};
-		console_output_config console_cfg;
-		file_output_config file_cfg;
-		tcp_output_config tcp_cfg;
-		udp_output_config udp_cfg;
+		const console_appender_config *get_console_cfg() const {
+			if (APPENDER_FLAGS & CONSOLE_APPENDER_CFG) {
+				return &console_cfg;
+			}
+			return nullptr;
+		}
+
+		const file_appender_config *get_file_cfg() const {
+			if (APPENDER_FLAGS & FILE_APPENDER_CFG) {
+				return &file_cfg;
+			}
+			return nullptr;
+		}
+
+		const tcp_appender_config *get_tcp_cfg() const {
+			if (APPENDER_FLAGS & TCP_APPENDER_CFG) {
+				return &tcp_cfg;
+			}
+			return nullptr;
+		}
+
+		const udp_appender_config *get_udp_cfg() const {
+			if (APPENDER_FLAGS & UDP_APPENDER_CFG) {
+				return &udp_cfg;
+			}
+			return nullptr;
+		}
+
+		unsigned char APPENDER_FLAGS{};
+		console_appender_config console_cfg;
+		file_appender_config file_cfg;
+		tcp_appender_config tcp_cfg;
+		udp_appender_config udp_cfg;
 	};
 
-	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, output_config const &obj);
+	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, appender_config const &obj);
 
-	output_config tag_invoke(boost::json::value_to_tag<output_config>, boost::json::value const &json);
+	appender_config tag_invoke(boost::json::value_to_tag<appender_config>, boost::json::value const &json);
 
-	class logger_config {
+	class layout_config {
 	public:
-		logger_config();
+		layout_config();
 
-		logger_config(const logger_config &other);
+		layout_config(const layout_config &other);
 
-		logger_config(logger_config &&other) noexcept;
+		layout_config(layout_config &&other) noexcept;
 
-		logger_config &operator=(const logger_config &other);
+		layout_config &operator=(const layout_config &other);
 
-		logger_config &operator=(logger_config &&other) noexcept;
+		layout_config &operator=(layout_config &&other) noexcept;
 
 		/**
 		 * @brief Get the logger name
@@ -50,25 +78,25 @@ namespace log4cpp {
 		/* Get the logger level */
 		[[nodiscard]] log_level get_logger_level() const;
 
-		/* Get the output flags */
-		[[nodiscard]] unsigned char get_outputs() const;
+		/* Get the layout flags */
+		[[nodiscard]] unsigned char get_layout_flag() const;
 
-		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, logger_config const &obj);
+		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, layout_config const &obj);
 
-		friend logger_config tag_invoke(boost::json::value_to_tag<logger_config>, boost::json::value const &json);
+		friend layout_config tag_invoke(boost::json::value_to_tag<layout_config>, boost::json::value const &json);
 
 	private:
 		/* Logger name */
 		std::string name;
 		/* Logger level */
 		log_level level;
-		/* Output flags */
-		unsigned char _outputs{};
+		/* Layout flag */
+		unsigned char layout_flag{};
 	};
 
-	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, logger_config const &obj);
+	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, layout_config const &obj);
 
-	logger_config tag_invoke(boost::json::value_to_tag<logger_config>, boost::json::value const &json);
+	layout_config tag_invoke(boost::json::value_to_tag<layout_config>, boost::json::value const &json);
 
 	class log4cpp_config {
 	public:
@@ -93,8 +121,8 @@ namespace log4cpp {
 
 		log4cpp_config() = default;
 
-		log4cpp_config(std::string _pattern, const output_config &o, const std::vector<logger_config> &l,
-		               logger_config root);
+		log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<layout_config> &l,
+		               layout_config root);
 
 		log4cpp_config(const log4cpp_config &other);
 
@@ -104,13 +132,21 @@ namespace log4cpp {
 
 		log4cpp_config &operator=(log4cpp_config &&other) noexcept;
 
-		friend class logger_manager;
+		const std::string &get_layout_pattern() const;
+
+		const appender_config &get_appender() const;
+
+		const std::vector<layout_config> &get_layouts() const;
+
+		const layout_config &get_root_layout() const;
+
+		friend class layout_manager;
 
 	private:
-		std::string pattern; // pattern
-		output_config output{}; // logOutPut
-		std::vector<logger_config> loggers; // loggers
-		logger_config root_logger; // rootLogger
+		std::string layout_pattern; // layoutPattern
+		appender_config appender{}; // appenders
+		std::vector<layout_config> layouts; // layouts
+		layout_config root_layout; // rootLayout
 	};
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, log4cpp_config const &obj);

@@ -9,77 +9,77 @@
 using namespace log4cpp;
 
 
-logger_builder::builder logger_builder::builder::new_builder() {
-	builder builder = logger_builder::builder{};
-	builder.log = std::make_shared<logger>();
+layout_builder::builder layout_builder::builder::new_builder() {
+	builder builder = layout_builder::builder{};
+	builder._layout = std::make_shared<layout>();
 	return builder;
 }
 
-logger_builder::builder &logger_builder::builder::set_name(const std::string &name) {
-	this->log->name = name;
+layout_builder::builder &layout_builder::builder::set_name(const std::string &name) {
+	this->_layout->name = name;
 	return *this;
 }
 
-logger_builder::builder &logger_builder::builder::set_log_level(log_level level) {
-	this->log->level = level;
+layout_builder::builder &layout_builder::builder::set_log_level(log_level level) {
+	this->_layout->level = level;
 	return *this;
 }
 
-logger_builder::builder &logger_builder::builder::set_console_output(const std::shared_ptr<log_output> &output) {
-	if (output != nullptr) {
-		if (typeid(*output) != typeid(console_output)) {
-			std::string what = typeid(*output).name();
+layout_builder::builder &layout_builder::builder::set_console_appender(const std::shared_ptr<log_appender> &appender) {
+	if (appender != nullptr) {
+		if (typeid(*appender) != typeid(console_appender)) {
+			std::string what = typeid(*appender).name();
 			what += " not an instance of ";
-			what += typeid(console_output).name();
+			what += typeid(console_appender).name();
 			throw std::runtime_error(what);
 		}
-		this->log->outputs.push_back(output);
+		this->_layout->appenders.push_back(appender);
 	}
 	return *this;
 }
 
-logger_builder::builder &logger_builder::builder::set_file_output(const std::shared_ptr<log_output> &output) {
-	if (output != nullptr) {
-		if (typeid(*output) != typeid(file_output)) {
-			std::string what = typeid(*output).name();
+layout_builder::builder &layout_builder::builder::set_file_appender(const std::shared_ptr<log_appender> &appender) {
+	if (appender != nullptr) {
+		if (typeid(*appender) != typeid(file_appender)) {
+			std::string what = typeid(*appender).name();
 			what += " not an instance of ";
-			what += typeid(file_output).name();
+			what += typeid(file_appender).name();
 			throw std::runtime_error(what);
 		}
-		this->log->outputs.push_back(output);
+		this->_layout->appenders.push_back(appender);
 	}
 	return *this;
 }
 
-logger_builder::builder &logger_builder::builder::set_tcp_output(const std::shared_ptr<log_output> &output) {
-	if (output != nullptr) {
-		if (typeid(*output) != typeid(tcp_output)) {
-			std::string what = typeid(*output).name();
+layout_builder::builder &layout_builder::builder::set_tcp_appender(const std::shared_ptr<log_appender> &appender) {
+	if (appender != nullptr) {
+		if (typeid(*appender) != typeid(tcp_appender)) {
+			std::string what = typeid(*appender).name();
 			what += " not an instance of ";
-			what += typeid(tcp_output).name();
+			what += typeid(tcp_appender).name();
 			throw std::runtime_error(what);
 		}
-		this->log->outputs.push_back(output);
+		this->_layout->appenders.push_back(appender);
 	}
 	return *this;
 }
 
-logger_builder::builder &logger_builder::builder::set_udp_output(const std::shared_ptr<log_output> &output) {
-	if (output != nullptr) {
-		if (typeid(*output) != typeid(udp_output)) {
-			std::string what = typeid(*output).name();
+layout_builder::builder &layout_builder::builder::set_udp_appender(const std::shared_ptr<log_appender> &appender) {
+	if (appender != nullptr) {
+		if (typeid(*appender) != typeid(udp_appender)) {
+			std::string what = typeid(*appender).name();
 			what += " not an instance of ";
-			what += typeid(udp_output).name();
+			what += typeid(udp_appender).name();
 			throw std::runtime_error(what);
 		}
-		this->log->outputs.push_back(output);
+		this->_layout->appenders.push_back(appender);
 	}
 	return *this;
 }
 
-std::shared_ptr<logger> logger_builder::builder::build() {
-	if (this->log == nullptr) {
+std::shared_ptr<layout> layout_builder::builder::build() {
+	if (this->_layout == nullptr) {
 		throw std::runtime_error("Call new_builder() first");
 	}
-	return this->log;
+	return this->_layout;
 }

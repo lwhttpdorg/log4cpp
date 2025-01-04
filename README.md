@@ -6,6 +6,31 @@
 
 ---
 
+<!-- TOC -->
+* [log4cpp](#log4cpp)
+  * [1. Description](#1-description)
+  * [2. Requirements](#2-requirements)
+  * [3. Usage](#3-usage)
+    * [3.1 Use in CMake projects](#31-use-in-cmake-projects)
+    * [3.2 Configuration file](#32-configuration-file)
+      * [3.2.1 Configure layout pattern](#321-configure-layout-pattern)
+      * [3.2.2 Configure Appender](#322-configure-appender)
+      * [3.2.3 Console Appender](#323-console-appender)
+      * [3.2.4 File appender](#324-file-appender)
+      * [3.2.5 TCP Appender](#325-tcp-appender)
+      * [3.2.6 UDP Appender](#326-udp-appender)
+    * [3.3 Configure Layouts](#33-configure-layouts)
+    * [3.4 Loading configuration file](#34-loading-configuration-file)
+    * [3.5 Coding](#35-coding)
+    * [3.6 Complete example](#36-complete-example)
+    * [3.7 Contribution](#37-contribution)
+      * [3.7.1 boost library](#371-boost-library)
+      * [3.7.2 CMake compile options](#372-cmake-compile-options)
+      * [3.7.3 Test](#373-test)
+      * [3.7.4 ASAN](#374-asan)
+  * [4. License](#4-license)
+<!-- TOC -->
+
 ## 1. Description
 
 log4cpp is a simple C++ log library that supports multithreading, custom output format, configuration files, console,
@@ -32,11 +57,11 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ### 3.2 Configuration file
 
-#### 3.2.1 Configure output format
+#### 3.2.1 Configure layout pattern
 
 ```json
 {
-  "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -59,7 +84,7 @@ Description:
 * `${ss}`: Seconds with leading zeros. 01 to 59
 * `${ms}`: Milliseconds with leading zeros. 001 to 999
 * `${TH}`: The name of the thread, if the name is empty, use "T+thread id" instead, e.g. "main", "T12345"
-* `${\d+TH}`: The regular expression to match the thread id pattern, e.g. ${8TH}. `\d+` is the digit width, default is
+* `${\d+TH}`: The regular expression to match the thread id, e.g. ${8TH}. `\d+` is the digit width, default is
   8, max width is
   16
 * `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
@@ -67,29 +92,28 @@ Description:
 
 _Warning: Some systems cannot set thread names, and only multiple threads can be distinguished by thread ID_
 
-#### 3.2.2 Configure log output
+#### 3.2.2 Configure Appender
 
-There are four types of configured output: Console log output(consoleOutPut), File log output(fileOutPut), TCP log
-output(
-tcpOutPut), UDP log output(udpOutPut)
+There are four types of configured output: Console log appender(consoleAppender), File log appender(fileAppender), TCP
+log
+appender(tcpAppender), UDP log output(udpAppender)
 
 A simple configuration file example:
 
 ```json
 {
-  "logOutPut": {
-	"consoleOutPut": {
+  "Appenders": {
+	"consoleAppender": {
 	  "outStream": "stdout"
 	},
-	"fileOutPut": {
-	  "filePath": "log/log4cpp.log",
-	  "append": false
+	"fileAppender": {
+	  "filePath": "log/log4cpp.log"
 	},
-	"tcpOutPut": {
+	"tcpAppender": {
 	  "localAddr": "0.0.0.0",
 	  "port": 9443
 	},
-	"udpOutPut": {
+	"udpAppender": {
 	  "localAddr": "0.0.0.0",
 	  "port": 9443
 	}
@@ -97,14 +121,14 @@ A simple configuration file example:
 }
 ```
 
-#### 3.2.3 Console log output
+#### 3.2.3 Console Appender
 
-The function of the console output is to output logs to STDOUT or STDERR. Typical configuration is as follows:
+The function of the console appender is to output logs to STDOUT or STDERR. Typical configuration is as follows:
 
 ```json
 {
-  "logOutPut": {
-	"consoleOutPut": {
+  "Appenders": {
+	"consoleAppender": {
 	  "outStream": "stdout"
 	}
   }
@@ -115,14 +139,14 @@ Description:
 
 * `outStream`: output stream, can be stdout or stderr
 
-#### 3.2.4 File log output
+#### 3.2.4 File appender
 
-The function of the file output is to output logs to a specified file. Typical configuration is as follows:
+The function of the file appender is to output logs to a specified file. Typical configuration is as follows:
 
 ```json
 {
-  "logOutPut": {
-	"fileOutPut": {
+  "Appenders": {
+	"fileAppender": {
 	  "filePath": "log/log4cpp.log",
 	  "append": true
 	}
@@ -135,16 +159,15 @@ Description:
 * `filePath`: output file name
 * `append`: append or overwrite, Default append (true)
 
-#### 3.2.5 TCP log output
+#### 3.2.5 TCP Appender
 
-The TCP log output will start a TCP server inside, accept TCP connections, and output logs to the connected client,
-which
-is used to output logs to remote devices. The typical configuration is as follows:
+The TCP log appender will start a TCP server inside, accept TCP connections, and output logs to the connected client,
+which is used to output logs to remote devices. The typical configuration is as follows:
 
 ```json
 {
-  "logOutPut": {
-	"tcpOutPut": {
+  "Appenders": {
+	"tcpAppender": {
 	  "localAddr": "0.0.0.0",
 	  "port": 9443
 	}
@@ -163,12 +186,12 @@ _Note: Logs are transmitted in plain text, pay attention to privacy and security
 be supported in the future. If encryption is required, it is recommended to encrypt the logs before passing them to
 log4cpp_
 
-#### 3.2.6 UDP log output
+#### 3.2.6 UDP Appender
 
-A UDP server will be started inside the UDP log output to export logs to the connected client, which is used to export
+A UDP server will be started inside the UDP log appender to export logs to the connected client, which is used to export
 logs to remote devices
 
-Unlike the TCP log output, UDP is connectionless. Please note:
+Unlike the TCP protocol, UDP is connectionless. Please note:
 
 * UDP is connectionless and cannot guarantee the integrity of the log
 * The client needs to actively send a "hello" message so that the server can obtain the client address and send logs
@@ -179,8 +202,8 @@ The typical configuration is as follows:
 
 ```json
 {
-  "logOutPut": {
-	"udpOutPut": {
+  "Appenders": {
+	"udpAppender": {
 	  "localAddr": "0.0.0.0",
 	  "port": 9443
 	}
@@ -193,48 +216,53 @@ Description:
 * `localAddr`: listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
 * `port`: listening port
 
-### 3.3 Configure logger
+### 3.3 Configure Layouts
 
-Loggers are divided into named loggers (configuration name `loggers`) and default loggers (configuration
-name `rootLogger`). If there is no logger with a specified name when getLogger, the default logger is returned
+There are two types of Layouts:
 
-_Note: named loggers can be absent, but default loggers must be present_
+* **Named layout**: configuration name `layouts`
+* **Root layout**: configuration name `rootLayout`
 
-Named loggers are an array, and each logger configuration includes:
+If there is no layout with a specified name when getLayout, the default layout is returned
 
-* `name`: logger name, used to get loggers, cannot be repeated, cannot be `root`
+_Note: The named layout is optional, but the root layout must be present_
+
+Named layouts are an array, and each layout configuration includes:
+
+* `name`: layout name, used to get layouts, unique, cannot be `root`
 * `logLevel`: log level, only logs greater than or equal to this level will be output
-* `logOutPuts`: output device, only configured output devices will be output. Output devices can
-  be `consoleOutPut`, `fileOutPut`, `tcpOutPut`, `udpOutPut`
+* `Appenders`: appender, Must be configured in `Appenders` before it can be referenced here. Appender can be
+  `consoleAppender`, `fileAppender`, `tcpAppender`, `udpAppender`
 
-Default logger is an object, only `logLevel` and `logOutPuts`, no `name`, internal implementation of `name` is `root`
+Default layout is an object, only `logLevel` and `Appenders`, no `name`, internal implementation of `name` is `root`
 
 ```json
 {
-  "loggers": [
+  "layouts": [
 	{
-	  "name": "consoleLogger",
+	  "name": "consoleLayout",
 	  "logLevel": "info",
-	  "logOutPuts": [
-		"consoleOutPut"
+	  "Appenders": [
+		"consoleAppender",
+		"tcpAppender",
+		"udpAppender"
 	  ]
 	},
 	{
-	  "name": "recordLogger",
-	  "logLevel": "error",
-	  "logOutPuts": [
-		"fileOutPut",
-		"tcpOutPut",
-		"udpOutPut"
+	  "name": "fileLayout",
+	  "logLevel": "warn",
+	  "Appenders": [
+		"fileAppender"
 	  ]
 	}
   ],
-  "rootLogger": {
+  "rootLayout": {
 	"logLevel": "info",
-	"logOutPuts": [
-	  "fileOutPut",
-	  "tcpOutPut",
-	  "udpOutPut"
+	"Appenders": [
+	  "consoleAppender",
+	  "fileAppender",
+	  "tcpAppender",
+	  "udpAppender"
 	]
   }
 }
@@ -249,7 +277,7 @@ There are two ways to load configuration file:
    configuration file manually
 
 ```c++
-log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
+log4cpp::layout_manager::load_config("/config_path/log4cpp.json");
 ```
 
 ### 3.5 Coding
@@ -261,14 +289,17 @@ First, you need to import the header file:
 
 ```
 
-Then get the logger instance. Get the logger through `name`. If the specified logger does not exist, then return the
-default `rootLogger`
+Then, get the layout instance
+
+Get the layout by `name`. If the specified layout does not exist, return `rootLayout`
 
 ```c++
-std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
+std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("layout_name");
 ```
 
-After getting the logger, you can use the following method to output the log:
+Write log message
+
+After getting the layout, you can use the following method to output the log:
 
 ```c++
 void trace(const char *__restrict fmt, ...);
@@ -321,25 +352,25 @@ void set_thread_name(const char *name) {
 
 void thread_routine() {
 	set_thread_name("child");
-	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
-	logger->trace("this is a trace");
-	logger->info("this is a info");
-	logger->debug("this is a debug");
-	logger->warn("this is an warning");
-	logger->error("this is an error");
-	logger->fatal("this is a fatal");
+	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("recordLayout");
+	log->trace("this is a trace");
+	log->info("this is a info");
+	log->debug("this is a debug");
+	log->warn("this is an warning");
+	log->error("this is an error");
+	log->fatal("this is a fatal");
 }
 
 int main() {
 	std::thread t(thread_routine);
 	set_thread_name("main");
-	std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("consoleLogger");
-	logger->trace("this is a trace");
-	logger->info("this is a info");
-	logger->debug("this is a debug");
-	logger->warn("this is an warning");
-	logger->error("this is an error");
-	logger->fatal("this is a fatal");
+	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("consoleLayout");
+	log->trace("this is a trace");
+	log->info("this is a info");
+	log->debug("this is a debug");
+	log->warn("this is an warning");
+	log->error("this is an error");
+	log->fatal("this is a fatal");
 	t.join();
 	return 0;
 }
@@ -384,59 +415,7 @@ Output log example:
 
 Configuration file example:
 
-[Reference configuration file example](demo/log4cpp.json)
-
-```json
-{
-  "pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
-  "logOutPut": {
-	"consoleOutPut": {
-	  "outStream": "stdout"
-	},
-	"fileOutPut": {
-	  "filePath": "log/log4cpp.log",
-	  "append": true
-	},
-	"tcpOutPut": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	},
-	"udpOutPut": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	}
-  },
-  "loggers": [
-	{
-	  "name": "consoleLogger",
-	  "logLevel": "info",
-	  "logOutPuts": [
-		"consoleOutPut",
-		"tcpOutPut",
-		"udpOutPut"
-	  ]
-	},
-	{
-	  "name": "recordLogger",
-	  "logLevel": "error",
-	  "logOutPuts": [
-		"consoleOutPut",
-		"fileOutPut",
-		"tcpOutPut",
-		"udpOutPut"
-	  ]
-	}
-  ],
-  "rootLogger": {
-	"logLevel": "info",
-	"logOutPuts": [
-	  "fileOutPut",
-	  "tcpOutPut",
-	  "udpOutPut"
-	]
-  }
-}
-```
+[A sample configuration file is here](demo/log4cpp.json)
 
 ### 3.7 Contribution
 
