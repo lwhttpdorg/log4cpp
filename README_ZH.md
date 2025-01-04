@@ -468,4 +468,4 @@ $ cmake -S . -B build -DENABLE_DEMO=ON
 
 ## 4. 许可
 
-本项目使用[GPLv3](LICENSE)许可
+本项目使用[LGPLv3](LICENSE)许可
