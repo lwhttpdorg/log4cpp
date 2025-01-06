@@ -153,7 +153,7 @@ namespace log4cpp {
 		}
 		this->instance->fd = server_fd;
 		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
-		                                            std::ref(this->instance->clients));
+		                                            std::cref(this->instance->clients));
 		return this->instance;
 	}
 
