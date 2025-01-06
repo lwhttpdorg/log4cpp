@@ -14,7 +14,7 @@
 #endif
 
 #if defined(_MSC_VER) || defined(_WIN32)
-	constexpr SOCKET INVALID_FD = INVALID_SOCKET;
+constexpr SOCKET INVALID_FD = INVALID_SOCKET;
 typedef SOCKET socket_fd;
 
 inline void close_socket(socket_fd fd) {

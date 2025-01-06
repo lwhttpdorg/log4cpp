@@ -10,8 +10,8 @@
 #include "main/log_net.h"
 
 int tcpAppenderTest(std::atomic_bool &running, unsigned int log_count, unsigned port) {
-	int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (fd == -1) {
+	socket_fd fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (INVALID_FD == fd) {
 		printf("socket creation failed...\n");
 		return -1;
 	}
@@ -21,8 +21,7 @@ int tcpAppenderTest(std::atomic_bool &running, unsigned int log_count, unsigned 
 	inet_pton(AF_INET, "127.0.0.1", &(remote_addr.sin_addr.s_addr));
 	remote_addr.sin_port = htons(port);
 	socklen_t socklen = sizeof(remote_addr);
-	int val = connect(fd, reinterpret_cast<sockaddr *>(&remote_addr), socklen);
-	if (-1 == val) {
+	if (int val = connect(fd, reinterpret_cast<sockaddr *>(&remote_addr), socklen); -1 == val) {
 #ifdef _WIN32
 		int wsa_error = WSAGetLastError();
 		printf("%s,L%d,connect failed! errno:%d\n", __func__, __LINE__, wsa_error);

@@ -7,8 +7,8 @@
 #include "main/log_net.h"
 
 int udpAppenderTest(std::atomic_bool &running, unsigned int log_count, unsigned port) {
-	int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (fd == -1) {
+	socket_fd fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (INVALID_SOCKET == fd) {
 		printf("socket creation failed...\n");
 		return -1;
 	}

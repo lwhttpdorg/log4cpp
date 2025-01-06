@@ -18,7 +18,3 @@ target_link_libraries(${TARGET_NAME} log4cpp)
 if (CMAKE_HOST_UNIX)
     target_link_libraries(demo pthread)
 endif ()
-
-if (ENABLE_ASAN)
-    target_link_options(${TARGET_NAME} PRIVATE "-fsanitize=address -fsanitize=undefined")
-endif ()
