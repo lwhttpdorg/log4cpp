@@ -20,5 +20,5 @@ if (CMAKE_HOST_UNIX)
 endif ()
 
 if (ENABLE_ASAN)
-    target_link_libraries(${TARGET_NAME} -fsanitize=address)
+    target_link_libraries(${TARGET_NAME} asan ubsan)
 endif ()
