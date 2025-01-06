@@ -75,9 +75,10 @@ Description:
 * `${MMM}`: A short textual representation of a month, three letters. Jan through Dec
 * `${d}`: Day of the month without leading zeros. 1 to 31
 * `${dd}`: Day of the month, 2 digits with leading zeros. 01 to 31
-* `${h}`: 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem. e.g. AM
-  01 or PM 11
-* `${hh}`: 24-hour format of an hour with leading zeros. 00 through 23
+* `${h}`: 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem, 0 through 12
+* `${hh}`: 12-hour format of an hour with leading zeros, with Uppercase Ante meridiem and Post meridiem, 00 through 12
+* `${H}`: 24-hour format of an hour without leading zeros. 0 through 23
+* `${HH}`: 24-hour format of an hour with leading zeros. 00 through 23
 * `${m}`: Minutes without leading zeros. 1 to 59
 * `${mm}`: Minutes with leading zeros. 01 to 59
 * `${s}`: Seconds without leading zeros. 1 to 59

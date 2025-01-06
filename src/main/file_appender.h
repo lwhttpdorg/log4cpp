@@ -30,7 +30,7 @@ namespace log4cpp {
 
 	file_appender_config tag_invoke(boost::json::value_to_tag<file_appender_config>, boost::json::value const &json);
 
-	class file_appender final : public log_appender {
+	class file_appender: public log_appender {
 	public:
 		class builder {
 		public:

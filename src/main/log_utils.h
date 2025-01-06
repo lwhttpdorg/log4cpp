@@ -21,14 +21,14 @@ size_t log4c_vscnprintf(char *__restrict buf, size_t size, const char *__restric
  */
 size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...);
 
-/* Replace the first occurrence of str_old with str_new in target
- * target: the target string
- * length: the length of the target string
- * str_old: the string to be replaced
- * str_new: the string to replace
- * return: 0 if successful, -1 if failed
+/* Replace the first occurrence of target with replace in original
+ * original: the original string
+ * length: the size of original buffer
+ * target: the string to be replaced
+ * replace: the string to replace
+ * return: The length after replace
  */
-int replace(char *target, size_t length, const char *str_old, const char *str_new);
+size_t replace(char *original, size_t length, const char *target, const char *replace);
 
 /* Replace the first occurrence of str_old with str_new in target
  * target: the target string
