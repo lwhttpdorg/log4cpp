@@ -75,5 +75,5 @@ if (CMAKE_HOST_UNIX)
 endif ()
 
 if (ENABLE_ASAN)
-    target_link_libraries(${TARGET_NAME} asan ubsan)
+    target_link_options(${TARGET_NAME} PRIVATE "-fsanitize=address -fsanitize=undefined")
 endif ()

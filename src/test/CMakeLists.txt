@@ -21,7 +21,7 @@ add_executable(${TEST_TARGET_NAME} mainTest.cpp tcp_appender_test.cpp udp_append
 target_link_libraries(${TEST_TARGET_NAME} GTest::gtest_main log4cpp)
 
 if (ENABLE_ASAN)
-    target_link_libraries(${TARGET_NAME} asan ubsan)
+    target_link_options(${TEST_TARGET_NAME} PRIVATE "-fsanitize=address -fsanitize=undefined")
 endif ()
 
 include(GoogleTest)
