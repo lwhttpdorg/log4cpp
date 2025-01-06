@@ -74,7 +74,6 @@ if (ENABLE_ASAN)
             add_compile_options("-fno-omit-frame-pointer")
         endif ()
         set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -fsanitize=undefined")
-        link_libraries("${CMAKE_CXX_STANDARD_LIBRARIES} ${CMAKE_SANITIZER_LIBRARIES}")
     endif ()
 endif ()
 

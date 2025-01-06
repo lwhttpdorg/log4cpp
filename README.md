@@ -458,7 +458,7 @@ endif ()
 #### 3.7.2 CMake compile options
 
 ```shell
-$ cmake -S . -B build -DENABLE_DEMO=ON
+cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TESTS=ON -DENABLE_ASAN=ON
 ```
 
 Option description:

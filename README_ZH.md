@@ -441,7 +441,7 @@ endif ()
 #### 3.7.2 CMake编译选项
 
 ```shell
-$ cmake -S . -B build -DENABLE_DEMO=ON
+cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TESTS=ON -DENABLE_ASAN=ON
 ```
 
 选项说明:
