@@ -107,7 +107,7 @@ namespace std {
 				h = std::hash<unsigned int>{}(addr.ip.addr4);
 			}
 			else {
-				for (const auto x: addr.ip.addr6) {
+				for (const auto x:addr.ip.addr6) {
 					h ^= std::hash<unsigned int>{}(x);
 				}
 			}

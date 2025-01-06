@@ -61,7 +61,7 @@ namespace log4cpp {
 		return fd;
 	}
 
-	void accept_worker(const int listen_fd, log_lock lock, std::unordered_set<net::sock_addr> &clients) {
+	void accept_worker(net::socket_fd listen_fd, log_lock lock, std::unordered_set<net::sock_addr> &clients) {
 		fd_set read_fds;
 		FD_ZERO(&read_fds);
 		FD_SET(listen_fd, &read_fds);
@@ -153,7 +153,7 @@ namespace log4cpp {
 		}
 		this->instance->fd = server_fd;
 		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
-		                                            std::cref(this->instance->clients));
+		                                            std::ref(this->instance->clients));
 		return this->instance;
 	}
 

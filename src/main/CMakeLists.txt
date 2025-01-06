@@ -72,7 +72,4 @@ endif ()
 
 if (CMAKE_HOST_UNIX)
     target_link_libraries(${TARGET_NAME} pthread)
-    if (ENABLE_ASAN)
-        target_link_libraries(${TARGET_NAME} asan)
-    endif ()
 endif ()
