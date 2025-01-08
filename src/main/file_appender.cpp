@@ -12,7 +12,6 @@
 #undef ERROR
 #endif
 
-#define STDOUT_FILENO _fileno(stdout)
 #define F_OK 0
 
 #endif
@@ -42,14 +41,13 @@
 
 #include "layout_pattern.h"
 
-
 using namespace log4cpp;
 
 file_appender::builder &file_appender::builder::set_file(const std::string &file) {
 	if (this->instance == nullptr) {
 		throw std::runtime_error("Call file_appender::builder::new_builder() first");
 	}
-	this->config.file_path = file;
+	this->config.set_file_path(file);
 	return *this;
 }
 
@@ -57,8 +55,9 @@ std::shared_ptr<file_appender> file_appender::builder::build() {
 	if (this->instance == nullptr) {
 		throw std::runtime_error("Call file_appender::builder::new_builder() first");
 	}
-	if (const auto pos = this->config.file_path.find_last_of('/'); pos != std::string::npos) {
-		std::string path = this->config.file_path.substr(0, pos);
+	const std::string file_path = this->config.get_file_path();
+	if (const auto pos = file_path.find_last_of('/'); pos != std::string::npos) {
+		std::string path = file_path.substr(0, pos);
 		if (0 != access(path.c_str(), F_OK)) {
 #if defined(_MSC_VER) || defined(_WIN32)
 			(void)_mkdir(path.c_str());
@@ -77,7 +76,7 @@ std::shared_ptr<file_appender> file_appender::builder::build() {
 	openFlags |= O_CLOEXEC;
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 #endif
-	this->instance->fd = open(this->config.file_path.c_str(), openFlags, mode);
+	this->instance->fd = open(file_path.c_str(), openFlags, mode);
 	if (this->instance->fd == -1) {
 		std::string what("Can not open log file: ");
 		what.append(strerror(errno));
@@ -135,7 +134,7 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 }
 
 file_appender_config log4cpp::tag_invoke(boost::json::value_to_tag<file_appender_config>,
-                                         boost::json::value const &json) {
+										boost::json::value const &json) {
 	file_appender_config config;
 	config.file_path = boost::json::value_to<std::string>(json.at("filePath"));
 	return config;

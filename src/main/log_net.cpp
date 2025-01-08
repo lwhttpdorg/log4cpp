@@ -1,17 +1,13 @@
 #include <stdexcept>
 
 #if defined(__linux__)
-
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
 #endif
 
 #if defined(_WIN32)
-
 #include <WS2tcpip.h>
 #include <ws2ipdef.h>
-
 #endif
 
 #include "log_net.h"
@@ -63,7 +59,7 @@ bool net_addr::operator==(const net_addr &rhs) const {
 		return ip.addr4 == rhs.ip.addr4;
 	}
 	return ip.addr6[0] == rhs.ip.addr6[0] && ip.addr6[1] == rhs.ip.addr6[1] && ip.addr6[2] == rhs.ip.addr6[2] &&
-	       ip.addr6[3] == rhs.ip.addr6[3];
+			ip.addr6[3] == rhs.ip.addr6[3];
 }
 
 bool net_addr::operator!=(const net_addr &rhs) const {
@@ -74,9 +70,9 @@ std::string log4cpp::net::to_string(const net_addr &addr) {
 	std::string s;
 	if (addr.family == net_family::NET_IPv4) {
 		char buf[INET_ADDRSTRLEN];
-		const unsigned char a = (addr.ip.addr4 >> 24) & 0xff;
-		const unsigned char b = (addr.ip.addr4 >> 16) & 0xff;
-		const unsigned char c = (addr.ip.addr4 >> 8) & 0xff;
+		const unsigned char a = addr.ip.addr4 >> 24 & 0xff;
+		const unsigned char b = addr.ip.addr4 >> 16 & 0xff;
+		const unsigned char c = addr.ip.addr4 >> 8 & 0xff;
 		const unsigned char d = addr.ip.addr4 & 0xff;
 		snprintf(buf, sizeof(buf), "%u.%u.%u.%u", a, b, c, d);
 		s = std::string{buf};
@@ -119,7 +115,7 @@ sock_addr::sock_addr(const std::string &ip, unsigned short p) : sock_addr(ip.c_s
 
 bool sock_addr::operator==(const sock_addr &rhs) const {
 	return addr == rhs.addr &&
-	       port == rhs.port;
+			port == rhs.port;
 }
 
 bool sock_addr::operator!=(const sock_addr &rhs) const {

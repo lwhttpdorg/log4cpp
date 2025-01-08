@@ -1,17 +1,45 @@
-#include <atomic>
-#include <cstdio>
+#include <thread>
+#include <filesystem>
 
-#ifndef _WIN32
-#include <cerrno>
-#include <cstring>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <windows.h>
+#include <WS2tcpip.h>
 #endif
 
-#include "net_comm.h"
-#include "main/log_net.h"
+#ifdef __linux__
+#include <sys/socket.h>
+#include <netinet/in.h>
+#endif
 
-int tcpAppenderTest(std::atomic_bool &running, unsigned int log_count, unsigned port) {
-	socket_fd fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (INVALID_FD == fd) {
+#include "gtest/gtest.h"
+
+#include "log4cpp.hpp"
+#include "main/log4cpp_config.h"
+#include "main/tcp_appender.h"
+
+class TestEnvironment : public testing::Environment {
+public:
+	explicit TestEnvironment(const std::string &cur_path) {
+		size_t end = cur_path.find_last_of('\\');
+		if (end == std::string::npos) {
+			end = cur_path.find_last_of('/');
+		}
+		const std::string work_dir = cur_path.substr(0, end);
+		std::filesystem::current_path(work_dir);
+	}
+};
+
+int main(int argc, char **argv) {
+	const std::string cur_path = argv[0];
+	testing::InitGoogleTest(&argc, argv);
+	AddGlobalTestEnvironment(new TestEnvironment(cur_path));
+	return RUN_ALL_TESTS();
+}
+
+int tcp_appender_client(std::atomic_bool &running, unsigned int log_count, unsigned port) {
+	log4cpp::net::socket_fd fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (log4cpp::net::INVALID_FD == fd) {
 		printf("socket creation failed...\n");
 		return -1;
 	}
@@ -46,8 +74,42 @@ int tcpAppenderTest(std::atomic_bool &running, unsigned int log_count, unsigned 
 #ifdef _WIN32
 	shutdown(fd, SD_BOTH);
 #else
-    shutdown(fd, SHUT_RDWR);
+	shutdown(fd, SHUT_RDWR);
 #endif
-	close_socket(fd);
+	log4cpp::net::close_socket(fd);
 	return 0;
+}
+
+TEST(tcp_appender_test, tcp_appender_test) {
+	const std::string config_file = "tcp_udp_appender_test.json";
+	log4cpp::layout_manager::load_config(config_file);
+	const log4cpp::log4cpp_config *config = log4cpp::layout_manager::get_config();
+	const log4cpp::tcp_appender_config *tcp_config = config->get_appender().get_tcp_cfg();
+	unsigned short port = tcp_config->get_port();
+
+#ifdef _WIN32
+	WSADATA wsa_data{};
+	WSAStartup(MAKEWORD(2, 2), &wsa_data);
+#endif
+	std::atomic_bool running(false);
+
+	const std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("tcpLayout");
+	log4cpp::log_level max_level = log->get_level();
+	unsigned int log_count = static_cast<int>(max_level);
+
+	std::thread tcp_appender_thread = std::thread(&tcp_appender_client, std::ref(running), log_count, port);
+
+	while (!running) {
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+	log->trace("this is a trace");
+	log->info("this is a info");
+	log->debug("this is a debug");
+	log->error("this is an error");
+	log->fatal("this is a fatal");
+
+	tcp_appender_thread.join();
+#ifdef _WIN32
+	WSACleanup();
+#endif
 }

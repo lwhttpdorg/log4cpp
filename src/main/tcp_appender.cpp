@@ -82,7 +82,7 @@ namespace log4cpp {
 				sockaddr_storage client_addr{};
 				socklen_t client_addr_len = sizeof(client_addr);
 				net::socket_fd client_fd = accept(listen_fd, reinterpret_cast<struct sockaddr *>(&client_addr),
-				                                  &client_addr_len);
+												&client_addr_len);
 				if (net::INVALID_FD != client_fd) {
 					std::lock_guard lock_guard(lock);
 					clients.insert(client_fd);
@@ -126,7 +126,7 @@ namespace log4cpp {
 		if (this->instance == nullptr) {
 			throw std::runtime_error("Call tcp_appender::builder::new_builder() first");
 		}
-		this->config.local_addr = addr;
+		this->config.set_local_addr(addr);
 		return *this;
 	}
 
@@ -134,7 +134,7 @@ namespace log4cpp {
 		if (this->instance == nullptr) {
 			throw std::runtime_error("Call tcp_appender::builder::new_builder() first");
 		}
-		this->config.port = port;
+		this->config.set_port(port);
 		return *this;
 	}
 
@@ -143,15 +143,15 @@ namespace log4cpp {
 			throw std::runtime_error("Call tcp_appender::builder::new_builder() first");
 		}
 		net::sock_addr saddr;
-		saddr.addr = this->config.local_addr;
-		saddr.port = this->config.port;
+		saddr.addr = this->config.get_local_addr();
+		saddr.port = this->config.get_port();
 		net::socket_fd server_fd = create_tcp_socket(saddr);
 		if (net::INVALID_FD == server_fd) {
 			throw std::runtime_error("Can not create tcp socket");
 		}
 		this->instance->fd = server_fd;
 		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
-		                                            std::ref(this->instance->clients));
+													std::ref(this->instance->clients));
 		return this->instance;
 	}
 

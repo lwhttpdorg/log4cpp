@@ -19,22 +19,31 @@ namespace log4cpp {
 	 * The log level.
 	 */
 	enum class log_level {
-		FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5
+		FATAL = 0,
+		ERROR = 1,
+		WARN = 2,
+		INFO = 3,
+		DEBUG = 4,
+		TRACE = 5
 	};
 
 	/**
 	 * Convert log level to string.
-	 * @param level The log level.
+	 * @param level: The log level.
 	 * @return The string of log level.
 	 */
 	std::string to_string(log_level level);
 
 	/**
 	 * Convert string to log level.
-	 * @param s The string of log level.
+	 * @param s: The string of log level.
 	 * @return The log level.
 	 */
 	log_level from_string(const std::string &s);
+
+	unsigned long get_thread_name_id(char *thread_name, size_t len);
+
+	void set_thread_name(const char *name);
 
 	class log_appender;
 
@@ -52,52 +61,60 @@ namespace log4cpp {
 
 		layout &operator=(layout &&other) noexcept;
 
+		std::string get_name() const {
+			return name;
+		}
+
+		log_level get_level() const {
+			return level;
+		}
+
 		/**
 		 * write log message to output.
-		 * @param _level The log level.
-		 * @param fmt The format string.
-		 * @param args The arguments.
+		 * @param _level: The log level.
+		 * @param fmt: The format string.
+		 * @param args: The arguments.
 		 */
 		void log(log_level _level, const char *__restrict fmt, va_list args) const;
 
 		/**
 		 * write FATAL log message to output.
-		 * @param fmt The format string.
+		 * @param fmt: The format string.
 		 * @param ... The arguments.
 		 */
 		void fatal(const char *__restrict fmt, ...) const;
 
 		/**
 		 * write ERROR log message to output.
-		 * @param fmt The format string.
+		 * @param fmt: The format string.
 		 * @param ... The arguments.
 		 */
 		void error(const char *__restrict fmt, ...) const;
 
 		/**
 		 * write WARN log message to output.
-		 * @param fmt The format string.
+		 * @param fmt: The format string.
 		 * @param ... The arguments.
 		 */
 		void warn(const char *__restrict fmt, ...) const;
 
 		/**
 		 * write INFO log message to output.
-		 * @param fmt The format string.
+		 * @param fmt: The format string.
 		 * @param ... The arguments.
 		 */
 		void info(const char *__restrict fmt, ...) const;
 
 		/**
 		 * write DEBUG log message to output.
-		 * @param fmt The format string.
+		 * @param fmt: The format string.
 		 * @param ... The arguments.
 		 */
 		void debug(const char *__restrict fmt, ...) const;
 
 		/**
 		 * write TRACE log message to output.
-		 * @param fmt The format string.
+		 * @param fmt: The format string.
 		 * @param ... The arguments.
 		 */
 		void trace(const char *__restrict fmt, ...) const;
@@ -126,7 +143,7 @@ namespace log4cpp {
 	public:
 		/**
 		 * Load log4cpp configuration from json file.
-		 * @param json_filepath
+		 * @param json_filepath: json file path
 		 */
 		static void load_config(const std::string &json_filepath);
 
@@ -134,7 +151,7 @@ namespace log4cpp {
 
 		/**
 		 * Get logger by name.
-		 * @param name The logger name.
+		 * @param name: The logger name.
 		 * @return If the logger exists, return the logger, otherwise return rootLayout.
 		 */
 		static std::shared_ptr<layout> get_layout(const std::string &name);
@@ -150,7 +167,6 @@ namespace log4cpp {
 
 		static void build_root_layout();
 
-	private:
 		static log_lock lock;
 		static bool initialized;
 		static log4cpp_config config;

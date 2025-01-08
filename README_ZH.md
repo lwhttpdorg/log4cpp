@@ -60,7 +60,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "layout_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+	"layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -99,23 +99,23 @@ udpAppender)
 
 ```json
 {
-  "Appenders": {
-	"consoleAppender": {
-	  "outStream": "stdout"
-	},
-	"fileAppender": {
-	  "filePath": "log/log4cpp.log",
-	  "append": false
-	},
-	"tcpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	},
-	"udpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
+	"appenders": {
+		"consoleAppender": {
+			"outStream": "stdout"
+		},
+		"fileAppender": {
+			"filePath": "log/log4cpp.log",
+			"append": false
+		},
+		"tcpAppender": {
+			"localAddr": "0.0.0.0",
+			"port": 9443
+		},
+		"udpAppender": {
+			"localAddr": "0.0.0.0",
+			"port": 9443
+		}
 	}
-  }
 }
 ```
 
@@ -125,11 +125,11 @@ udpAppender)
 
 ```json
 {
-  "Appenders": {
-	"consoleAppender": {
-	  "outStream": "stdout"
+	"appenders": {
+		"consoleAppender": {
+			"outStream": "stdout"
+		}
 	}
-  }
 }
 ```
 
@@ -143,12 +143,12 @@ udpAppender)
 
 ```json
 {
-  "Appenders": {
-	"fileAppender": {
-	  "filePath": "log/log4cpp.log",
-	  "append": true
+	"appenders": {
+		"fileAppender": {
+			"filePath": "log/log4cpp.log",
+			"append": true
+		}
 	}
-  }
 }
 ```
 
@@ -163,12 +163,12 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 
 ```json
 {
-  "Appenders": {
-	"tcpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
+	"appenders": {
+		"tcpAppender": {
+			"localAddr": "0.0.0.0",
+			"port": 9443
+		}
 	}
-  }
 }
 ```
 
@@ -195,12 +195,12 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 
 ```json
 {
-  "Appenders": {
-	"udpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
+	"appenders": {
+		"udpAppender": {
+			"localAddr": "0.0.0.0",
+			"port": 9443
+		}
 	}
-  }
 }
 ```
 
@@ -226,32 +226,32 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 
 ```json
 {
-  "layouts": [
-	{
-	  "name": "consoleLogger",
-	  "logLevel": "info",
-	  "Appenders": [
-		"consoleAppender"
-	  ]
-	},
-	{
-	  "name": "recordLogger",
-	  "logLevel": "error",
-	  "Appenders": [
-		"fileAppender",
-		"tcpAppender",
-		"udpAppender"
-	  ]
+	"layouts": [
+		{
+			"name": "consoleLogger",
+			"logLevel": "info",
+			"appenders": [
+				"consoleAppender"
+			]
+		},
+		{
+			"name": "recordLogger",
+			"logLevel": "error",
+			"appenders": [
+				"fileAppender",
+				"tcpAppender",
+				"udpAppender"
+			]
+		}
+	],
+	"rootLogger": {
+		"logLevel": "info",
+		"appenders": [
+			"fileAppender",
+			"tcpAppender",
+			"udpAppender"
+		]
 	}
-  ],
-  "rootLogger": {
-	"logLevel": "info",
-	"Appenders": [
-	  "fileAppender",
-	  "tcpAppender",
-	  "udpAppender"
-	]
-  }
 }
 ```
 
@@ -383,7 +383,7 @@ FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(${TARGET_NAME} log4cpp)
 
 if (CMAKE_HOST_UNIX)
-    target_link_libraries(demo pthread)
+	target_link_libraries(demo pthread)
 endif ()
 ```
 
@@ -428,13 +428,13 @@ endif ()
 
 ```cmake
 if (CMAKE_HOST_WIN32)
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-    endif ()
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+	elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+		set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+	endif ()
 else ()
-    set(BOOST_ROOT "/usr/local/boost")
+	set(BOOST_ROOT "/usr/local/boost")
 endif ()
 ```
 

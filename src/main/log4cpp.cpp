@@ -11,6 +11,19 @@
 #endif
 #endif
 
+#ifdef _MSC_VER
+#include <processthreadsapi.h>
+#endif
+
+#ifdef __GNUC__
+#include <pthread.h>
+#endif
+
+#ifdef __linux__
+#include <unistd.h>
+#include <sys/prctl.h>
+#endif
+
 #include <cstdarg>
 
 #include <boost/json.hpp>
@@ -18,7 +31,7 @@
 
 #include "../include/log4cpp.hpp"
 #include "file_appender.h"
-
+#include "log_utils.h"
 
 using namespace log4cpp;
 
@@ -79,6 +92,49 @@ log_level log4cpp::from_string(const std::string &s) {
 		throw std::invalid_argument("invalid loglevel: " + s);
 	}
 	return level;
+}
+
+/************************thread name*************************/
+unsigned long log4cpp::get_thread_name_id(char *thread_name, size_t len) {
+	thread_name[0] = '\0';
+#ifdef _MSC_VER
+	(void)len;
+	unsigned long tid = GetCurrentThreadId();
+	PWSTR thread_name_ptr;
+	HRESULT hresult = GetThreadDescription(GetCurrentThread(), &thread_name_ptr);
+	if (SUCCEEDED(hresult)) {
+		std::wstring w_name(thread_name_ptr);
+		LocalFree(thread_name_ptr);
+		int size_needed = WideCharToMultiByte(CP_UTF8, 0, w_name.c_str(), -1, nullptr, 0, nullptr, nullptr);
+		std::string name(size_needed, '\0');
+		WideCharToMultiByte(CP_UTF8, 0, w_name.c_str(), -1, &name[0], size_needed, nullptr, nullptr);
+		log4c_scnprintf(thread_name, len, "%s", name.c_str());
+	}
+#endif
+
+#ifdef __GNUC__
+	unsigned long tid = pthread_self();
+	pthread_getname_np(pthread_self(), thread_name, len);
+#elif __linux__
+	unsigned long tid = gettid();
+	(void)len;
+	prctl(PR_GET_NAME, reinterpret_cast<unsigned long>(thread_name));
+#endif
+	return tid;
+}
+
+void log4cpp::set_thread_name(const char *name) {
+#ifdef _MSC_VER
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, name, -1, nullptr, 0);
+	std::wstring wchar_str(size_needed, 0);
+	MultiByteToWideChar(CP_UTF8, 0, name, -1, &wchar_str[0], size_needed);
+	SetThreadDescription(GetCurrentThread(), wchar_str.c_str());
+#endif
+#ifdef __GNUC__
+	pthread_setname_np(pthread_self(), name);
+#elif __linux__
+	prctl(PR_SET_NAME, reinterpret_cast<unsigned long>("child"));
+#endif
 }
 
 /**************************layout*****************************/

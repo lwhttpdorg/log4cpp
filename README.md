@@ -61,7 +61,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+	"layoutPattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -102,22 +102,22 @@ A simple configuration file example:
 
 ```json
 {
-  "Appenders": {
-	"consoleAppender": {
-	  "outStream": "stdout"
-	},
-	"fileAppender": {
-	  "filePath": "log/log4cpp.log"
-	},
-	"tcpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
-	},
-	"udpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
+	"appenders": {
+		"consoleAppender": {
+			"outStream": "stdout"
+		},
+		"fileAppender": {
+			"filePath": "log/log4cpp.log"
+		},
+		"tcpAppender": {
+			"localAddr": "0.0.0.0",
+			"port": 9443
+		},
+		"udpAppender": {
+			"localAddr": "0.0.0.0",
+			"port": 9443
+		}
 	}
-  }
 }
 ```
 
@@ -127,11 +127,11 @@ The function of the console appender is to output logs to STDOUT or STDERR. Typi
 
 ```json
 {
-  "Appenders": {
-	"consoleAppender": {
-	  "outStream": "stdout"
+	"appenders": {
+		"consoleAppender": {
+			"outStream": "stdout"
+		}
 	}
-  }
 }
 ```
 
@@ -145,11 +145,11 @@ The function of the file appender is to output logs to a specified file. Typical
 
 ```json
 {
-  "Appenders": {
-	"fileAppender": {
-	  "filePath": "log/log4cpp.log"
+	"appenders": {
+		"fileAppender": {
+			"filePath": "log/log4cpp.log"
+		}
 	}
-  }
 }
 ```
 
@@ -164,12 +164,12 @@ which is used to output logs to remote devices. The typical configuration is as 
 
 ```json
 {
-  "Appenders": {
-	"tcpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
+	"appenders": {
+		"tcpAppender": {
+			"localAddr": "0.0.0.0",
+			"port": 9443
+		}
 	}
-  }
 }
 ```
 
@@ -200,12 +200,12 @@ The typical configuration is as follows:
 
 ```json
 {
-  "Appenders": {
-	"udpAppender": {
-	  "localAddr": "0.0.0.0",
-	  "port": 9443
+	"appenders": {
+		"udpAppender": {
+			"localAddr": "0.0.0.0",
+			"port": 9443
+		}
 	}
-  }
 }
 ```
 
@@ -236,33 +236,33 @@ Root layout is an object, only `logLevel` and `Appenders`, no `name`, internal i
 
 ```json
 {
-  "layouts": [
-	{
-	  "name": "consoleLayout",
-	  "logLevel": "info",
-	  "Appenders": [
-		"consoleAppender",
-		"tcpAppender",
-		"udpAppender"
-	  ]
-	},
-	{
-	  "name": "fileLayout",
-	  "logLevel": "warn",
-	  "Appenders": [
-		"fileAppender"
-	  ]
+	"layouts": [
+		{
+			"name": "consoleLayout",
+			"logLevel": "info",
+			"appenders": [
+				"consoleAppender",
+				"tcpAppender",
+				"udpAppender"
+			]
+		},
+		{
+			"name": "fileLayout",
+			"logLevel": "warn",
+			"appenders": [
+				"fileAppender"
+			]
+		}
+	],
+	"rootLayout": {
+		"logLevel": "info",
+		"appenders": [
+			"consoleAppender",
+			"fileAppender",
+			"tcpAppender",
+			"udpAppender"
+		]
 	}
-  ],
-  "rootLayout": {
-	"logLevel": "info",
-	"Appenders": [
-	  "consoleAppender",
-	  "fileAppender",
-	  "tcpAppender",
-	  "udpAppender"
-	]
-  }
 }
 ```
 
@@ -399,7 +399,7 @@ FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(${TARGET_NAME} log4cpp)
 
 if (CMAKE_HOST_UNIX)
-    target_link_libraries(demo pthread)
+	target_link_libraries(demo pthread)
 endif ()
 ```
 
@@ -445,13 +445,13 @@ If CMake does not automatically find the Boost path, you can manually set the Bo
 
 ```cmake
 if (CMAKE_HOST_WIN32)
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-    endif ()
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+	elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+		set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+	endif ()
 else ()
-    set(BOOST_ROOT "/usr/local/boost")
+	set(BOOST_ROOT "/usr/local/boost")
 endif ()
 ```
 

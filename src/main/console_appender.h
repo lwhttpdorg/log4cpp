@@ -2,7 +2,8 @@
 
 #include <boost/json.hpp>
 
-#include "main/log_appender.h"
+#include "log_lock.h"
+#include "log_appender.h"
 
 namespace log4cpp {
 	class console_appender final : public log_appender {
@@ -17,26 +18,25 @@ namespace log4cpp {
 
 		/**
 		 * @brief Write log message with the given log level
-		 * @param level Log level
-		 * @param fmt Format string
-		 * @param args Arguments
+		 * @param level: Log level
+		 * @param fmt: Format string
+		 * @param args: Arguments
 		 */
 		void log(log_level level, const char *__restrict fmt, va_list args) override;
 
 		/**
 		 * @brief Write log message with the given log level
-		 * @param level Log level
-		 * @param fmt Format string
+		 * @param level: Log level
+		 * @param fmt: Format string
 		 * @param ... Arguments
 		 */
 		void log(log_level level, const char *__restrict fmt, ...) override;
 
-	public:
 		class builder {
 		public:
 			/**
 			 * Set the out stream
-			 * @param out_stream The out stream, "stdout" or "stderr", default is "stdout"
+			 * @param out_stream: The out stream, "stdout" or "stderr", default is "stdout"
 			 * @return The builder
 			 */
 			builder &set_out_stream(const std::string &out_stream);
@@ -56,7 +56,6 @@ namespace log4cpp {
 		private:
 			builder() = default;
 
-		private:
 			std::shared_ptr<console_appender> instance{nullptr};
 		};
 
@@ -65,7 +64,6 @@ namespace log4cpp {
 
 		explicit console_appender(const std::string &out_stream);
 
-	private:
 		/* The fd of console */
 		int file_no = -1;
 		log_lock lock;
@@ -79,10 +77,15 @@ namespace log4cpp {
 		 */
 		static std::shared_ptr<console_appender> get_instance(const console_appender_config &config);
 
-		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, console_appender_config const &obj);
+		[[nodiscard]] std::string get_out_stream() const {
+			return out_stream;
+		}
 
-		friend console_appender_config
-		tag_invoke(boost::json::value_to_tag<console_appender_config>, boost::json::value const &json);
+		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json,
+								console_appender_config const &obj);
+
+		friend console_appender_config tag_invoke(boost::json::value_to_tag<console_appender_config>,
+												boost::json::value const &json);
 
 	private:
 		/* The out stream, "stdout" or "stderr" */
@@ -93,5 +96,6 @@ namespace log4cpp {
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, console_appender_config const &obj);
 
-	console_appender_config tag_invoke(boost::json::value_to_tag<console_appender_config>, boost::json::value const &json);
+	console_appender_config tag_invoke(boost::json::value_to_tag<console_appender_config>,
+										boost::json::value const &json);
 }

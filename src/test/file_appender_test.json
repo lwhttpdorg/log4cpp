@@ -5,7 +5,7 @@
 			"outStream": "stdout"
 		},
 		"fileAppender": {
-			"filePath": "log/log4cpp.log"
+			"filePath": "log/file_appender_test.log"
 		},
 		"tcpAppender": {
 			"localAddr": "0.0.0.0",
@@ -18,18 +18,18 @@
 	},
 	"layouts": [
 		{
-			"name": "consoleLayout",
+			"name": "info_layout",
 			"logLevel": "info",
 			"appenders": [
 				"consoleAppender",
-				"tcpAppender",
-				"udpAppender"
+				"fileAppender"
 			]
 		},
 		{
-			"name": "fileLayout",
+			"name": "warn_layout",
 			"logLevel": "warn",
 			"appenders": [
+				"consoleAppender",
 				"fileAppender"
 			]
 		}
@@ -38,9 +38,7 @@
 		"logLevel": "info",
 		"appenders": [
 			"consoleAppender",
-			"fileAppender",
-			"tcpAppender",
-			"udpAppender"
+			"fileAppender"
 		]
 	}
 }

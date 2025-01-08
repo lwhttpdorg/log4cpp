@@ -11,16 +11,13 @@
 
 #endif
 
-
 #include "layout_pattern.h"
-#include "main/log_utils.h"
+#include "log_utils.h"
 #include "console_appender.h"
 
 #ifdef _MSC_VER
-
 #define STDOUT_FILENO _fileno(stdout)
 #define STDERR_FILENO _fileno(stderr)
-
 #endif
 
 using namespace log4cpp;
@@ -93,8 +90,8 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 	json = boost::json::object{{"outStream", obj.out_stream}};
 }
 
-console_appender_config
-log4cpp::tag_invoke(boost::json::value_to_tag<console_appender_config>, boost::json::value const &json) {
+console_appender_config log4cpp::tag_invoke(boost::json::value_to_tag<console_appender_config>,
+											boost::json::value const &json) {
 	console_appender_config config;
 	config.out_stream = boost::json::value_to<std::string>(json.at("outStream"));
 	return config;

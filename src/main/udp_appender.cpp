@@ -12,7 +12,6 @@
 #include "layout_pattern.h"
 #include "udp_appender.h"
 
-
 namespace log4cpp {
 	const char *UDP_OUTPUT_HELLO = "hello";
 	const char *UDP_OUTPUT_GOODBYE = "bye";
@@ -84,8 +83,8 @@ namespace log4cpp {
 				socklen_t client_addr_len = sizeof(client_addr);
 #ifdef _WIN32
 				const int len = recvfrom(listen_fd, buffer, sizeof(buffer) - 1, 0,
-				                         reinterpret_cast<struct sockaddr *>(&client_addr),
-				                         &client_addr_len);
+										reinterpret_cast<struct sockaddr *>(&client_addr),
+										&client_addr_len);
 				if (len <= 0) {
 					continue;
 				}
@@ -128,7 +127,7 @@ namespace log4cpp {
 		if (this->instance == nullptr) {
 			throw std::runtime_error("Call udp_appender::builder::new_builder() first");
 		}
-		this->config.local_addr = addr;
+		this->config.set_local_addr(addr);
 		return *this;
 	}
 
@@ -136,7 +135,7 @@ namespace log4cpp {
 		if (this->instance == nullptr) {
 			throw std::runtime_error("Call udp_appender::builder::new_builder() first");
 		}
-		this->config.port = port;
+		this->config.set_port(port);
 		return *this;
 	}
 
@@ -145,15 +144,15 @@ namespace log4cpp {
 			throw std::runtime_error("Call udp_appender::builder::new_builder() first");
 		}
 		net::sock_addr saddr;
-		saddr.addr = this->config.local_addr;
-		saddr.port = this->config.port;
+		saddr.addr = this->config.get_local_addr();
+		saddr.port = this->config.get_port();
 		net::socket_fd server_fd = create_udp_socket(saddr);
 		if (server_fd == net::INVALID_FD) {
 			throw std::runtime_error("Can not create tcp socket");
 		}
 		this->instance->fd = server_fd;
 		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
-		                                            std::ref(this->instance->clients));
+													std::ref(this->instance->clients));
 		return this->instance;
 	}
 
@@ -187,7 +186,7 @@ namespace log4cpp {
 				client_addr.sin_port = htons(client.port);
 				client_addr.sin_addr.s_addr = htonl(client.addr.ip.addr4);
 				(void)sendto(this->fd, buffer, used_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-				             sizeof(client_addr));
+							sizeof(client_addr));
 			}
 			else {
 				sockaddr_in6 client_addr{};
@@ -195,7 +194,7 @@ namespace log4cpp {
 				client_addr.sin6_port = htons(client.port);
 				client_addr.sin6_addr = in6addr_any;
 				(void)sendto(this->fd, buffer, used_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-				             sizeof(client_addr));
+							sizeof(client_addr));
 			}
 		}
 	}
@@ -212,7 +211,7 @@ namespace log4cpp {
 				client_addr.sin_port = htons(client.port);
 				client_addr.sin_addr.s_addr = htonl(client.addr.ip.addr4);
 				(void)sendto(this->fd, buffer, used_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-				             sizeof(client_addr));
+							sizeof(client_addr));
 			}
 			else {
 				sockaddr_in6 client_addr{};
@@ -220,7 +219,7 @@ namespace log4cpp {
 				client_addr.sin6_port = htons(client.port);
 				client_addr.sin6_addr = in6addr_any;
 				(void)sendto(this->fd, buffer, used_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-				             sizeof(client_addr));
+							sizeof(client_addr));
 			}
 		}
 	}

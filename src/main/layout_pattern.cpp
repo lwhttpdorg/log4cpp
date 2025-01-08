@@ -2,8 +2,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <chrono>
-#include <csignal>
 #include <regex>
 #include <cstdarg>
 #include <cstring>
@@ -15,17 +13,6 @@
 
 #endif
 
-#ifdef _MSC_VER
-#include <processthreadsapi.h>
-#endif
-
-#ifdef __linux__
-
-#include <unistd.h>
-#include <sys/prctl.h>
-
-#endif
-
 #include "layout_pattern.h"
 #include "log_utils.h"
 
@@ -34,34 +21,11 @@ namespace log4cpp {
 
 	constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
 	constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
-	constexpr std::array<const char *, 12> MONTH_NAME = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
 
 	std::string layout_pattern::_pattern = DEFAULT_LAYOUT_PATTERN;
 
 	void layout_pattern::set_pattern(const std::string &pattern) {
 		_pattern = pattern;
-	}
-
-
-	unsigned long get_thread_name_id(char *thread_name, size_t len) {
-		thread_name[0] = '\0';
-#if defined(_MSC_VER)
-		(void)len;
-		unsigned long tid = GetCurrentThreadId();
-#endif
-
-#ifdef __GNUC__
-		unsigned long tid = pthread_self();
-		pthread_getname_np(pthread_self(), thread_name, len);
-#elif __linux__
-		unsigned long tid = gettid();
-		(void)len;
-		prctl(PR_GET_NAME, reinterpret_cast<unsigned long>(thread_name));
-#endif
-		return tid;
 	}
 
 	/* A two digit representation of a year. e.g. 99 or 03 */
@@ -111,8 +75,44 @@ namespace log4cpp {
 		HOUR_24
 	};
 
-	void format_time_with_pattern(char *buf, size_t len, const std::string &pattern, const tm *now_tm,
-	                              unsigned short ms) {
+	void format_day(char *buf, size_t len, const std::string &pattern, const tm &now_tm) {
+		log4c_scnprintf(buf, len, "%s", pattern.c_str());
+		if (pattern.find(SHORT_YEAR) != std::string::npos) {
+			char year[7];
+			log4c_scnprintf(year, sizeof(year), "%d", now_tm.tm_year % 100);
+			replace(buf, len, SHORT_YEAR, year);
+		}
+		if (pattern.find(FULL_YEAR) != std::string::npos) {
+			char year[7];
+			log4c_scnprintf(year, sizeof(year), "%04d", 1900 + now_tm.tm_year);
+			replace(buf, len, FULL_YEAR, year);
+		}
+		if (pattern.find(SHORT_MONTH) != std::string::npos) {
+			char month[3];
+			log4c_scnprintf(month, sizeof(month), "%d", now_tm.tm_mon + 1);
+			replace(buf, len, SHORT_MONTH, month);
+		}
+		if (pattern.find(FULL_MONTH) != std::string::npos) {
+			char month[3];
+			log4c_scnprintf(month, sizeof(month), "%02d", now_tm.tm_mon + 1);
+			replace(buf, len, FULL_MONTH, month);
+		}
+		if (pattern.find(ABBR_MONTH) != std::string::npos) {
+			replace(buf, len, ABBR_MONTH, MONTH_ABBR_NAME[now_tm.tm_mon]);
+		}
+		if (pattern.find(SHORT_DAY) != std::string::npos) {
+			char day[3];
+			log4c_scnprintf(day, sizeof(day), "%d", now_tm.tm_mday);
+			replace(buf, len, SHORT_DAY, day);
+		}
+		if (pattern.find(FULL_DAY) != std::string::npos) {
+			char day[3];
+			log4c_scnprintf(day, sizeof(day), "%02d", now_tm.tm_mday);
+			replace(buf, len, FULL_DAY, day);
+		}
+	}
+
+	void format_time(char *buf, size_t len, const std::string &pattern, const tm &now_tm, unsigned short ms) {
 		HOUR_BASE hour_base = HOUR_BASE::HOUR_NONE;
 		char time_str[16];
 		size_t tm_len = 0;
@@ -121,11 +121,11 @@ namespace log4cpp {
 		if (std::string::npos != pos) {
 			hour_base = HOUR_BASE::HOUR_12;
 			pattern_start = pos;
-			if (now_tm->tm_hour < 12) {
-				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm->tm_hour);
+			if (now_tm.tm_hour < 12) {
+				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm.tm_hour);
 			}
 			else {
-				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm->tm_hour - 12);
+				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm.tm_hour - 12);
 			}
 			pattern_end = pos + strlen(SHORT_12HOUR);
 		}
@@ -133,18 +133,18 @@ namespace log4cpp {
 		if (std::string::npos != pos) {
 			hour_base = HOUR_BASE::HOUR_24;
 			pattern_start = pos;
-			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm->tm_hour);
+			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm.tm_hour);
 			pattern_end = pos + strlen(SHORT_24HOUR);
 		}
 		pos = pattern.find(FULL_12HOUR);
 		if (std::string::npos != pos) {
 			hour_base = HOUR_BASE::HOUR_12;
 			pattern_start = pos;
-			if (now_tm->tm_hour < 12) {
-				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm->tm_hour);
+			if (now_tm.tm_hour < 12) {
+				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm.tm_hour);
 			}
 			else {
-				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm->tm_hour - 12);
+				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm.tm_hour - 12);
 			}
 			pattern_end = pos + strlen(FULL_12HOUR);
 		}
@@ -152,34 +152,34 @@ namespace log4cpp {
 		if (std::string::npos != pos) {
 			hour_base = HOUR_BASE::HOUR_24;
 			pattern_start = pos;
-			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm->tm_hour);
+			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm.tm_hour);
 			pattern_end = pos + strlen(FULL_24HOUR);
 		}
 		pos = pattern.find(SHORT_MINUTES);
 		if (std::string::npos != pos) {
 			char delimiter = pattern[pos - 1];
-			pattern_start = (std::string::npos == pattern_start) ? pos : pattern_start;
-			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%d", delimiter, now_tm->tm_min);
+			pattern_start = std::string::npos == pattern_start ? pos : pattern_start;
+			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%d", delimiter, now_tm.tm_min);
 			pattern_end = pos + strlen(SHORT_MINUTES);
 		}
 		pos = pattern.find(FULL_MINUTES);
 		if (std::string::npos != pos) {
 			char delimiter = pattern[pos - 1];
 			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%02d", delimiter,
-			                          now_tm->tm_min);
+									now_tm.tm_min);
 			pattern_end = pos + strlen(FULL_MINUTES);
 		}
 		pos = pattern.find(SHORT_SECOND);
 		if (std::string::npos != pos) {
 			char delimiter = pattern[pos - 1];
-			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%d", delimiter, now_tm->tm_sec);
+			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%d", delimiter, now_tm.tm_sec);
 			pattern_end = pos + strlen(SHORT_SECOND);
 		}
 		pos = pattern.find(FULL_SECOND);
 		if (std::string::npos != pos) {
 			char delimiter = pattern[pos - 1];
 			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%02d", delimiter,
-			                          now_tm->tm_sec);
+									now_tm.tm_sec);
 			pattern_end = pos + strlen(FULL_SECOND);
 		}
 		pos = pattern.find(MILLISECOND);
@@ -189,7 +189,7 @@ namespace log4cpp {
 			pattern_end = pos + strlen(MILLISECOND);
 		}
 		if (HOUR_BASE::HOUR_12 == hour_base) {
-			if (now_tm->tm_hour < 12) {
+			if (now_tm.tm_hour < 12) {
 				log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, " AM");
 			}
 			else {
@@ -203,46 +203,17 @@ namespace log4cpp {
 		replace(buf, len, replace_str, time_str);
 	}
 
+	void format_daytime(char *buf, size_t len, const std::string &pattern, const tm &now_tm, unsigned short ms) {
+		format_day(buf, len, pattern, now_tm);
+		format_time(buf, len, pattern, now_tm, ms);
+	}
+
 	size_t layout_pattern::format_with_pattern(char *buf, size_t len, log_level level, const char *msg) {
-		const auto now = std::chrono::system_clock::now();
-		const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-		const std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
-		const tm *now_tm = std::localtime(&now_time_t);
-		log4c_scnprintf(buf, len, "%s", _pattern.c_str());
-		if (_pattern.find(SHORT_YEAR) != std::string::npos) {
-			char year[6];
-			log4c_scnprintf(year, sizeof(year), "%d", now_tm->tm_year % 100);
-			replace(buf, len, SHORT_YEAR, year);
-		}
-		if (_pattern.find(FULL_YEAR) != std::string::npos) {
-			char year[5];
-			log4c_scnprintf(year, sizeof(year), "%04d", 1900 + now_tm->tm_year);
-			replace(buf, len, FULL_YEAR, year);
-		}
-		if (_pattern.find(SHORT_MONTH) != std::string::npos) {
-			char month[3];
-			log4c_scnprintf(month, sizeof(month), "%d", now_tm->tm_mon + 1);
-			replace(buf, len, SHORT_MONTH, month);
-		}
-		if (_pattern.find(FULL_MONTH) != std::string::npos) {
-			char month[3];
-			log4c_scnprintf(month, sizeof(month), "%02d", now_tm->tm_mon + 1);
-			replace(buf, len, FULL_MONTH, month);
-		}
-		if (_pattern.find(ABBR_MONTH) != std::string::npos) {
-			replace(buf, len, ABBR_MONTH, MONTH_NAME[now_tm->tm_mon]);
-		}
-		if (_pattern.find(SHORT_DAY) != std::string::npos) {
-			char day[3];
-			log4c_scnprintf(day, sizeof(day), "%d", now_tm->tm_mday);
-			replace(buf, len, SHORT_DAY, day);
-		}
-		if (_pattern.find(FULL_DAY) != std::string::npos) {
-			char day[3];
-			log4c_scnprintf(day, sizeof(day), "%02d", now_tm->tm_mday);
-			replace(buf, len, FULL_DAY, day);
-		}
-		format_time_with_pattern(buf, len, _pattern, now_tm, static_cast<unsigned short>(now_ms.count()));
+		tm now_tm;
+		unsigned short ms;
+		get_time_now(now_tm, ms);
+
+		format_daytime(buf, len, _pattern, now_tm, ms);
 		if (std::smatch match; std::regex_search(_pattern, match, THREAD_NAME_REGEX)) {
 			size_t width = THREAD_NAME_MAX_LEN;
 			if (match[1].matched) {

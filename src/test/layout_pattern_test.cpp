@@ -1,0 +1,500 @@
+#ifdef _MSC_VER
+#define  _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include <filesystem>
+#include <main/layout_pattern.h>
+#include <main/log_utils.h>
+
+#ifdef __GNUC__
+#include <pthread.h>
+#endif
+
+#include <array>
+
+#include "gtest/gtest.h"
+
+#include "log4cpp.hpp"
+
+class TestEnvironment : public testing::Environment {
+public:
+	explicit TestEnvironment(const std::string &cur_path) {
+		size_t end = cur_path.find_last_of('\\');
+		if (end == std::string::npos) {
+			end = cur_path.find_last_of('/');
+		}
+		const std::string work_dir = cur_path.substr(0, end);
+		std::filesystem::current_path(work_dir);
+	}
+};
+
+int main(int argc, char **argv) {
+	const std::string cur_path = argv[0];
+	testing::InitGoogleTest(&argc, argv);
+	AddGlobalTestEnvironment(new TestEnvironment(cur_path));
+	return RUN_ALL_TESTS();
+}
+
+TEST(layout_pattern_tests, full_format_test) {
+	const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
+	log4cpp::layout_pattern layout;
+	log4cpp::layout_pattern::set_pattern(pattern);
+	char actual[1024];
+	tm now_tm{};
+	unsigned short ms;
+	log4cpp::log_level level = log4cpp::log_level::INFO;
+	get_time_now(now_tm, ms);
+	layout.format(actual, sizeof(actual), level, "hello");
+	char expected[1024];
+	char th_name[16];
+	char thread_name[16];
+	unsigned long tid = log4cpp::get_thread_name_id(th_name, sizeof(th_name));
+	if ('\0' == th_name[0]) {
+		log4c_scnprintf(thread_name, sizeof(thread_name), "%08lu", tid);
+	}
+	else {
+		log4c_scnprintf(thread_name, sizeof(thread_name), "%-8s", th_name);
+	}
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d [T%08s] [%-5s] -- %s\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms,
+					thread_name,
+					to_string(level).c_str(),
+					"hello");
+	// The length of "2025-01-06 " is 11
+	EXPECT_EQ(strncmp(actual, expected, 11), 0);
+	// The length of "[T00008580] [FATAL] -- hello\n" is 30
+	size_t offset = strlen(actual) - 30;
+	EXPECT_EQ(strncmp(actual+offset, expected+offset, 30), 0);
+}
+
+TEST(layout_pattern_tests, year_format_test) {
+	tm now_tm{};
+	unsigned short ms;
+	get_time_now(now_tm, ms);
+
+	char actual[1024];
+	char expected[1024];
+
+	/* short year(2 digit) */
+	// The length of "25-01-07 " is 9
+	size_t cmp_len = 9;
+	std::string time_pattern = "${yy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%02d-%02d-%02d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year % 100, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+	/* Full year(4 digit) */
+	// The length of "2025-01-07 " is 11
+	cmp_len = 11;
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+}
+
+TEST(layout_pattern_tests, month_format_test) {
+	tm now_tm{};
+	unsigned short ms;
+	get_time_now(now_tm, ms);
+
+	char actual[1024];
+	char expected[1024];
+	// The length of "2025-01-07 " is 11
+	size_t cmp_len = 10;
+	/* Month without leading zeros(one digit) */
+	std::string time_pattern = "${yyyy}-${MM}-${d} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	now_tm.tm_mday = 9;
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+	/* Month without leading zeros(two digit) */
+	strcpy(actual, time_pattern.c_str());
+	now_tm.tm_mday = 29;
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+
+	/* Month with leading zeros(one digit) */
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	cmp_len = 11;
+	strcpy(actual, time_pattern.c_str());
+	now_tm.tm_mday = 9;
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+	/* Month with leading zeros(two digit) */
+	strcpy(actual, time_pattern.c_str());
+	now_tm.tm_mday = 29;
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+	/* Month Abbreviation */
+	time_pattern = "${MMM} ${d}, ${yyyy} ${HH}:${mm}:${ss}:${ms}";
+	for (int i = 0; i < 12; ++i) {
+		strcpy(actual, time_pattern.c_str());
+		now_tm.tm_mon = i;
+		log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+		log4c_scnprintf(expected, sizeof(expected), "%s %02d, %04d %02d:%02d:%02d:%03d\n",
+						log4cpp::MONTH_ABBR_NAME[now_tm.tm_mon], now_tm.tm_mday, now_tm.tm_year + 1900,
+						now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+		EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+	}
+}
+
+TEST(layout_pattern_tests, day_format_test) {
+	tm now_tm{};
+	unsigned short ms;
+	get_time_now(now_tm, ms);
+
+	char actual[1024];
+	char expected[1024];
+	// The length of "2025-01-07 " is 11
+	size_t cmp_len = 10;
+	/* Day of the month without leading zeros(one digit) */
+	std::string time_pattern = "${yyyy}-${MM}-${d} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	now_tm.tm_mday = 9;
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+	/* Day of the month without leading zeros(two digit) */
+	strcpy(actual, time_pattern.c_str());
+	now_tm.tm_mday = 29;
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+
+	/* Day of the month with leading zeros(one digit) */
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	cmp_len = 11;
+	strcpy(actual, time_pattern.c_str());
+	now_tm.tm_mday = 9;
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+	/* Day of the month with leading zeros(two digit) */
+	strcpy(actual, time_pattern.c_str());
+	now_tm.tm_mday = 29;
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
+}
+
+TEST(layout_pattern_tests, time_hour_format_test) {
+	tm now_tm{};
+	unsigned short ms;
+	get_time_now(now_tm, ms);
+
+	char actual[1024];
+	char expected[1024];
+
+	/* 24-hour without leading zeros */
+	std::string time_pattern = "${yyyy}-${MM}-${dd} ${H}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %d:%02d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* 24-hour with leading zeros */
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* 12-hour without leading zeros */
+	time_pattern = "${yyyy}-${MM}-${dd} ${h}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	size_t len = log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %d:%02d:%02d:%03d",
+								now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+								now_tm.tm_hour > 12 ? now_tm.tm_hour - 12 : now_tm.tm_hour, now_tm.tm_min,
+								now_tm.tm_sec, ms);
+	if (now_tm.tm_hour > 12) {
+		log4c_scnprintf(expected + len, sizeof(expected) - len, " PM");
+	}
+	else {
+		log4c_scnprintf(expected + len, sizeof(expected) - len, " AM");
+	}
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* 12-hour with leading zeros */
+	time_pattern = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	len = log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+						now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+						now_tm.tm_hour > 12 ? now_tm.tm_hour - 12 : now_tm.tm_hour, now_tm.tm_min,
+						now_tm.tm_sec, ms);
+	if (now_tm.tm_hour > 12) {
+		log4c_scnprintf(expected + len, sizeof(expected) - len, " PM");
+	}
+	else {
+		log4c_scnprintf(expected + len, sizeof(expected) - len, " AM");
+	}
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* AM PM test */
+	time_pattern = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms}";
+	// AM
+	if (now_tm.tm_hour > 12) {
+		now_tm.tm_hour -= 12;
+	}
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d AM",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	// PM
+	now_tm.tm_hour += 12;
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d PM",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour % 12, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+}
+
+TEST(layout_pattern_tests, time_minutes_format_test) {
+	tm now_tm{};
+	unsigned short ms;
+	get_time_now(now_tm, ms);
+
+	char actual[1024];
+	char expected[1024];
+
+	/* Minutes without leading zeros(one digit) */
+	now_tm.tm_min = 9;
+	std::string time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${m}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* Minutes with leading zeros(one digit) */
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* Minutes without leading zeros(two digit) */
+	now_tm.tm_min = 59;
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${m}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* Minutes with leading zeros(two digit) */
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+}
+
+TEST(layout_pattern_tests, time_seconds_format_test) {
+	tm now_tm{};
+	unsigned short ms;
+	get_time_now(now_tm, ms);
+
+	char actual[1024];
+	char expected[1024];
+
+	/* Seconds without leading zeros(one digit) */
+	now_tm.tm_sec = 9;
+	std::string time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${s}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* Seconds with leading zeros(one digit) */
+
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* Seconds without leading zeros(two digit) */
+	now_tm.tm_sec = 59;
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* Seconds with leading zeros(two digit) */
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+}
+
+TEST(layout_pattern_tests, time_milliseconds_format_test) {
+	tm now_tm{};
+	unsigned short ms;
+	get_time_now(now_tm, ms);
+
+	char actual[1024];
+	char expected[1024];
+
+	/* One digit milliseconds */
+	ms = 9;
+	std::string time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* Two digit milliseconds */
+	ms = 59;
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+	/* Three digit milliseconds */
+	ms = 199;
+	time_pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms}";
+	strcpy(actual, time_pattern.c_str());
+	log4cpp::format_daytime(actual, sizeof(actual), time_pattern, now_tm, ms);
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms);
+	EXPECT_EQ(strncmp(actual, expected, strlen(expected)), 0);
+}
+
+TEST(layout_pattern_tests, thread_id_format_test) {
+	const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
+	log4cpp::layout_pattern layout;
+	log4cpp::layout_pattern::set_pattern(pattern);
+	char actual[1024];
+	tm now_tm{};
+	unsigned short ms;
+	log4cpp::log_level level = log4cpp::log_level::INFO;
+	get_time_now(now_tm, ms);
+
+	layout.format(actual, sizeof(actual), level, "hello");
+	char expected[1024];
+	char th_name[16];
+	char thread_name[16];
+	// The name is empty, use "T+thread id"
+	unsigned long tid = log4cpp::get_thread_name_id(th_name, sizeof(th_name));
+	if ('\0' == th_name[0]) {
+		log4c_scnprintf(thread_name, sizeof(thread_name), "%08lu", tid);
+	}
+	else {
+		log4c_scnprintf(thread_name, sizeof(thread_name), "%-8s", th_name);
+	}
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d [T%08s] [%-5s] -- %s\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms,
+					thread_name,
+					to_string(level).c_str(),
+					"hello");
+	// The length of "[T00008580] [FATAL] -- hello\n" is 30
+	size_t offset = strlen(actual) - 30;
+	EXPECT_EQ(strncmp(actual+offset, expected+offset, 30), 0);
+	// Set thread name
+	log4cpp::set_thread_name("test");
+	tid = log4cpp::get_thread_name_id(th_name, sizeof(th_name));
+	if ('\0' == th_name[0]) {
+		log4c_scnprintf(thread_name, sizeof(thread_name), "%08lu", tid);
+	}
+	else {
+		log4c_scnprintf(thread_name, sizeof(thread_name), "%-8s", th_name);
+	}
+	log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d [%08s] [%-5s] -- %s\n",
+					now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+					now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms,
+					thread_name,
+					to_string(level).c_str(),
+					"hello");
+	layout.format(actual, sizeof(actual), level, "hello");
+	// The length of " [test    ] [INFO ] -- hello\n" is 29
+	offset = strlen(actual) - 29;
+	EXPECT_EQ(strncmp(actual+offset, expected+offset, 30), 0);
+}
+
+TEST(layout_pattern_tests, log_level_format_test) {
+	const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
+	log4cpp::layout_pattern layout;
+	log4cpp::layout_pattern::set_pattern(pattern);
+	char actual[1024];
+	const char *message = "hello world!";
+	// The length of " [INFO ] -- hello world!\n" is 29
+	size_t cmp_len = 25;
+	// FATAL
+	log4cpp::log_level level = log4cpp::log_level::FATAL;
+	layout.format(actual, sizeof(actual), level, message);
+	char expected[1024];
+	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
+	size_t offset = strlen(actual) - cmp_len;
+	EXPECT_EQ(strncmp(actual+offset, expected, cmp_len), 0);
+	// ERROR
+	level = log4cpp::log_level::ERROR;
+	layout.format(actual, sizeof(actual), level, message);
+	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
+	EXPECT_EQ(strncmp(actual+offset, expected, cmp_len), 0);
+	// WARN
+	level = log4cpp::log_level::WARN;
+	layout.format(actual, sizeof(actual), level, message);
+	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
+	EXPECT_EQ(strncmp(actual+offset, expected, cmp_len), 0);
+	// INFO
+	level = log4cpp::log_level::INFO;
+	layout.format(actual, sizeof(actual), level, message);
+	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
+	EXPECT_EQ(strncmp(actual+offset, expected, cmp_len), 0);
+	// DEBUG
+	level = log4cpp::log_level::DEBUG;
+	layout.format(actual, sizeof(actual), level, message);
+	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
+	EXPECT_EQ(strncmp(actual+offset, expected, cmp_len), 0);
+	// TRACE
+	level = log4cpp::log_level::TRACE;
+	layout.format(actual, sizeof(actual), level, message);
+	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
+	EXPECT_EQ(strncmp(actual+offset, expected, cmp_len), 0);
+}

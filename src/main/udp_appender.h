@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <boost/json.hpp>
 
+#include "log_lock.h"
 #include "log_net.h"
 #include "log_appender.h"
 
@@ -13,22 +14,39 @@ namespace log4cpp {
 
 	class udp_appender_config {
 	public:
-		net::net_addr local_addr{};
-		unsigned short port{0};
-		static std::shared_ptr<udp_appender> instance;
-		static log_lock instance_lock;
-	public:
 		/**
 		 * @brief Get an instance of udp_appender with the given configuration
-		 * @param config UDP appender configuration
+		 * @param config:UDP appender configuration
 		 * @return UDP appender instance
 		 */
 		static std::shared_ptr<udp_appender> get_instance(const udp_appender_config &config);
 
+		[[nodiscard]] net::net_addr get_local_addr() const {
+			return local_addr;
+		}
+
+		void set_local_addr(const net::net_addr &local_addr) {
+			this->local_addr = local_addr;
+		}
+
+		[[nodiscard]] unsigned short get_port() const {
+			return port;
+		}
+
+		void set_port(unsigned short port) {
+			this->port = port;
+		}
+
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, udp_appender_config const &obj);
 
-		friend udp_appender_config
-		tag_invoke(boost::json::value_to_tag<udp_appender_config>, boost::json::value const &json);
+		friend udp_appender_config tag_invoke(boost::json::value_to_tag<udp_appender_config>,
+											boost::json::value const &json);
+
+	private:
+		net::net_addr local_addr{};
+		unsigned short port{0};
+		static std::shared_ptr<udp_appender> instance;
+		static log_lock instance_lock;
 	};
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, udp_appender_config const &obj);
@@ -41,14 +59,14 @@ namespace log4cpp {
 		public:
 			/**
 			 * @brief Set the local address for the UDP appender
-			 * @param addr Local address
+			 * @param addr:Local address
 			 * @return Reference to the builder
 			 */
 			builder &set_local_addr(const net::net_addr &addr);
 
 			/**
 			 * @brief Set the port for the UDP appender
-			 * @param port Port number
+			 * @param port:Port number
 			 * @return Reference to the builder
 			 */
 			builder &set_port(unsigned short port);
@@ -83,16 +101,16 @@ namespace log4cpp {
 
 		/**
 		 * @brief Write a log message with the given log level
-		 * @param level Log level
-		 * @param fmt Format string
-		 * @param args Arguments
+		 * @param level:Log level
+		 * @param fmt:Format string
+		 * @param args:Arguments
 		 */
 		void log(log_level level, const char *__restrict fmt, va_list args) override;
 
 		/**
 		 * @brief Write a log message with the given log level
-		 * @param level Log level
-		 * @param fmt Format string
+		 * @param level:Log level
+		 * @param fmt:Format string
 		 * @param ... Arguments
 		 */
 		void log(log_level level, const char *__restrict fmt, ...) override;

@@ -8,7 +8,6 @@
 
 using namespace log4cpp;
 
-
 layout_builder::builder layout_builder::builder::new_builder() {
 	builder builder = layout_builder::builder{};
 	builder._layout = std::make_shared<layout>();

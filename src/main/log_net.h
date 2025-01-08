@@ -3,16 +3,12 @@
 #include <string>
 
 #if defined(_WIN32)
-
 #include <WinSock2.h>
 #include <windows.h>
-
 #endif
 
 #ifdef __linux
-
 #include <unistd.h>
-
 #endif
 
 namespace log4cpp::net {
@@ -49,7 +45,6 @@ namespace log4cpp::net {
 	};
 #endif
 
-
 	enum class net_family {
 		NET_IPv4, NET_IPv6
 	};
@@ -64,7 +59,6 @@ namespace log4cpp::net {
 		net_family family{net_family::NET_IPv4};
 		addr_u ip{};
 
-	public:
 		net_addr();
 
 		explicit net_addr(const char *addr);
@@ -85,7 +79,6 @@ namespace log4cpp::net {
 		net_addr addr{};
 		unsigned short port{0};
 
-	public:
 		sock_addr();
 
 		explicit sock_addr(const char *ip, unsigned short p);

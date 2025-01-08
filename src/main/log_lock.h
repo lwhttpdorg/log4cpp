@@ -3,9 +3,7 @@
 #ifdef _MSC_VER
 #include <synchapi.h>
 #else
-
 #include <pthread.h>
-
 #endif
 
 namespace log4cpp {

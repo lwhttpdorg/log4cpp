@@ -1,36 +1,28 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
+#include <chrono>
+
 #include "log_utils.h"
-
-#if defined(_WIN32)
-
-#include <winsock.h>
-
-#endif
 
 size_t log4c_vscnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, va_list args) {
 	int i = vsnprintf(buf, size, fmt, args);
 	if (i > 0) {
 		return i;
 	}
-	else {
-		return 0;
-	}
+	return 0;
 }
 
 size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...) {
 	va_list args;
-	int i;
 	va_start(args, fmt);
-	i = vsnprintf(buf, size, fmt, args);
+	int i = vsnprintf(buf, size, fmt, args);
 	va_end(args);
 	if (i > 0) {
 		return i;
 	}
-	else {
-		return 0;
-	}
+	return 0;
 }
 
 size_t replace(char *original, size_t length, const char *target, const char *replace) {
@@ -77,11 +69,23 @@ size_t replace(char *original, size_t length, const char *target, const char *re
 	return new_len;
 }
 
-std::string replace(const std::string &target, const std::string &str_old, const std::string &str_new) {
-	std::string result = target;
-	size_t pos = target.find(str_old);
+std::string replace(const std::string &original, const std::string &target, const std::string &replace) {
+	std::string result = original;
+	size_t pos = original.find(target);
 	if (pos != std::string::npos) {
-		result.replace(pos, str_old.size(), str_new);
+		result.replace(pos, target.size(), replace);
 	}
 	return result;
+}
+
+void get_time_now(tm &now_tm, unsigned short &ms) {
+	const auto now = std::chrono::system_clock::now();
+	const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+	const std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+#ifdef _WIN32
+	localtime_s(&now_tm, &now_time_t);
+#else
+	std::localtime_r(&now_time_t, &now_tm);
+#endif
+	ms = static_cast<unsigned short>(now_ms.count());
 }

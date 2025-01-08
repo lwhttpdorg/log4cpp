@@ -1,18 +1,18 @@
 {
-	"layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"layoutPattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
 	"appenders": {
 		"consoleAppender": {
 			"outStream": "stdout"
 		},
 		"fileAppender": {
-			"filePath": "log/log4cpp.log"
+			"filePath": "log/log4cpp_config_1.log"
 		},
 		"tcpAppender": {
 			"localAddr": "0.0.0.0",
 			"port": 9443
 		},
 		"udpAppender": {
-			"localAddr": "0.0.0.0",
+			"localAddr": "::",
 			"port": 9443
 		}
 	},
@@ -28,16 +28,18 @@
 		},
 		{
 			"name": "fileLayout",
-			"logLevel": "warn",
+			"logLevel": "info",
 			"appenders": [
-				"fileAppender"
+				"consoleAppender",
+				"fileAppender",
+				"tcpAppender",
+				"udpAppender"
 			]
 		}
 	],
 	"rootLayout": {
 		"logLevel": "info",
 		"appenders": [
-			"consoleAppender",
 			"fileAppender",
 			"tcpAppender",
 			"udpAppender"

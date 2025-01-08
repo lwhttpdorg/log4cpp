@@ -1,0 +1,25 @@
+{
+	"layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"appenders": {
+		"consoleAppender": {
+			"outStream": "stderr"
+		}
+	},
+	"layouts": [
+		{
+			"name": "consoleLayout",
+			"logLevel": "info",
+			"appenders": [
+				"consoleAppender",
+				"tcpAppender",
+				"udpAppender"
+			]
+		}
+	],
+	"rootLayout": {
+		"logLevel": "info",
+		"appenders": [
+			"consoleAppender"
+		]
+	}
+}

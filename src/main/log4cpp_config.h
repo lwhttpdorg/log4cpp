@@ -7,11 +7,6 @@
 #include "udp_appender.h"
 
 namespace log4cpp {
-	constexpr unsigned char CONSOLE_APPENDER_CFG = 0x01;
-	constexpr unsigned char FILE_APPENDER_CFG = 0x02;
-	constexpr unsigned char TCP_APPENDER_CFG = 0x04;
-	constexpr unsigned char UDP_APPENDER_CFG = 0x08;
-
 	class appender_config {
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, appender_config const &obj);
 
@@ -19,28 +14,28 @@ namespace log4cpp {
 
 	public:
 		const console_appender_config *get_console_cfg() const {
-			if (APPENDER_FLAGS & CONSOLE_APPENDER_CFG) {
+			if (APPENDER_FLAGS & CONSOLE_APPENDER_FLAG) {
 				return &console_cfg;
 			}
 			return nullptr;
 		}
 
 		const file_appender_config *get_file_cfg() const {
-			if (APPENDER_FLAGS & FILE_APPENDER_CFG) {
+			if (APPENDER_FLAGS & FILE_APPENDER_FLAG) {
 				return &file_cfg;
 			}
 			return nullptr;
 		}
 
 		const tcp_appender_config *get_tcp_cfg() const {
-			if (APPENDER_FLAGS & TCP_APPENDER_CFG) {
+			if (APPENDER_FLAGS & TCP_APPENDER_FLAG) {
 				return &tcp_cfg;
 			}
 			return nullptr;
 		}
 
 		const udp_appender_config *get_udp_cfg() const {
-			if (APPENDER_FLAGS & UDP_APPENDER_CFG) {
+			if (APPENDER_FLAGS & UDP_APPENDER_FLAG) {
 				return &udp_cfg;
 			}
 			return nullptr;
@@ -69,17 +64,61 @@ namespace log4cpp {
 
 		layout_config &operator=(layout_config &&other) noexcept;
 
+		friend bool operator<(const layout_config &lhs, const layout_config &rhs) {
+			if (lhs.name < rhs.name)
+				return true;
+			if (rhs.name < lhs.name)
+				return false;
+			if (lhs.level < rhs.level)
+				return true;
+			if (rhs.level < lhs.level)
+				return false;
+			return lhs.layout_flag < rhs.layout_flag;
+		}
+
+		friend bool operator<=(const layout_config &lhs, const layout_config &rhs) {
+			return rhs >= lhs;
+		}
+
+		friend bool operator>(const layout_config &lhs, const layout_config &rhs) {
+			return rhs < lhs;
+		}
+
+		friend bool operator>=(const layout_config &lhs, const layout_config &rhs) {
+			return !(lhs < rhs);
+		}
+
+		friend bool operator==(const layout_config &lhs, const layout_config &rhs) {
+			return lhs.name == rhs.name && lhs.level == rhs.level && lhs.layout_flag == rhs.layout_flag;
+		}
+
+		friend bool operator!=(const layout_config &lhs, const layout_config &rhs) {
+			return !(lhs == rhs);
+		}
+
 		/**
 		 * @brief Get the logger name
 		 * @return The logger name
 		 */
 		[[nodiscard]] std::string get_logger_name() const;
 
+		void set_name(const std::string &name) {
+			this->name = name;
+		}
+
 		/* Get the logger level */
 		[[nodiscard]] log_level get_logger_level() const;
 
+		void set_level(log_level level) {
+			this->level = level;
+		}
+
 		/* Get the layout flags */
 		[[nodiscard]] unsigned char get_layout_flag() const;
+
+		void set_layout_flag(unsigned char flags) {
+			this->layout_flag = flags;
+		}
 
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, layout_config const &obj);
 
@@ -102,7 +141,7 @@ namespace log4cpp {
 	public:
 		/**
 		 * @brief Load the configuration from a JSON file
-		 * @param json_file The JSON file
+		 * @param json_file:The JSON file
 		 * @return The configuration
 		 */
 		[[nodiscard]]
@@ -114,7 +153,7 @@ namespace log4cpp {
 
 		/**
 		 * @brief Serialize the configuration to a JSON string
-		 * @param obj The configuration
+		 * @param obj:The configuration
 		 * @return The JSON string
 		 */
 		static std::string serialize(const log4cpp_config &obj);
@@ -122,7 +161,7 @@ namespace log4cpp {
 		log4cpp_config() = default;
 
 		log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<layout_config> &l,
-		               layout_config root);
+						layout_config root);
 
 		log4cpp_config(const log4cpp_config &other);
 
