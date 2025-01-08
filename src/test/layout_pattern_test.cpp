@@ -195,6 +195,7 @@ TEST(layout_pattern_tests, day_format_test) {
 	EXPECT_EQ(strncmp(actual, expected, cmp_len), 0);
 }
 
+
 TEST(layout_pattern_tests, time_hour_format_test) {
 	tm now_tm{};
 	unsigned short ms;
