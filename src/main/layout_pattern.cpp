@@ -229,7 +229,7 @@ namespace log4cpp {
 				log4c_scnprintf(thread_name, sizeof(thread_name), "%-*s", width, _name);
 			}
 			else {
-				log4c_scnprintf(thread_name, sizeof(thread_name), "T%0*u", width, tid);
+				log4c_scnprintf(thread_name, sizeof(thread_name), "T%0*lu", width, tid);
 			}
 			const std::string full_match_str = match[0];
 			replace(buf, len, full_match_str.c_str(), thread_name);
@@ -249,7 +249,7 @@ namespace log4cpp {
 
 			char thread_id[THREAD_NAME_MAX_LEN + 1];
 			thread_id[0] = '\0';
-			log4c_scnprintf(thread_id, sizeof(thread_id), "T%0*u", width, tid);
+			log4c_scnprintf(thread_id, sizeof(thread_id), "T%0*lu", width, tid);
 			const std::string full_match_str = match[0];
 			replace(buf, len, full_match_str.c_str(), thread_id);
 		}

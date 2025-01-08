@@ -34,8 +34,7 @@ int main(int argc, char **argv) {
 }
 
 TEST(layout_pattern_tests, full_format_test) {
-	const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
-	log4cpp::layout_pattern layout;
+	const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}";
 	log4cpp::layout_pattern::set_pattern(pattern);
 	char actual[1024];
 	tm now_tm{};
@@ -400,7 +399,6 @@ TEST(layout_pattern_tests, time_milliseconds_format_test) {
 
 TEST(layout_pattern_tests, thread_id_format_test) {
 	const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
-	log4cpp::layout_pattern layout;
 	log4cpp::layout_pattern::set_pattern(pattern);
 	char actual[1024];
 	tm now_tm{};
@@ -446,7 +444,6 @@ TEST(layout_pattern_tests, thread_id_format_test) {
 
 TEST(layout_pattern_tests, log_level_format_test) {
 	const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
-	log4cpp::layout_pattern layout;
 	log4cpp::layout_pattern::set_pattern(pattern);
 	char actual[1024];
 	const char *message = "hello world!";
