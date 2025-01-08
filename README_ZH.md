@@ -412,16 +412,16 @@ endif ()
 取消对应位置的注释即可:
 
 ```cmake
-#find_package(Boost 1.75 REQUIRED COMPONENTS json)
-#if (Boost_FOUND)
-#    #message(STATUS "Boost_LIB_VERSION = ${Boost_VERSION}")
-#    #message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
-#    #message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
-#    #message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
-#    include_directories(${Boost_INCLUDE_DIRS})
-#    link_directories(${Boost_LIBRARY_DIRS})
-#    target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
-#endif ()
+find_package(Boost 1.75 REQUIRED COMPONENTS json)
+if (Boost_FOUND)
+    #message(STATUS "Boost_LIB_VERSION = ${Boost_VERSION}")
+    #message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
+    #message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
+    #message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
+    include_directories(${Boost_INCLUDE_DIRS})
+    link_directories(${Boost_LIBRARY_DIRS})
+    target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
+endif ()
 ```
 
 如果CMake没有自动找到Boost路径, 可以手动设置Boost路径:
@@ -442,6 +442,8 @@ endif ()
 
 ```shell
 cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TESTS=ON -DENABLE_ASAN=ON
+cmake --build build --config=Debug
+ctest --test-dir build
 ```
 
 选项说明:

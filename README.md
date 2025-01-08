@@ -429,16 +429,16 @@ use the local boost library.
 Uncomment the corresponding position:
 
 ```cmake
-#find_package(Boost 1.75 REQUIRED COMPONENTS json)
-#if (Boost_FOUND)
-#    #message(STATUS "Boost_LIB_VERSION = ${Boost_VERSION}")
-#    #message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
-#    #message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
-#    #message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
-#    include_directories(${Boost_INCLUDE_DIRS})
-#    link_directories(${Boost_LIBRARY_DIRS})
-#    target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
-#endif ()
+find_package(Boost 1.75 REQUIRED COMPONENTS json)
+if (Boost_FOUND)
+    #message(STATUS "Boost_LIB_VERSION = ${Boost_VERSION}")
+    #message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
+    #message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
+    #message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
+    include_directories(${Boost_INCLUDE_DIRS})
+    link_directories(${Boost_LIBRARY_DIRS})
+    target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
+endif ()
 ```
 
 If CMake does not automatically find the Boost path, you can manually set the Boost path:
@@ -459,6 +459,8 @@ endif ()
 
 ```shell
 cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TESTS=ON -DENABLE_ASAN=ON
+cmake --build build --config=Debug
+ctest --test-dir build
 ```
 
 Option description:
