@@ -85,7 +85,7 @@ void get_time_now(tm &now_tm, unsigned short &ms) {
 #ifdef _WIN32
 	localtime_s(&now_tm, &now_time_t);
 #else
-	std::localtime_r(&now_time_t, &now_tm);
+	localtime_r(&now_time_t, &now_tm);
 #endif
 	ms = static_cast<unsigned short>(now_ms.count());
 }
