@@ -13,28 +13,28 @@ namespace log4cpp {
 		friend appender_config tag_invoke(boost::json::value_to_tag<appender_config>, boost::json::value const &json);
 
 	public:
-		const console_appender_config *get_console_cfg() const {
+		[[nodiscard]] const console_appender_config *get_console_cfg() const {
 			if (APPENDER_FLAGS & CONSOLE_APPENDER_FLAG) {
 				return &console_cfg;
 			}
 			return nullptr;
 		}
 
-		const file_appender_config *get_file_cfg() const {
+		[[nodiscard]] const file_appender_config *get_file_cfg() const {
 			if (APPENDER_FLAGS & FILE_APPENDER_FLAG) {
 				return &file_cfg;
 			}
 			return nullptr;
 		}
 
-		const tcp_appender_config *get_tcp_cfg() const {
+		[[nodiscard]] const tcp_appender_config *get_tcp_cfg() const {
 			if (APPENDER_FLAGS & TCP_APPENDER_FLAG) {
 				return &tcp_cfg;
 			}
 			return nullptr;
 		}
 
-		const udp_appender_config *get_udp_cfg() const {
+		[[nodiscard]] const udp_appender_config *get_udp_cfg() const {
 			if (APPENDER_FLAGS & UDP_APPENDER_FLAG) {
 				return &udp_cfg;
 			}
@@ -102,15 +102,15 @@ namespace log4cpp {
 		 */
 		[[nodiscard]] std::string get_logger_name() const;
 
-		void set_name(const std::string &name) {
-			this->name = name;
+		void set_name(const std::string &_name) {
+			this->name = _name;
 		}
 
 		/* Get the logger level */
 		[[nodiscard]] log_level get_logger_level() const;
 
-		void set_level(log_level level) {
-			this->level = level;
+		void set_level(log_level _level) {
+			this->level = _level;
 		}
 
 		/* Get the layout flags */
@@ -171,13 +171,13 @@ namespace log4cpp {
 
 		log4cpp_config &operator=(log4cpp_config &&other) noexcept;
 
-		const std::string &get_layout_pattern() const;
+		[[nodiscard]] const std::string &get_layout_pattern() const;
 
-		const appender_config &get_appender() const;
+		[[nodiscard]] const appender_config &get_appender() const;
 
-		const std::vector<layout_config> &get_layouts() const;
+		[[nodiscard]] const std::vector<layout_config> &get_layouts() const;
 
-		const layout_config &get_root_layout() const;
+		[[nodiscard]] const layout_config &get_root_layout() const;
 
 		friend class layout_manager;
 

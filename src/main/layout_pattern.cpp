@@ -5,7 +5,6 @@
 #include <regex>
 #include <cstdarg>
 #include <cstring>
-#include <array>
 
 #if defined(_WIN32)
 
@@ -209,7 +208,7 @@ namespace log4cpp {
 	}
 
 	size_t layout_pattern::format_with_pattern(char *buf, size_t len, log_level level, const char *msg) {
-		tm now_tm;
+		tm now_tm{};
 		unsigned short ms;
 		get_time_now(now_tm, ms);
 

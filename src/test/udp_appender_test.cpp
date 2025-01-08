@@ -8,9 +8,11 @@
 #endif
 
 #ifdef __linux__
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 #endif
 
 #include "gtest/gtest.h"
@@ -56,7 +58,7 @@ int udp_appender_client(std::atomic_bool &running, unsigned int log_count, unsig
 	running.store(true);
 	char buffer[1024];
 	for (unsigned int i = 0; i < log_count; ++i) {
-		int len = recv(fd, buffer, sizeof(buffer) - 1, 0);
+		ssize_t len = recv(fd, buffer, sizeof(buffer) - 1, 0);
 		if (len > 0) {
 			buffer[len] = 0;
 			printf("UDP[%u]: %s", i, buffer);

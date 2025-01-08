@@ -70,40 +70,40 @@ void udp_appender_cfg_check(const nlohmann::json &udpAppender, const log4cpp::ud
 }
 
 void appenders_cfg_check(const nlohmann::json &appenders_json, const log4cpp::appender_config &appenders_cfg) {
-	const nlohmann::json appenders = appenders_json.at("appenders");
+	const nlohmann::json &appenders = appenders_json.at("appenders");
 	// Console Appender
 	const log4cpp::console_appender_config *console_appender_cfg = appenders_cfg.get_console_cfg();
 	ASSERT_EQ(true == appenders.contains("consoleAppender"), nullptr != console_appender_cfg);
 	if (nullptr != console_appender_cfg) {
-		const nlohmann::json consoleAppender = appenders.at("consoleAppender");
+		const nlohmann::json &consoleAppender = appenders.at("consoleAppender");
 		console_appender_cfg_check(consoleAppender, console_appender_cfg);
 	}
 	// File Appender
 	const log4cpp::file_appender_config *file_appender_cfg = appenders_cfg.get_file_cfg();
 	ASSERT_EQ(true == appenders.contains("fileAppender"), nullptr != file_appender_cfg);
 	if (nullptr != file_appender_cfg) {
-		const nlohmann::json fileAppender = appenders.at("fileAppender");
+		const nlohmann::json &fileAppender = appenders.at("fileAppender");
 		file_appender_cfg_check(fileAppender, file_appender_cfg);
 	}
 	// TCP Appender
 	const log4cpp::tcp_appender_config *tcp_appender_cfg = appenders_cfg.get_tcp_cfg();
 	ASSERT_EQ(true == appenders.contains("tcpAppender"), nullptr != tcp_appender_cfg);
 	if (nullptr != tcp_appender_cfg) {
-		const nlohmann::json tcpAppender = appenders.at("tcpAppender");
+		const nlohmann::json &tcpAppender = appenders.at("tcpAppender");
 		tcp_appender_cfg_check(tcpAppender, tcp_appender_cfg);
 	}
 	// UDP Appender
 	const log4cpp::udp_appender_config *udp_appender_cfg = appenders_cfg.get_udp_cfg();
 	ASSERT_EQ(true == appenders.contains("udpAppender"), nullptr != udp_appender_cfg);
 	if (nullptr != udp_appender_cfg) {
-		const nlohmann::json udpAppender = appenders.at("udpAppender");
+		const nlohmann::json &udpAppender = appenders.at("udpAppender");
 		udp_appender_cfg_check(udpAppender, udp_appender_cfg);
 	}
 }
 
 unsigned char appender_name_to_flag(const std::vector<std::string> &appenders) {
 	unsigned char appenders_flag = 0;
-	for (const std::string &expected_appender:appenders) {
+	for (const std::string &expected_appender: appenders) {
 		if (log4cpp::CONSOLE_APPENDER_NAME == expected_appender) {
 			appenders_flag |= log4cpp::CONSOLE_APPENDER_FLAG;
 		}
@@ -122,16 +122,16 @@ unsigned char appender_name_to_flag(const std::vector<std::string> &appenders) {
 
 void appender_flag_to_name(unsigned char appenders_flag, std::vector<std::string> &appenders) {
 	if (0 != (appenders_flag & log4cpp::CONSOLE_APPENDER_FLAG)) {
-		appenders.push_back(log4cpp::CONSOLE_APPENDER_NAME);
+		appenders.emplace_back(log4cpp::CONSOLE_APPENDER_NAME);
 	}
 	if (0 != (appenders_flag & log4cpp::FILE_APPENDER_FLAG)) {
-		appenders.push_back(log4cpp::FILE_APPENDER_NAME);
+		appenders.emplace_back(log4cpp::FILE_APPENDER_NAME);
 	}
 	if (0 != (appenders_flag & log4cpp::TCP_APPENDER_FLAG)) {
-		appenders.push_back(log4cpp::TCP_APPENDER_NAME);
+		appenders.emplace_back(log4cpp::TCP_APPENDER_NAME);
 	}
 	if (0 != (appenders_flag & log4cpp::UDP_APPENDER_FLAG)) {
-		appenders.push_back(log4cpp::UDP_APPENDER_NAME);
+		appenders.emplace_back(log4cpp::UDP_APPENDER_NAME);
 	}
 }
 
@@ -148,26 +148,26 @@ namespace log4cpp {
 		std::vector<std::string> appenders;
 		appender_flag_to_name(obj.get_layout_flag(), appenders);
 		json = nlohmann::json{
-			{"name", obj.get_logger_name()},
-			{"logLevel", obj.get_logger_level()},
-			{"appenders", appenders}
+				{"name",      obj.get_logger_name()},
+				{"logLevel",  obj.get_logger_level()},
+				{"appenders", appenders}
 		};
 	}
 }
 
 void layout_cfg_check(const nlohmann::json &expected_json, const std::vector<log4cpp::layout_config> &actual_layouts) {
-	EXPECT_EQ(0 == actual_layouts.size(), true != expected_json.contains("layouts"));
-	if (0 == actual_layouts.size()) {
+	EXPECT_EQ(actual_layouts.empty(), true != expected_json.contains("layouts"));
+	if (actual_layouts.empty()) {
 		return;
 	}
-	const nlohmann::json layouts_json = expected_json.at("layouts");
+	const nlohmann::json &layouts_json = expected_json.at("layouts");
 	const std::vector<log4cpp::layout_config> expected_layouts = layouts_json.get<std::vector<
-		log4cpp::layout_config>>();
+			log4cpp::layout_config>>();
 	EXPECT_EQ(actual_layouts, expected_layouts);
 }
 
 void root_layout_cfg_check(const nlohmann::json &expected_json, const log4cpp::layout_config &root_layout_cfg) {
-	const nlohmann::json root_layout = expected_json.at("rootLayout");
+	const nlohmann::json &root_layout = expected_json.at("rootLayout");
 	const std::string actual_name = root_layout_cfg.get_logger_name();
 	EXPECT_EQ(actual_name, "root");
 	log4cpp::log_level actual_level = root_layout_cfg.get_logger_level();
@@ -188,7 +188,7 @@ void parse_json(const std::string &config_file, nlohmann::json &expected_json) {
 
 void configuration_cfg_check(const nlohmann::json &expected_json, const log4cpp::log4cpp_config *config) {
 	// Layout pattern
-	const std::string layout_pattern = config->get_layout_pattern();
+	const std::string &layout_pattern = config->get_layout_pattern();
 	layout_pattern_cfg_check(expected_json, layout_pattern);
 	// Appenders
 	const log4cpp::appender_config &appender_cfg = config->get_appender();

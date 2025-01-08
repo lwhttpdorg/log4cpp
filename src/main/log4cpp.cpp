@@ -13,15 +13,18 @@
 
 #ifdef _MSC_VER
 #include <processthreadsapi.h>
-#endif
+#elif defined(__GNUC__)
 
-#ifdef __GNUC__
 #include <pthread.h>
+
+#else
+#include <sys/prctl.h>
 #endif
 
 #ifdef __linux__
+
 #include <unistd.h>
-#include <sys/prctl.h>
+
 #endif
 
 #include <cstdarg>
@@ -148,7 +151,7 @@ layout::layout(const std::string &log_name, log_level _level) {
 }
 
 void layout::log(log_level _level, const char *fmt, va_list args) const {
-	for (auto &l:this->appenders) {
+	for (auto &l: this->appenders) {
 		l->log(_level, fmt, args);
 	}
 }

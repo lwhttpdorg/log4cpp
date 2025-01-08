@@ -21,8 +21,8 @@ namespace log4cpp {
 			return file_path;
 		}
 
-		void set_file_path(const std::string &file_path) {
-			this->file_path = file_path;
+		void set_file_path(const std::string &path) {
+			this->file_path = path;
 		}
 
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, file_appender_config const &obj);

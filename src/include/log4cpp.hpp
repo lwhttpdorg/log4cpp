@@ -61,11 +61,11 @@ namespace log4cpp {
 
 		layout &operator=(layout &&other) noexcept;
 
-		std::string get_name() const {
+		[[nodiscard]] std::string get_name() const {
 			return name;
 		}
 
-		log_level get_level() const {
+		[[nodiscard]] log_level get_level() const {
 			return level;
 		}
 

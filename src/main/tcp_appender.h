@@ -25,16 +25,16 @@ namespace log4cpp {
 			return local_addr;
 		}
 
-		void set_local_addr(const net::net_addr &local_addr) {
-			this->local_addr = local_addr;
+		void set_local_addr(const net::net_addr &addr) {
+			this->local_addr = addr;
 		}
 
 		[[nodiscard]] unsigned short get_port() const {
 			return port;
 		}
 
-		void set_port(unsigned short port) {
-			this->port = port;
+		void set_port(unsigned short p) {
+			this->port = p;
 		}
 
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, tcp_appender_config const &obj);
