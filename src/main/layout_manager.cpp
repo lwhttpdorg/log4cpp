@@ -50,6 +50,7 @@ std::shared_ptr<layout> layout_manager::get_layout(const std::string &name) {
 		}
 	}
 	if (layouts.empty()) {
+		std::lock_guard guard(lock);
 		if (layouts.empty()) {
 			build_appender();
 			build_layout();
