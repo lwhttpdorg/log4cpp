@@ -119,14 +119,14 @@ layout_config log4cpp::tag_invoke(boost::json::value_to_tag<layout_config>, boos
 		throw std::invalid_argument("Malformed JSON configuration file: \"logLevel\" is mandatory");
 	}
 	if (!json_obj.contains("appenders")) {
-		throw std::invalid_argument("Malformed JSON configuration file: \"Appenders\" is mandatory");
+		throw std::invalid_argument("Malformed JSON configuration file: \"appenders\" is mandatory");
 	}
 	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json_obj.at("logLevel")));
 	std::vector<std::string> appenders = boost::json::value_to<std::vector<std::string>>(json_obj.at("appenders"));
 	for (auto &appender:appenders) {
 		if (!valid_appender(appender)) {
 			throw std::invalid_argument(
-				"Malformed JSON configuration file: invalid layouts::Appenders \"" + appender + "\"");
+				"Malformed JSON configuration file: invalid layouts::appenders \"" + appender + "\"");
 		}
 		if (appender == CONSOLE_APPENDER_NAME) {
 			obj.layout_flag |= CONSOLE_APPENDER_FLAG;
@@ -183,7 +183,7 @@ log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, bo
 		layout_pattern::set_pattern(pattern);
 	}
 	if (!json_obj.contains("appenders")) {
-		throw std::invalid_argument("Malformed JSON configuration file: \"Appender\" is mandatory");
+		throw std::invalid_argument("Malformed JSON configuration file: \"appender\" is mandatory");
 	}
 	std::vector<layout_config> layouts;
 	if (json_obj.contains("layouts")) {
