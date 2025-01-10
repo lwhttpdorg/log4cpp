@@ -6,6 +6,7 @@
 
 #ifdef __linux__
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #endif
 
@@ -97,7 +98,7 @@ namespace log4cpp {
 						port = ntohs(client_addr6->sin6_port);
 						inet_ntop(client_addr6->sin6_family, &client_addr6->sin6_addr, client_ip, sizeof(client_ip));
 					}
-					printf("New TCP client: %hs@%hu\n", client_ip, port);
+					printf("New TCP client: %s@%hu\n", client_ip, port);
 #endif
 					std::lock_guard lock_guard(lock);
 					clients.insert(client_fd);
