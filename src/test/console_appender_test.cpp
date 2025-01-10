@@ -24,8 +24,8 @@ int main(int argc, char **argv) {
 	return RUN_ALL_TESTS();
 }
 
-void consoleAppenderTest() {
-	const std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("consoleLayout");
+void console_appender_layout() {
+	const std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("console_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
@@ -36,18 +36,18 @@ void consoleAppenderTest() {
 TEST(console_appender_test, stdout_test) {
 	const std::string config_file = "console_appender_stdout.json";
 	log4cpp::layout_manager::load_config(config_file);
-	consoleAppenderTest();
+	console_appender_layout();
 }
 
 TEST(console_appender_test, stderr_test) {
 	const std::string config_file = "console_appender_stderr.json";
 	log4cpp::layout_manager::load_config(config_file);
-	consoleAppenderTest();
+	console_appender_layout();
 }
 
 TEST(console_appender_test, multithread_test) {
-	std::thread info_layout_thread(consoleAppenderTest);
-	std::thread warn_layout_thread(consoleAppenderTest);
+	std::thread info_layout_thread(console_appender_layout);
+	std::thread warn_layout_thread(console_appender_layout);
 	info_layout_thread.join();
 	warn_layout_thread.join();
 }

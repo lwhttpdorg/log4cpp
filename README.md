@@ -95,26 +95,26 @@ _Warning: Some systems cannot set thread names, and only multiple threads can be
 
 #### 3.2.2 Configure Appender
 
-There are four types of appender: Console appender(`consoleAppender`), File appender(`fileAppender`), TCP appender(
-`tcpAppender`), UDP appender(`udpAppender`)
+There are four types of appender: Console appender(`console_appender`), File appender(`file_appender`), TCP appender(
+`tcp_appender`), UDP appender(`udp_appender`)
 
 A simple configuration file example:
 
 ```json
 {
 	"appenders": {
-		"consoleAppender": {
-			"outStream": "stdout"
+		"console_appender": {
+			"out_stream": "stdout"
 		},
-		"fileAppender": {
-			"filePath": "log/log4cpp.log"
+		"file_appender": {
+			"file_path": "log/log4cpp.log"
 		},
-		"tcpAppender": {
-			"localAddr": "0.0.0.0",
+		"tcp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		},
-		"udpAppender": {
-			"localAddr": "0.0.0.0",
+		"udp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
 	}
@@ -128,8 +128,8 @@ The function of the console appender is to output logs to STDOUT or STDERR. Typi
 ```json
 {
 	"appenders": {
-		"consoleAppender": {
-			"outStream": "stdout"
+		"console_appender": {
+			"out_stream": "stdout"
 		}
 	}
 }
@@ -137,7 +137,7 @@ The function of the console appender is to output logs to STDOUT or STDERR. Typi
 
 Description:
 
-* `outStream`: output stream, can be stdout or stderr
+* `out_stream`: output stream, can be stdout or stderr
 
 #### 3.2.4 File Appender
 
@@ -146,8 +146,8 @@ The function of the file appender is to output logs to a specified file. Typical
 ```json
 {
 	"appenders": {
-		"fileAppender": {
-			"filePath": "log/log4cpp.log"
+		"file_appender": {
+			"file_path": "log/log4cpp.log"
 		}
 	}
 }
@@ -155,7 +155,7 @@ The function of the file appender is to output logs to a specified file. Typical
 
 Description:
 
-* `filePath`: output file name
+* `file_path`: output file name
 
 #### 3.2.5 TCP Appender
 
@@ -165,8 +165,8 @@ which is used to output logs to remote devices. The typical configuration is as 
 ```json
 {
 	"appenders": {
-		"tcpAppender": {
-			"localAddr": "0.0.0.0",
+		"tcp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
 	}
@@ -175,7 +175,7 @@ which is used to output logs to remote devices. The typical configuration is as 
 
 Description:
 
-* `localAddr`: Listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
+* `local_addr`: Listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
 * `port`: Listening port
 
 _Note: If there are multiple TCP clients, it will be convenient for all clients to send logs one by one_
@@ -201,8 +201,8 @@ The typical configuration is as follows:
 ```json
 {
 	"appenders": {
-		"udpAppender": {
-			"localAddr": "0.0.0.0",
+		"udp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
 	}
@@ -211,7 +211,7 @@ The typical configuration is as follows:
 
 Description:
 
-* `localAddr`: listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
+* `local_addr`: listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
 * `port`: listening port
 
 ### 3.3 Configure Layouts
@@ -219,48 +219,48 @@ Description:
 There are two types of Layouts:
 
 * **Named layout**: configuration name `layouts`
-* **Root layout**: configuration name `rootLayout`
+* **Root layout**: configuration name `root_layout`
 
-If there is no layout with a specified name when getLayout, the `rootLayout` is returned
+If there is no layout with a specified name when getLayout, the `root_layout` is returned
 
 _Note: The named layout is optional, but the root layout must be present_
 
 Named layouts are an array, and each layout configuration includes:
 
 * `name`: layout name, used to get layouts, unique, cannot be `root`
-* `logLevel`: log level, only logs greater than or equal to this level will be output
+* `log_level`: log level, only logs greater than or equal to this level will be output
 * `Appenders`: appender, Must be configured in `Appenders` before it can be referenced here. Appender can be
-  `consoleAppender`, `fileAppender`, `tcpAppender`, `udpAppender`
+  `console_appender`, `file_appender`, `tcp_appender`, `udp_appender`
 
-Root layout is an object, only `logLevel` and `Appenders`, no `name`, internal implementation of `name` is `root`
+Root layout is an object, only `log_level` and `Appenders`, no `name`, internal implementation of `name` is `root`
 
 ```json
 {
 	"layouts": [
 		{
-			"name": "consoleLayout",
-			"logLevel": "info",
+			"name": "console_layout",
+			"log_level": "info",
 			"appenders": [
-				"consoleAppender",
-				"tcpAppender",
-				"udpAppender"
+				"console_appender",
+				"tcp_appender",
+				"udp_appender"
 			]
 		},
 		{
-			"name": "fileLayout",
-			"logLevel": "warn",
+			"name": "file_layout",
+			"log_level": "warn",
 			"appenders": [
-				"fileAppender"
+				"file_appender"
 			]
 		}
 	],
-	"rootLayout": {
-		"logLevel": "info",
+	"root_layout": {
+		"log_level": "info",
 		"appenders": [
-			"consoleAppender",
-			"fileAppender",
-			"tcpAppender",
-			"udpAppender"
+			"console_appender",
+			"file_appender",
+			"tcp_appender",
+			"udp_appender"
 		]
 	}
 }
@@ -288,7 +288,7 @@ First, you need to import the header file:
 
 Then, get the layout instance
 
-Get the layout by `name`. If the specified layout does not exist, return `rootLayout`
+Get the layout by `name`. If the specified layout does not exist, return `root_layout`
 
 ```c++
 std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("layout_name");
@@ -365,7 +365,7 @@ void thread_routine() {
 int main() {
 	std::thread t(thread_routine);
 	set_thread_name("main");
-	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("consoleLayout");
+	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("console_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");

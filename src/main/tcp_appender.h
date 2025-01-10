@@ -16,7 +16,7 @@ namespace log4cpp {
 	public:
 		/**
 		 * @brief Get an instance of tcp_appender with the given configuration
-		 * @param config:TCP appender configuration
+		 * @param config: TCP appender configuration
 		 * @return TCP appender instance
 		 */
 		static std::shared_ptr<tcp_appender> get_instance(const tcp_appender_config &config);
@@ -59,14 +59,14 @@ namespace log4cpp {
 		public:
 			/**
 			 * @brief Set the local address for the TCP appender
-			 * @param addr:Local address
+			 * @param addr: Local address
 			 * @return Reference to the builder
 			 */
 			builder &set_local_addr(const net::net_addr &addr);
 
 			/**
 			 * @brief Set the port for the TCP appender
-			 * @param port:Port number
+			 * @param port: Port number
 			 * @return Reference to the builder
 			 */
 			builder &set_port(unsigned short port);
@@ -99,21 +99,7 @@ namespace log4cpp {
 
 		tcp_appender &operator=(tcp_appender &&other) = delete;
 
-		/**
-		 * @brief Write log message with the given log level
-		 * @param level:Log level
-		 * @param fmt:Format string
-		 * @param args:Arguments
-		 */
-		void log(log_level level, const char *__restrict fmt, va_list args) override;
-
-		/**
-		 * @brief Write log message with the given log level
-		 * @param level:Log level
-		 * @param fmt:Format string
-		 * @param ... Arguments
-		 */
-		void log(log_level level, const char *__restrict fmt, ...) override;
+		void log(const char *msg, size_t msg_len) override;
 
 		~tcp_appender() override;
 

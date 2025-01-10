@@ -115,13 +115,13 @@ layout_config log4cpp::tag_invoke(boost::json::value_to_tag<layout_config>, boos
 	else {
 		obj.name = "root";
 	}
-	if (!json_obj.contains("logLevel")) {
-		throw std::invalid_argument("Malformed JSON configuration file: \"logLevel\" is mandatory");
+	if (!json_obj.contains("log_level")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"log_level\" is mandatory");
 	}
 	if (!json_obj.contains("appenders")) {
 		throw std::invalid_argument("Malformed JSON configuration file: \"appenders\" is mandatory");
 	}
-	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json_obj.at("logLevel")));
+	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json_obj.at("log_level")));
 	std::vector<std::string> appenders = boost::json::value_to<std::vector<std::string>>(json_obj.at("appenders"));
 	for (auto &appender:appenders) {
 		if (!valid_appender(appender)) {
@@ -161,7 +161,7 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 
 	json = boost::json::object{
 		{"name", obj.name},
-		{"logLevel", to_string(obj.level)},
+		{"log_level", to_string(obj.level)},
 		{"appenders", boost::json::value_from(appenders)}
 	};
 }
@@ -171,7 +171,7 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 		{"layoutPattern", obj.layout_pattern},
 		{"appenders", boost::json::value_from(obj.appender)},
 		{"layouts", boost::json::value_from(obj.layouts)},
-		{"rootLayout", boost::json::value_from(obj.root_layout)}
+		{"root_layout", boost::json::value_from(obj.root_layout)}
 	};
 }
 
@@ -189,11 +189,11 @@ log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, bo
 	if (json_obj.contains("layouts")) {
 		layouts = boost::json::value_to<std::vector<layout_config>>(json_obj.at("layouts"));
 	}
-	if (!json_obj.contains("rootLayout")) {
-		throw std::invalid_argument("Malformed JSON configuration file: \"rootLayout\" is mandatory");
+	if (!json_obj.contains("root_layout")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"root_layout\" is mandatory");
 	}
 	appender_config appenders = boost::json::value_to<appender_config>(json_obj.at("appenders"));
-	const layout_config root = boost::json::value_to<layout_config>(json_obj.at("rootLayout"));
+	const layout_config root = boost::json::value_to<layout_config>(json_obj.at("root_layout"));
 	return log4cpp_config{pattern, appenders, layouts, root};
 }
 

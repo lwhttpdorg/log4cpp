@@ -1,46 +1,46 @@
 {
 	"layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
-		"consoleAppender": {
-			"outStream": "stdout"
+		"console_appender": {
+			"out_stream": "stdout"
 		},
-		"fileAppender": {
-			"filePath": "log/log4cpp.log"
+		"file_appender": {
+			"file_path": "log/log4cpp.log"
 		},
-		"tcpAppender": {
-			"localAddr": "0.0.0.0",
+		"tcp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		},
-		"udpAppender": {
-			"localAddr": "0.0.0.0",
+		"udp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
 	},
 	"layouts": [
 		{
-			"name": "consoleLayout",
-			"logLevel": "info",
+			"name": "console_layout",
+			"log_level": "info",
 			"appenders": [
-				"consoleAppender",
-				"tcpAppender",
-				"udpAppender"
+				"console_appender",
+				"tcp_appender",
+				"udp_appender"
 			]
 		},
 		{
-			"name": "fileLayout",
-			"logLevel": "warn",
+			"name": "file_layout",
+			"log_level": "warn",
 			"appenders": [
-				"fileAppender"
+				"file_appender"
 			]
 		}
 	],
-	"rootLayout": {
-		"logLevel": "info",
+	"root_layout": {
+		"log_level": "info",
 		"appenders": [
-			"consoleAppender",
-			"fileAppender",
-			"tcpAppender",
-			"udpAppender"
+			"console_appender",
+			"file_appender",
+			"tcp_appender",
+			"udp_appender"
 		]
 	}
 }

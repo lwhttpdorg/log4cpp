@@ -57,14 +57,17 @@ if (MSVC AND ENABLE_ASAN)
 	#endif ()
 endif ()
 
-# AddressSanitizer
 if (ENABLE_ASAN)
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-			message(FATAL_ERROR "MinGW-w64 does not support ASAN")
+			message(WARNING "MinGW-w64 does not support ASAN")
+			set(ENABLE_ASAN OFF)
 		endif ()
 	endif ()
+endif ()
 
+# AddressSanitizer
+if (ENABLE_ASAN)
 	if (MSVC)
 		add_compile_options("/fsanitize=address")
 		add_compile_options("/Zi")

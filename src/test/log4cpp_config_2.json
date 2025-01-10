@@ -1,28 +1,28 @@
 {
 	"layoutPattern": "${yyyy}-${MM}-${dd} ${h}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
-		"consoleAppender": {
-			"outStream": "stdout"
+		"console_appender": {
+			"out_stream": "stdout"
 		},
-		"fileAppender": {
-			"filePath": "log/log4cpp_config_2.log"
+		"file_appender": {
+			"file_path": "log/log4cpp_config_2.log"
 		},
-		"tcpAppender": {
-			"localAddr": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+		"tcp_appender": {
+			"local_addr": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
 			"port": 9443
 		},
-		"udpAppender": {
-			"localAddr": "::1",
+		"udp_appender": {
+			"local_addr": "::1",
 			"port": 9443
 		}
 	},
-	"rootLayout": {
-		"logLevel": "info",
+	"root_layout": {
+		"log_level": "info",
 		"appenders": [
-			"consoleAppender",
-			"fileAppender",
-			"tcpAppender",
-			"udpAppender"
+			"console_appender",
+			"file_appender",
+			"tcp_appender",
+			"udp_appender"
 		]
 	}
 }

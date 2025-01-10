@@ -13,6 +13,7 @@
 
 #ifdef _MSC_VER
 #include <processthreadsapi.h>
+#include "log_utils.h"
 #elif defined(__GNUC__)
 
 #include <pthread.h>
@@ -34,7 +35,7 @@
 
 #include "../include/log4cpp.hpp"
 #include "file_appender.h"
-#include "log_utils.h"
+#include "layout_pattern.h"
 
 using namespace log4cpp;
 
@@ -151,8 +152,11 @@ layout::layout(const std::string &log_name, log_level _level) {
 }
 
 void layout::log(log_level _level, const char *fmt, va_list args) const {
-	for (auto &l: this->appenders) {
-		l->log(_level, fmt, args);
+	char buffer[LOG_LINE_MAX];
+	buffer[0] = '\0';
+	const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), _level, fmt, args);
+	for (auto &l:this->appenders) {
+		l->log(buffer, used_len);
 	}
 }
 

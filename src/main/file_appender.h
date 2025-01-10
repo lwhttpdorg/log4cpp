@@ -12,7 +12,7 @@ namespace log4cpp {
 	public:
 		/**
 		 * @brief Get a file_appender instance with the given configuration
-		 * @param config:The configuration of the file_appender
+		 * @param config: The configuration of the file_appender
 		 * @return File appender instance
 		 */
 		static std::shared_ptr<file_appender> get_instance(const file_appender_config &config);
@@ -46,7 +46,7 @@ namespace log4cpp {
 		public:
 			/**
 			 * @brief Set the file path for file appender
-			 * @param file:The file path
+			 * @param file: The file path
 			 * @return The builder
 			 */
 			builder &set_file(const std::string &file);
@@ -78,21 +78,7 @@ namespace log4cpp {
 
 		file_appender &operator=(file_appender &&other) = delete;
 
-		/**
-		 * @brief Write a log message with the given log level
-		 * @param level:The log level
-		 * @param fmt:The format string
-		 * @param args:The arguments
-		 */
-		void log(log_level level, const char *__restrict fmt, va_list args) override;
-
-		/**
-		 * @brief Write a log message with the given log level
-		 * @param level:The log level
-		 * @param fmt:The format string
-		 * @param ... The variable arguments
-		 */
-		void log(log_level level, const char *__restrict fmt, ...) override;
+		void log(const char *msg, size_t msg_len) override;
 
 		~file_appender() override;
 

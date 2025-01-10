@@ -66,21 +66,21 @@ bool net_addr::operator!=(const net_addr &rhs) const {
 	return !(rhs == *this);
 }
 
-std::string log4cpp::net::to_string(const net_addr &addr) {
+std::string net_addr::to_string() const {
 	std::string s;
-	if (addr.family == net_family::NET_IPv4) {
+	if (this->family == net_family::NET_IPv4) {
 		char buf[INET_ADDRSTRLEN];
-		const unsigned char a = addr.ip.addr4 >> 24 & 0xff;
-		const unsigned char b = addr.ip.addr4 >> 16 & 0xff;
-		const unsigned char c = addr.ip.addr4 >> 8 & 0xff;
-		const unsigned char d = addr.ip.addr4 & 0xff;
+		const unsigned char a = this->ip.addr4 >> 24 & 0xff;
+		const unsigned char b = this->ip.addr4 >> 16 & 0xff;
+		const unsigned char c = this->ip.addr4 >> 8 & 0xff;
+		const unsigned char d = this->ip.addr4 & 0xff;
 		snprintf(buf, sizeof(buf), "%u.%u.%u.%u", a, b, c, d);
 		s = std::string{buf};
 	}
-	else if (addr.family == net_family::NET_IPv6) {
+	else if (this->family == net_family::NET_IPv6) {
 		char buf[INET6_ADDRSTRLEN];
 		int len = 0;
-		for (const auto x:addr.ip.addr6) {
+		for (const auto x:this->ip.addr6) {
 			const unsigned short a = x >> 16;
 			const unsigned short b = x & 0xffff;
 			if (const int l = snprintf(buf + len, sizeof(buf) - len, "%x%x:", a, b); l > 0) {
@@ -95,7 +95,7 @@ std::string log4cpp::net::to_string(const net_addr &addr) {
 	}
 	else {
 		throw std::invalid_argument(
-			"Invalid addr family \"" + std::to_string(static_cast<int>(addr.family)) + "\"");
+			"Invalid addr family \"" + std::to_string(static_cast<int>(this->family)) + "\"");
 	}
 	return s;
 }

@@ -39,33 +39,33 @@ void layout_pattern_cfg_check(const nlohmann::json &expected_json, const std::st
 	EXPECT_EQ(layout_pattern, expected);
 }
 
-void console_appender_cfg_check(const nlohmann::json &consoleAppender, const log4cpp::console_appender_config *cfg) {
+void console_appender_cfg_check(const nlohmann::json &console_appender, const log4cpp::console_appender_config *cfg) {
 	const std::string actual = cfg->get_out_stream();
-	const std::string expected = consoleAppender.at("outStream");
+	const std::string expected = console_appender.at("out_stream");
 	EXPECT_EQ(actual, expected);
 }
 
-void file_appender_cfg_check(const nlohmann::json &fileAppender, const log4cpp::file_appender_config *cfg) {
+void file_appender_cfg_check(const nlohmann::json &file_appender, const log4cpp::file_appender_config *cfg) {
 	const std::string actual = cfg->get_file_path();
-	const std::string expected = fileAppender.at("filePath");
+	const std::string expected = file_appender.at("file_path");
 	EXPECT_EQ(actual, expected);
 }
 
-void tcp_appender_cfg_check(const nlohmann::json &tcpAppender, const log4cpp::tcp_appender_config *cfg) {
+void tcp_appender_cfg_check(const nlohmann::json &tcp_appender, const log4cpp::tcp_appender_config *cfg) {
 	const log4cpp::net::net_addr actual_addr = cfg->get_local_addr();
-	const log4cpp::net::net_addr expected_addr = log4cpp::net::net_addr(tcpAppender.at("localAddr"));
+	const log4cpp::net::net_addr expected_addr = log4cpp::net::net_addr(tcp_appender.at("local_addr"));
 	EXPECT_EQ(actual_addr, expected_addr);
 	unsigned short actual_port = cfg->get_port();
-	unsigned short expected_port = tcpAppender.at("port");
+	unsigned short expected_port = tcp_appender.at("port");
 	EXPECT_EQ(actual_port, expected_port);
 }
 
-void udp_appender_cfg_check(const nlohmann::json &udpAppender, const log4cpp::udp_appender_config *cfg) {
+void udp_appender_cfg_check(const nlohmann::json &udp_appender, const log4cpp::udp_appender_config *cfg) {
 	const log4cpp::net::net_addr actual_addr = cfg->get_local_addr();
-	const log4cpp::net::net_addr expected_addr = log4cpp::net::net_addr(udpAppender.at("localAddr"));
+	const log4cpp::net::net_addr expected_addr = log4cpp::net::net_addr(udp_appender.at("local_addr"));
 	EXPECT_EQ(actual_addr, expected_addr);
 	unsigned short actual_port = cfg->get_port();
-	unsigned short expected_port = udpAppender.at("port");
+	unsigned short expected_port = udp_appender.at("port");
 	EXPECT_EQ(actual_port, expected_port);
 }
 
@@ -73,31 +73,31 @@ void appenders_cfg_check(const nlohmann::json &appenders_json, const log4cpp::ap
 	const nlohmann::json &appenders = appenders_json.at("appenders");
 	// Console Appender
 	const log4cpp::console_appender_config *console_appender_cfg = appenders_cfg.get_console_cfg();
-	ASSERT_EQ(true == appenders.contains("consoleAppender"), nullptr != console_appender_cfg);
+	ASSERT_EQ(true == appenders.contains("console_appender"), nullptr != console_appender_cfg);
 	if (nullptr != console_appender_cfg) {
-		const nlohmann::json &consoleAppender = appenders.at("consoleAppender");
-		console_appender_cfg_check(consoleAppender, console_appender_cfg);
+		const nlohmann::json &console_appender = appenders.at("console_appender");
+		console_appender_cfg_check(console_appender, console_appender_cfg);
 	}
 	// File Appender
 	const log4cpp::file_appender_config *file_appender_cfg = appenders_cfg.get_file_cfg();
-	ASSERT_EQ(true == appenders.contains("fileAppender"), nullptr != file_appender_cfg);
+	ASSERT_EQ(true == appenders.contains("file_appender"), nullptr != file_appender_cfg);
 	if (nullptr != file_appender_cfg) {
-		const nlohmann::json &fileAppender = appenders.at("fileAppender");
-		file_appender_cfg_check(fileAppender, file_appender_cfg);
+		const nlohmann::json &file_appender = appenders.at("file_appender");
+		file_appender_cfg_check(file_appender, file_appender_cfg);
 	}
 	// TCP Appender
 	const log4cpp::tcp_appender_config *tcp_appender_cfg = appenders_cfg.get_tcp_cfg();
-	ASSERT_EQ(true == appenders.contains("tcpAppender"), nullptr != tcp_appender_cfg);
+	ASSERT_EQ(true == appenders.contains("tcp_appender"), nullptr != tcp_appender_cfg);
 	if (nullptr != tcp_appender_cfg) {
-		const nlohmann::json &tcpAppender = appenders.at("tcpAppender");
-		tcp_appender_cfg_check(tcpAppender, tcp_appender_cfg);
+		const nlohmann::json &tcp_appender = appenders.at("tcp_appender");
+		tcp_appender_cfg_check(tcp_appender, tcp_appender_cfg);
 	}
 	// UDP Appender
 	const log4cpp::udp_appender_config *udp_appender_cfg = appenders_cfg.get_udp_cfg();
-	ASSERT_EQ(true == appenders.contains("udpAppender"), nullptr != udp_appender_cfg);
+	ASSERT_EQ(true == appenders.contains("udp_appender"), nullptr != udp_appender_cfg);
 	if (nullptr != udp_appender_cfg) {
-		const nlohmann::json &udpAppender = appenders.at("udpAppender");
-		udp_appender_cfg_check(udpAppender, udp_appender_cfg);
+		const nlohmann::json &udp_appender = appenders.at("udp_appender");
+		udp_appender_cfg_check(udp_appender, udp_appender_cfg);
 	}
 }
 
@@ -138,7 +138,7 @@ void appender_flag_to_name(unsigned char appenders_flag, std::vector<std::string
 namespace log4cpp {
 	void from_json(const nlohmann::json &json, layout_config &obj) {
 		obj.set_name(json.at("name"));
-		obj.set_level(from_string(json.at("logLevel")));
+		obj.set_level(from_string(json.at("log_level")));
 		std::vector<std::string> appenders = json.at("appenders");
 		unsigned char appenders_flag = appender_name_to_flag(appenders);
 		obj.set_layout_flag(appenders_flag);
@@ -149,7 +149,7 @@ namespace log4cpp {
 		appender_flag_to_name(obj.get_layout_flag(), appenders);
 		json = nlohmann::json{
 				{"name",      obj.get_logger_name()},
-				{"logLevel",  obj.get_logger_level()},
+				{"log_level",  obj.get_logger_level()},
 				{"appenders", appenders}
 		};
 	}
@@ -167,11 +167,11 @@ void layout_cfg_check(const nlohmann::json &expected_json, const std::vector<log
 }
 
 void root_layout_cfg_check(const nlohmann::json &expected_json, const log4cpp::layout_config &root_layout_cfg) {
-	const nlohmann::json &root_layout = expected_json.at("rootLayout");
+	const nlohmann::json &root_layout = expected_json.at("root_layout");
 	const std::string actual_name = root_layout_cfg.get_logger_name();
 	EXPECT_EQ(actual_name, "root");
 	log4cpp::log_level actual_level = root_layout_cfg.get_logger_level();
-	log4cpp::log_level expected_level = log4cpp::from_string(root_layout.at("logLevel"));
+	log4cpp::log_level expected_level = log4cpp::from_string(root_layout.at("log_level"));
 	EXPECT_EQ(actual_level, expected_level);
 	unsigned char actual_appenders_flag = root_layout_cfg.get_layout_flag();
 	const std::vector<std::string> expected_appenders = root_layout.at("appenders");
@@ -204,7 +204,7 @@ void configuration_cfg_check(const nlohmann::json &expected_json, const log4cpp:
 
 TEST(load_config_test, auto_load_config) {
 	// Just to load the configuration file
-	std::shared_ptr<log4cpp::layout> layout = log4cpp::layout_manager::get_layout("consoleLayout");
+	std::shared_ptr<log4cpp::layout> layout = log4cpp::layout_manager::get_layout("console_layout");
 	const log4cpp::log4cpp_config *config = log4cpp::layout_manager::get_config();
 	ASSERT_NE(nullptr, config);
 

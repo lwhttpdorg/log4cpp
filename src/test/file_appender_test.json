@@ -1,44 +1,44 @@
 {
 	"layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
-		"consoleAppender": {
-			"outStream": "stdout"
+		"console_appender": {
+			"out_stream": "stdout"
 		},
-		"fileAppender": {
-			"filePath": "log/file_appender_test.log"
+		"file_appender": {
+			"file_path": "log/file_appender_test.log"
 		},
-		"tcpAppender": {
-			"localAddr": "0.0.0.0",
+		"tcp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		},
-		"udpAppender": {
-			"localAddr": "0.0.0.0",
+		"udp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
 	},
 	"layouts": [
 		{
 			"name": "info_layout",
-			"logLevel": "info",
+			"log_level": "info",
 			"appenders": [
-				"consoleAppender",
-				"fileAppender"
+				"console_appender",
+				"file_appender"
 			]
 		},
 		{
 			"name": "warn_layout",
-			"logLevel": "warn",
+			"log_level": "warn",
 			"appenders": [
-				"consoleAppender",
-				"fileAppender"
+				"console_appender",
+				"file_appender"
 			]
 		}
 	],
-	"rootLayout": {
-		"logLevel": "info",
+	"root_layout": {
+		"log_level": "info",
 		"appenders": [
-			"consoleAppender",
-			"fileAppender"
+			"console_appender",
+			"file_appender"
 		]
 	}
 }

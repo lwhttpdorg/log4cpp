@@ -152,7 +152,7 @@ namespace log4cpp {
 		/**
 		 * Get logger by name.
 		 * @param name: The logger name.
-		 * @return If the logger exists, return the logger, otherwise return rootLayout.
+		 * @return If the logger exists, return the logger, otherwise return root_layout.
 		 */
 		static std::shared_ptr<layout> get_layout(const std::string &name);
 

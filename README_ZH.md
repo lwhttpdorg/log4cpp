@@ -92,27 +92,27 @@ _注意: `${\d+TH}`是一个正则表达式, 用于匹配线程id, 最大宽度�
 
 #### 3.2.2 配置输出器
 
-配置输出器有四种类型: 控制台输出器(consoleAppender), 文件输出器(fileAppender), TCP输出器(tcpAppender), UDP输出器(
-udpAppender)
+配置输出器有四种类型: 控制台输出器(console_appender), 文件输出器(file_appender), TCP输出器(tcp_appender), UDP输出器(
+udp_appender)
 
 一个简单的配置文件示例:
 
 ```json
 {
 	"appenders": {
-		"consoleAppender": {
-			"outStream": "stdout"
+		"console_appender": {
+			"out_stream": "stdout"
 		},
-		"fileAppender": {
-			"filePath": "log/log4cpp.log",
+		"file_appender": {
+			"file_path": "log/log4cpp.log",
 			"append": false
 		},
-		"tcpAppender": {
-			"localAddr": "0.0.0.0",
+		"tcp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		},
-		"udpAppender": {
-			"localAddr": "0.0.0.0",
+		"udp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
 	}
@@ -126,8 +126,8 @@ udpAppender)
 ```json
 {
 	"appenders": {
-		"consoleAppender": {
-			"outStream": "stdout"
+		"console_appender": {
+			"out_stream": "stdout"
 		}
 	}
 }
@@ -135,7 +135,7 @@ udpAppender)
 
 说明:
 
-* `outStream`: 输出流, 可以是stdout或stderr
+* `out_stream`: 输出流, 可以是stdout或stderr
 
 #### 3.2.4 文件输出器
 
@@ -144,8 +144,8 @@ udpAppender)
 ```json
 {
 	"appenders": {
-		"fileAppender": {
-			"filePath": "log/log4cpp.log",
+		"file_appender": {
+			"file_path": "log/log4cpp.log",
 			"append": true
 		}
 	}
@@ -154,7 +154,7 @@ udpAppender)
 
 说明:
 
-* `filePath`: 输出文件名
+* `file_path`: 输出文件名
 * `append`: 追加还是覆盖, 默认追加(true)
 
 #### 3.2.5 TCP输出器
@@ -164,8 +164,8 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 ```json
 {
 	"appenders": {
-		"tcpAppender": {
-			"localAddr": "0.0.0.0",
+		"tcp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
 	}
@@ -174,7 +174,7 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 
 说明:
 
-* `localAddr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
+* `local_addr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
 * `port`: 监听端口
 
 _注意: 如果有多个TCP客户端, 会便利所有客户端逐个发送日志_
@@ -196,8 +196,8 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 ```json
 {
 	"appenders": {
-		"udpAppender": {
-			"localAddr": "0.0.0.0",
+		"udp_appender": {
+			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
 	}
@@ -206,7 +206,7 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 
 说明:
 
-* `localAddr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
+* `local_addr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
 * `port`: 监听端口
 
 ### 3.3 配置logger
@@ -218,38 +218,38 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 命名logger是一个数组, 每个logger配置包括:
 
 * `name`: logger名称, 用于获取logger, 不能重复, 不能是`root`
-* `logLevel`: log级别, 只有大于等于此级别的log才会输出
-* `Appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`consoleAppender`, `fileAppender`, `tcpAppender`,
-  `udpAppender`
+* `log_level`: log级别, 只有大于等于此级别的log才会输出
+* `Appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console_appender`, `file_appender`, `tcp_appender`,
+  `udp_appender`
 
-默认logger是一个对象, 只有`logLevel`和`Appenders`, 没有`name`, 内部实现`name`为`root`
+默认logger是一个对象, 只有`log_level`和`Appenders`, 没有`name`, 内部实现`name`为`root`
 
 ```json
 {
 	"layouts": [
 		{
 			"name": "consoleLogger",
-			"logLevel": "info",
+			"log_level": "info",
 			"appenders": [
-				"consoleAppender"
+				"console_appender"
 			]
 		},
 		{
 			"name": "recordLogger",
-			"logLevel": "error",
+			"log_level": "error",
 			"appenders": [
-				"fileAppender",
-				"tcpAppender",
-				"udpAppender"
+				"file_appender",
+				"tcp_appender",
+				"udp_appender"
 			]
 		}
 	],
 	"rootLogger": {
-		"logLevel": "info",
+		"log_level": "info",
 		"appenders": [
-			"fileAppender",
-			"tcpAppender",
-			"udpAppender"
+			"file_appender",
+			"tcp_appender",
+			"udp_appender"
 		]
 	}
 }
@@ -349,7 +349,7 @@ void thread_routine() {
 int main() {
 	std::thread t(thread_routine);
 	set_thread_name("main");
-	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("consoleLayout");
+	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("console_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");

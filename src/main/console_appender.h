@@ -16,21 +16,7 @@ namespace log4cpp {
 
 		console_appender &operator=(console_appender &&other) = delete;
 
-		/**
-		 * @brief Write log message with the given log level
-		 * @param level: Log level
-		 * @param fmt: Format string
-		 * @param args: Arguments
-		 */
-		void log(log_level level, const char *__restrict fmt, va_list args) override;
-
-		/**
-		 * @brief Write log message with the given log level
-		 * @param level: Log level
-		 * @param fmt: Format string
-		 * @param ... Arguments
-		 */
-		void log(log_level level, const char *__restrict fmt, ...) override;
+		void log(const char *msg, size_t msg_len) override;
 
 		class builder {
 		public:

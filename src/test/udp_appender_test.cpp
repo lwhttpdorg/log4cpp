@@ -13,11 +13,6 @@
 #include <arpa/inet.h>
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
-#endif
-
 #include "gtest/gtest.h"
 
 #include "log4cpp.hpp"

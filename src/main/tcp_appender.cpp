@@ -84,6 +84,21 @@ namespace log4cpp {
 				net::socket_fd client_fd = accept(listen_fd, reinterpret_cast<struct sockaddr *>(&client_addr),
 												&client_addr_len);
 				if (net::INVALID_FD != client_fd) {
+#ifdef _DEBUG
+					char client_ip[INET6_ADDRSTRLEN];
+					unsigned short port;
+					if (AF_INET == client_addr.ss_family) {
+						const sockaddr_in *client_addr4 = reinterpret_cast<struct sockaddr_in *>(&client_addr);
+						port = ntohs(client_addr4->sin_port);
+						inet_ntop(client_addr4->sin_family, &client_addr4->sin_addr, client_ip, sizeof(client_ip));
+					}
+					else {
+						const sockaddr_in6 *client_addr6 = reinterpret_cast<struct sockaddr_in6 *>(&client_addr);
+						port = ntohs(client_addr6->sin6_port);
+						inet_ntop(client_addr6->sin6_family, &client_addr6->sin6_addr, client_ip, sizeof(client_ip));
+					}
+					printf("New TCP client: %hs@%hu\n", client_ip, port);
+#endif
 					std::lock_guard lock_guard(lock);
 					clients.insert(client_fd);
 					FD_SET(client_fd, &read_fds);
@@ -95,13 +110,8 @@ namespace log4cpp {
 				if (FD_ISSET(fd, &tmp_fds)) {
 					char buffer[LOG_LINE_MAX];
 					buffer[0] = '\0';
-#ifdef _WIN32
-					const int len = recv(fd, buffer, sizeof(buffer), 0);
-					if (len <= 0) {
-#else
-					const size_t len = recv(fd, buffer, sizeof(buffer), 0);
-					if ( len == 0) {
-#endif
+					ssize_t len = recv(fd, buffer, sizeof(buffer), 0);
+					if (len < 0) {
 #ifdef _WIN32
 						shutdown(fd, SD_BOTH);
 #else
@@ -181,23 +191,10 @@ namespace log4cpp {
 		}
 	}
 
-	void tcp_appender::log(log_level level, const char *fmt, va_list args) {
-		char buffer[LOG_LINE_MAX];
-		buffer[0] = '\0';
-		const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), level, fmt, args);
+	void tcp_appender::log(const char *msg, size_t msg_len) {
 		std::lock_guard lock_guard(this->lock);
 		for (auto &client:this->clients) {
-			(void)send(client, buffer, used_len, 0);
-		}
-	}
-
-	void tcp_appender::log(log_level level, const char *fmt, ...) {
-		char buffer[LOG_LINE_MAX];
-		buffer[0] = '\0';
-		const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), level, fmt);
-		std::lock_guard lock_guard(this->lock);
-		for (auto &client:this->clients) {
-			(void)send(client, buffer, used_len, 0);
+			(void)send(client, msg, msg_len, 0);
 		}
 	}
 
@@ -217,14 +214,14 @@ namespace log4cpp {
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, tcp_appender_config const &obj) {
 		json = boost::json::object{
-			{"localAddr", net::to_string(obj.local_addr)},
+			{"local_addr", obj.local_addr.to_string()},
 			{"port", obj.port}
 		};
 	}
 
 	tcp_appender_config tag_invoke(boost::json::value_to_tag<tcp_appender_config>, boost::json::value const &json) {
 		tcp_appender_config config;
-		config.local_addr = net::net_addr(boost::json::value_to<std::string>(json.at("localAddr")));
+		config.local_addr = net::net_addr(boost::json::value_to<std::string>(json.at("local_addr")));
 		config.port = boost::json::value_to<unsigned short>(json.at("port"));
 		return config;
 	}

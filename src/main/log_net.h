@@ -11,8 +11,13 @@
 #include <unistd.h>
 #endif
 
+#ifdef _MSC_VER
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 namespace log4cpp::net {
-#if defined(_MSC_VER) || defined(_WIN32)
+#ifdef _WIN32
 	constexpr SOCKET INVALID_FD = INVALID_SOCKET;
 	typedef SOCKET socket_fd;
 
@@ -69,10 +74,8 @@ namespace log4cpp::net {
 
 		bool operator!=(const net_addr &rhs) const;
 
-		friend std::string to_string(const net_addr &addr);
+		[[nodiscard]] std::string to_string() const;
 	};
-
-	std::string to_string(const net_addr &addr);
 
 	class sock_addr {
 	public:
@@ -88,6 +91,10 @@ namespace log4cpp::net {
 		bool operator==(const sock_addr &rhs) const;
 
 		bool operator!=(const sock_addr &rhs) const;
+
+		[[nodiscard]] std::string to_string() const {
+			return addr.to_string() + "@" + std::to_string(port);
+		}
 	};
 }
 

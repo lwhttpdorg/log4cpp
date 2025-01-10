@@ -141,7 +141,7 @@ namespace log4cpp {
 	public:
 		/**
 		 * @brief Load the configuration from a JSON file
-		 * @param json_file:The JSON file
+		 * @param json_file: The JSON file
 		 * @return The configuration
 		 */
 		[[nodiscard]]
@@ -153,7 +153,7 @@ namespace log4cpp {
 
 		/**
 		 * @brief Serialize the configuration to a JSON string
-		 * @param obj:The configuration
+		 * @param obj: The configuration
 		 * @return The JSON string
 		 */
 		static std::string serialize(const log4cpp_config &obj);
@@ -185,7 +185,7 @@ namespace log4cpp {
 		std::string layout_pattern; // layoutPattern
 		appender_config appender{}; // appenders
 		std::vector<layout_config> layouts; // layouts
-		layout_config root_layout; // rootLayout
+		layout_config root_layout; // root_layout
 	};
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, log4cpp_config const &obj);

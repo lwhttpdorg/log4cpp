@@ -1,25 +1,25 @@
 {
 	"layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
-		"consoleAppender": {
-			"outStream": "stderr"
+		"console_appender": {
+			"out_stream": "stderr"
 		}
 	},
 	"layouts": [
 		{
-			"name": "consoleLayout",
-			"logLevel": "info",
+			"name": "console_layout",
+			"log_level": "info",
 			"appenders": [
-				"consoleAppender",
-				"tcpAppender",
-				"udpAppender"
+				"console_appender",
+				"tcp_appender",
+				"udp_appender"
 			]
 		}
 	],
-	"rootLayout": {
-		"logLevel": "info",
+	"root_layout": {
+		"log_level": "info",
 		"appenders": [
-			"consoleAppender"
+			"console_appender"
 		]
 	}
 }

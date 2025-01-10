@@ -81,21 +81,12 @@ namespace log4cpp {
 				buffer[0] = '\0';
 				sockaddr_storage client_addr{};
 				socklen_t client_addr_len = sizeof(client_addr);
-#ifdef _WIN32
-				const int len = recvfrom(listen_fd, buffer, sizeof(buffer) - 1, 0,
+				ssize_t len = recvfrom(listen_fd, buffer, sizeof(buffer) - 1, 0,
 										reinterpret_cast<struct sockaddr *>(&client_addr),
 										&client_addr_len);
-				if (len <= 0) {
+				if (len < 0) {
 					continue;
 				}
-#else
-				const size_t len = recvfrom(listen_fd, buffer, sizeof(buffer) - 1, 0,
-											reinterpret_cast<struct sockaddr *>(&client_addr),
-											&client_addr_len);
-				if (len == 0) {
-					continue;
-				}
-#endif
 
 				net::sock_addr saddr{};
 				if (client_addr.ss_family == AF_INET) {
@@ -110,6 +101,9 @@ namespace log4cpp {
 					memcpy(saddr.addr.ip.addr6, &client_addr_in6->sin6_addr, sizeof(saddr.addr.ip.addr6));
 					saddr.port = ntohs(client_addr_in6->sin6_port);
 				}
+#ifdef _DEBUG
+				printf("New UDP client: %hs\n", saddr.to_string().c_str());
+#endif
 				buffer[len] = '\0';
 				if (strcmp(buffer, UDP_OUTPUT_HELLO) == 0) {
 					std::lock_guard lock_guard(lock);
@@ -174,10 +168,7 @@ namespace log4cpp {
 		}
 	}
 
-	void udp_appender::log(log_level level, const char *fmt, va_list args) {
-		char buffer[LOG_LINE_MAX];
-		buffer[0] = '\0';
-		const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), level, fmt, args);
+	void udp_appender::log(const char *msg, size_t msg_len) {
 		std::lock_guard lock_guard(this->lock);
 		for (auto &client:this->clients) {
 			if (client.addr.family == net::net_family::NET_IPv4) {
@@ -185,7 +176,7 @@ namespace log4cpp {
 				client_addr.sin_family = AF_INET;
 				client_addr.sin_port = htons(client.port);
 				client_addr.sin_addr.s_addr = htonl(client.addr.ip.addr4);
-				(void)sendto(this->fd, buffer, used_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
+				(void)sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
 							sizeof(client_addr));
 			}
 			else {
@@ -193,32 +184,7 @@ namespace log4cpp {
 				client_addr.sin6_family = AF_INET6;
 				client_addr.sin6_port = htons(client.port);
 				client_addr.sin6_addr = in6addr_any;
-				(void)sendto(this->fd, buffer, used_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-							sizeof(client_addr));
-			}
-		}
-	}
-
-	void udp_appender::log(log_level level, const char *fmt, ...) {
-		char buffer[LOG_LINE_MAX];
-		buffer[0] = '\0';
-		const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), level, fmt);
-		std::lock_guard lock_guard(this->lock);
-		for (auto &client:this->clients) {
-			if (client.addr.family == net::net_family::NET_IPv4) {
-				sockaddr_in client_addr{};
-				client_addr.sin_family = AF_INET;
-				client_addr.sin_port = htons(client.port);
-				client_addr.sin_addr.s_addr = htonl(client.addr.ip.addr4);
-				(void)sendto(this->fd, buffer, used_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-							sizeof(client_addr));
-			}
-			else {
-				sockaddr_in6 client_addr{};
-				client_addr.sin6_family = AF_INET6;
-				client_addr.sin6_port = htons(client.port);
-				client_addr.sin6_addr = in6addr_any;
-				(void)sendto(this->fd, buffer, used_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
+				(void)sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
 							sizeof(client_addr));
 			}
 		}
@@ -240,14 +206,14 @@ namespace log4cpp {
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, const udp_appender_config &obj) {
 		json = boost::json::object{
-			{"localAddr", net::to_string(obj.local_addr)},
+			{"local_addr", obj.local_addr.to_string()},
 			{"port", obj.port}
 		};
 	}
 
 	udp_appender_config tag_invoke(boost::json::value_to_tag<udp_appender_config>, boost::json::value const &json) {
 		udp_appender_config config;
-		config.local_addr = net::net_addr(boost::json::value_to<std::string>(json.at("localAddr")));
+		config.local_addr = net::net_addr(boost::json::value_to<std::string>(json.at("local_addr")));
 		config.port = boost::json::value_to<unsigned short>(json.at("port"));
 		return config;
 	}
