@@ -15,6 +15,16 @@
 
 using namespace log4cpp;
 
+/* Banner */
+
+constexpr char BANNER[] = R"(
+   __    ___   ___  _  _      ___
+  / /   /___\ / _ \| || |    / __\  _      _
+ / /   //  /// /_\/| || |_  / /   _| |_  _| |_
+/ /___/ \_/// /_\\ |__   _|/ /___|_   _||_   _|
+\____/\___/ \____/    |_|  \____/  |_|    |_|
+)";
+
 bool layout_manager::initialized = false;
 log4cpp_config layout_manager::config;
 std::shared_ptr<log_appender> layout_manager::console_appender = nullptr;
@@ -45,6 +55,8 @@ std::shared_ptr<layout> layout_manager::get_layout(const std::string &name) {
 	if (!initialized) {
 		std::lock_guard guard(lock);
 		if (!initialized) {
+			fprintf(stdout, "%s\n", BANNER);
+			fflush(stdout);
 			config = log4cpp_config::load_config("./log4cpp.json");
 			initialized = true;
 		}

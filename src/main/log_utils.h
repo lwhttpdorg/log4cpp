@@ -19,6 +19,7 @@ size_t log4c_vscnprintf(char *__restrict buf, size_t size, const char *__restric
  * @param buf: the buffer to store the formatted string
  * @param size: the size of the buffer
  * @param fmt: the format string
+ * @param ...: arguments
  * @return the length of the formatted string
  */
 size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...);
