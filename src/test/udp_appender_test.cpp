@@ -43,6 +43,7 @@ int udp_appender_client(std::atomic_bool &running, unsigned int log_count, unsig
 	log4cpp::net::socket_fd fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (log4cpp::net::INVALID_FD == fd) {
 		printf("socket creation failed...\n");
+		running.store(true);
 		return -1;
 	}
 	const char *hello = "hello";
@@ -56,11 +57,12 @@ int udp_appender_client(std::atomic_bool &running, unsigned int log_count, unsig
 	sendto(fd, hello, strlen(hello), 0, reinterpret_cast<sockaddr *>(&remote_addr), socklen);
 	running.store(true);
 	char buffer[1024];
-	for (unsigned int i = 0; i < log_count; ++i) {
+	unsigned int index = 0;
+	for (index = 0; index < log_count; ++index) {
 		ssize_t len = recv(fd, buffer, sizeof(buffer) - 1, 0);
 		if (len > 0) {
 			buffer[len] = 0;
-			printf("UDP[%u]: %s", i, buffer);
+			printf("UDP[%u]: %s", index, buffer);
 		}
 		else if (len == -1) {
 			break;
@@ -68,6 +70,7 @@ int udp_appender_client(std::atomic_bool &running, unsigned int log_count, unsig
 	}
 	sendto(fd, bye, strlen(bye), 0, reinterpret_cast<sockaddr *>(&remote_addr), socklen);
 	log4cpp::net::close_socket(fd);
+	EXPECT_EQ(index, log_count);
 	return 0;
 }
 

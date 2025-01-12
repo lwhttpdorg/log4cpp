@@ -56,28 +56,33 @@ int tcp_appender_client(std::atomic_bool &running, unsigned int log_count, unsig
 	inet_pton(AF_INET, "127.0.0.1", &(remote_addr.sin_addr.s_addr));
 	remote_addr.sin_port = htons(port);
 	socklen_t socklen = sizeof(remote_addr);
-	if (int val = connect(fd, reinterpret_cast<sockaddr *>(&remote_addr), socklen); -1 == val) {
+	int val = connect(fd, reinterpret_cast<sockaddr *>(&remote_addr), socklen);
+	if (-1 == val) {
 #ifdef _WIN32
 		int wsa_error = WSAGetLastError();
 		printf("%s,L%d,connect failed! errno:%d\n", __func__, __LINE__, wsa_error);
 #else
 		printf("%s,L%d,connect failed! errno:%d,%s\n", __func__, __LINE__, errno, strerror(errno));
 #endif
+		log4cpp::net::close_socket(fd);
+		running.store(true);
+		EXPECT_GE(val, 0);
 		return -2;
 	}
 	running.store(true);
 	char buffer[1024];
-	for (unsigned int i = 0; i < log_count; i++) {
+	unsigned int index = 0;
+	for (index = 0; index < log_count; index++) {
 		ssize_t len = recv(fd, buffer, sizeof(buffer) - 1, 0);
 		if (len > 0) {
 			buffer[len] = 0;
-			printf("TCP[%u]: %s", i, buffer);
+			printf("TCP[%u]: %s", index, buffer);
 		}
 		else if (len == -1) {
 			break;
 		}
 	}
-
+	EXPECT_EQ(index, log_count);
 #ifdef _WIN32
 	shutdown(fd, SD_BOTH);
 #else
