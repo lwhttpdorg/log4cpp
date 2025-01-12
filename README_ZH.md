@@ -6,31 +6,6 @@
 
 ---
 
-<!-- TOC -->
-* [log4cpp](#log4cpp)
-  * [1. Log4cpp是什么?](#1-log4cpp是什么)
-  * [2. 要求](#2-要求)
-  * [3. 使用](#3-使用)
-    * [3.1 在CMake项目中使用](#31-在cmake项目中使用)
-    * [3.2 配置文件](#32-配置文件)
-      * [3.2.1 配置输出格式](#321-配置输出格式)
-      * [3.2.2 配置输出器](#322-配置输出器)
-      * [3.2.3 控制台输出器](#323-控制台输出器)
-      * [3.2.4 文件输出器](#324-文件输出器)
-      * [3.2.5 TCP输出器](#325-tcp输出器)
-      * [3.2.6 UDP输出器](#326-udp输出器)
-    * [3.3 配置logger](#33-配置logger)
-    * [3.4 加载配置文件](#34-加载配置文件)
-    * [3.5 在代码中使用](#35-在代码中使用)
-    * [3.6 完整示例](#36-完整示例)
-    * [3.7 构建](#37-构建)
-      * [3.7.1 boost库](#371-boost库)
-      * [3.7.2 CMake编译选项](#372-cmake编译选项)
-      * [3.7.3 测试](#373-测试)
-      * [3.7.4 ASAN](#374-asan)
-  * [4. 许可](#4-许可)
-<!-- TOC -->
-
 ## 1. Log4cpp是什么?
 
 log4cpp是一个C++日志库, 参照log4j实现
@@ -412,11 +387,11 @@ endif ()
 
 [参考配置文件示例](demo/log4cpp.json)
 
-### 3.7 构建
+## 4. 构建
 
 欢迎提交PR, 再提交PR之前有些事项需了解:
 
-#### 3.7.1 boost库
+### 4.1 boost库
 
 本项目从github在线拉去boost库, 你也可以修改[CMakeLists.txt](src/main/CMakeLists.txt)使用本地boost库,
 取消对应位置的注释即可:
@@ -448,7 +423,7 @@ else ()
 endif ()
 ```
 
-#### 3.7.2 CMake编译选项
+### 4.2 CMake编译选项
 
 ```shell
 cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TESTS=ON -DENABLE_ASAN=ON
@@ -462,13 +437,13 @@ ctest --test-dir build
 * `-DENABLE_TEST=ON`: 编译测试, 默认不开启
 * `-DENABLE_ASAN=ON`: 开启地址检测, 默认不开启
 
-#### 3.7.3 测试
+### 4.3 测试
 
 本项目使用Google Test进行单元测试, 测试代码在[test](src/test)目录下, 欢迎补充测试用例
 
 如果你的代码修改了现有功能, 请确保测试用例覆盖到你的修改
 
-#### 3.7.4 ASAN
+### 4.4 ASAN
 
 如果你的代码修改了现有功能, 请确保ASAN检测通过, 未经ASAN检测通过的代码不会合并
 
@@ -480,6 +455,6 @@ ctest --test-dir build
 `"D:\Program Files\Microsoft Visual Studio\<Visual Studio Version>\Professional\VC\Tools\MSVC\<MSVC Version>\bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll"`
 到`cmake-build-debug/bin/`
 
-## 4. 许可
+## 5. 许可
 
 本项目使用[LGPLv3](LICENSE)许可

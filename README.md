@@ -6,31 +6,6 @@
 
 ---
 
-<!-- TOC -->
-* [log4cpp](#log4cpp)
-  * [1. What is log4cpp?](#1-what-is-log4cpp)
-  * [2. Requirements](#2-requirements)
-  * [3. Usage](#3-usage)
-    * [3.1 Use in CMake projects](#31-use-in-cmake-projects)
-    * [3.2 Configuration file](#32-configuration-file)
-      * [3.2.1 Configure layout pattern](#321-configure-layout-pattern)
-      * [3.2.2 Configure Appender](#322-configure-appender)
-      * [3.2.3 Console Appender](#323-console-appender)
-      * [3.2.4 File Appender](#324-file-appender)
-      * [3.2.5 TCP Appender](#325-tcp-appender)
-      * [3.2.6 UDP Appender](#326-udp-appender)
-    * [3.3 Configure Layouts](#33-configure-layouts)
-    * [3.4 Loading configuration file](#34-loading-configuration-file)
-    * [3.5 Coding](#35-coding)
-    * [3.6 Full example](#36-full-example)
-    * [3.7 Building](#37-building)
-      * [3.7.1 boost library](#371-boost-library)
-      * [3.7.2 CMake compile options](#372-cmake-compile-options)
-      * [3.7.3 Test](#373-test)
-      * [3.7.4 ASAN](#374-asan)
-  * [4. License](#4-license)
-<!-- TOC -->
-
 ## 1. What is log4cpp?
 
 Log4cpp is library of C++ classes. It is modeled after the Log4j Java library
@@ -427,11 +402,11 @@ Configuration file:
 
 [A sample configuration file is here](demo/log4cpp.json)
 
-### 3.7 Building
+## 4. Building
 
 Welcome to submit PR. There are some things to know before submitting PR:
 
-#### 3.7.1 boost library
+### 4.1 boost library
 
 This project will first search for local boost, if not found then download from github
 
@@ -449,7 +424,7 @@ else ()
 endif ()
 ```
 
-#### 3.7.2 CMake compile options
+### 4.2 CMake compile options
 
 ```shell
 cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TESTS=ON -DENABLE_ASAN=ON
@@ -463,14 +438,14 @@ Option description:
 * `-DENABLE_TEST=ON`: compile test, not enabled by default
 * `-DENABLE_ASAN=ON`: enable address detection, not enabled by default
 
-#### 3.7.3 Test
+### 4.3 Test
 
 This project uses Google Test for unit testing. The test code is in the [test](src/test) directory. You are welcome to
 add test cases
 
 If your code modifies existing functions, Please make sure that the test cases cover your changes
 
-#### 3.7.4 ASAN
+### 4.4 ASAN
 
 If your code modifies existing functions, please make sure that the ASAN test passes. Code that does not pass the ASAN
 test will not be merged
@@ -483,6 +458,6 @@ Copy
 `"D:\Program Files\Microsoft Visual Studio\<Visual Studio Version>\Professional\VC\Tools\MSVC\<MSVC Version>\bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll"`
 to the `cmake-build-debug/bin/`
 
-## 4. License
+## 5. License
 
 This project uses the [LGPLv3](LICENSE) license
