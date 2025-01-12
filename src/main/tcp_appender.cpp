@@ -5,9 +5,11 @@
 #endif
 
 #ifdef __linux__
+
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
 #endif
 
 #include "log_net.h"
@@ -83,7 +85,7 @@ namespace log4cpp {
 				sockaddr_storage client_addr{};
 				socklen_t client_addr_len = sizeof(client_addr);
 				net::socket_fd client_fd = accept(listen_fd, reinterpret_cast<struct sockaddr *>(&client_addr),
-												&client_addr_len);
+				                                  &client_addr_len);
 				if (net::INVALID_FD != client_fd) {
 #ifdef _DEBUG
 					char client_ip[INET6_ADDRSTRLEN];
@@ -162,7 +164,7 @@ namespace log4cpp {
 		}
 		this->instance->fd = server_fd;
 		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
-													std::ref(this->instance->clients));
+		                                            std::ref(this->instance->clients));
 		return this->instance;
 	}
 
@@ -182,7 +184,7 @@ namespace log4cpp {
 		if (net::INVALID_FD != this->fd) {
 			net::close_socket(this->fd);
 		}
-		for (auto &client:this->clients) {
+		for (auto &client: this->clients) {
 #ifdef _WIN32
 			shutdown(client, SD_BOTH);
 #else
@@ -194,8 +196,8 @@ namespace log4cpp {
 
 	void tcp_appender::log(const char *msg, size_t msg_len) {
 		std::lock_guard lock_guard(this->lock);
-		for (auto &client:this->clients) {
-			(void)send(client, msg, msg_len, 0);
+		for (auto &client: this->clients) {
+			(void) send(client, msg, msg_len, 0);
 		}
 	}
 
@@ -207,7 +209,7 @@ namespace log4cpp {
 			std::lock_guard lock(instance_lock);
 			if (instance == nullptr) {
 				instance = tcp_appender::builder::new_builder().set_local_addr(config.local_addr).set_port(
-					config.port).build();
+						config.port).build();
 			}
 		}
 		return instance;
@@ -215,8 +217,8 @@ namespace log4cpp {
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, tcp_appender_config const &obj) {
 		json = boost::json::object{
-			{"local_addr", obj.local_addr.to_string()},
-			{"port", obj.port}
+				{"local_addr", obj.local_addr.to_string()},
+				{"port",       obj.port}
 		};
 	}
 

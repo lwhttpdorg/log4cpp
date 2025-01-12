@@ -8,7 +8,7 @@
 
 <!-- TOC -->
 * [log4cpp](#log4cpp)
-  * [1. Description](#1-description)
+  * [1. What is log4cpp?](#1-what-is-log4cpp)
   * [2. Requirements](#2-requirements)
   * [3. Usage](#3-usage)
     * [3.1 Use in CMake projects](#31-use-in-cmake-projects)
@@ -23,7 +23,7 @@
     * [3.4 Loading configuration file](#34-loading-configuration-file)
     * [3.5 Coding](#35-coding)
     * [3.6 Full example](#36-full-example)
-    * [3.7 Contribution](#37-contribution)
+    * [3.7 Building](#37-building)
       * [3.7.1 boost library](#371-boost-library)
       * [3.7.2 CMake compile options](#372-cmake-compile-options)
       * [3.7.3 Test](#373-test)
@@ -31,10 +31,19 @@
   * [4. License](#4-license)
 <!-- TOC -->
 
-## 1. Description
+## 1. What is log4cpp?
 
-log4cpp is a simple C++ log library that supports multithreading, custom output format, configuration files, console,
-file, TCP, and UDP output
+Log4cpp is library of C++ classes. It is modeled after the Log4j Java library
+
+Features:
+
+* Configure through JSON files, and control its behavior without modifying the code
+* Logs can be output to STDOUT, STDERR
+* The log can be output to the specified file
+* Can output logs to TCP client
+* Can output logs to UDP client
+* Singleton mode
+* Thread safety
 
 ## 2. Requirements
 
@@ -48,7 +57,7 @@ file, TCP, and UDP output
 
 ````cmake
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.3)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.4)
 
 FetchContent_MakeAvailable(log4cpp)
 
@@ -61,7 +70,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-	"layoutPattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "layoutPattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -102,22 +111,22 @@ A simple configuration file example:
 
 ```json
 {
-	"appenders": {
-		"console_appender": {
-			"out_stream": "stdout"
-		},
-		"file_appender": {
-			"file_path": "log/log4cpp.log"
-		},
-		"tcp_appender": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		},
-		"udp_appender": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		}
-	}
+  "appenders": {
+    "console_appender": {
+      "out_stream": "stdout"
+    },
+    "file_appender": {
+      "file_path": "log/log4cpp.log"
+    },
+    "tcp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    },
+    "udp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    }
+  }
 }
 ```
 
@@ -127,11 +136,11 @@ The function of the console appender is to output logs to STDOUT or STDERR. Typi
 
 ```json
 {
-	"appenders": {
-		"console_appender": {
-			"out_stream": "stdout"
-		}
-	}
+  "appenders": {
+    "console_appender": {
+      "out_stream": "stdout"
+    }
+  }
 }
 ```
 
@@ -145,11 +154,11 @@ The function of the file appender is to output logs to a specified file. Typical
 
 ```json
 {
-	"appenders": {
-		"file_appender": {
-			"file_path": "log/log4cpp.log"
-		}
-	}
+  "appenders": {
+    "file_appender": {
+      "file_path": "log/log4cpp.log"
+    }
+  }
 }
 ```
 
@@ -164,12 +173,12 @@ which is used to output logs to remote devices. The typical configuration is as 
 
 ```json
 {
-	"appenders": {
-		"tcp_appender": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		}
-	}
+  "appenders": {
+    "tcp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    }
+  }
 }
 ```
 
@@ -200,12 +209,12 @@ The typical configuration is as follows:
 
 ```json
 {
-	"appenders": {
-		"udp_appender": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		}
-	}
+  "appenders": {
+    "udp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    }
+  }
 }
 ```
 
@@ -236,33 +245,33 @@ Root layout is an object, only `log_level` and `Appenders`, no `name`, internal 
 
 ```json
 {
-	"layouts": [
-		{
-			"name": "console_layout",
-			"log_level": "info",
-			"appenders": [
-				"console_appender",
-				"tcp_appender",
-				"udp_appender"
-			]
-		},
-		{
-			"name": "file_layout",
-			"log_level": "warn",
-			"appenders": [
-				"file_appender"
-			]
-		}
-	],
-	"root_layout": {
-		"log_level": "info",
-		"appenders": [
-			"console_appender",
-			"file_appender",
-			"tcp_appender",
-			"udp_appender"
-		]
-	}
+  "layouts": [
+    {
+      "name": "console_layout",
+      "log_level": "info",
+      "appenders": [
+        "console_appender",
+        "tcp_appender",
+        "udp_appender"
+      ]
+    },
+    {
+      "name": "file_layout",
+      "log_level": "warn",
+      "appenders": [
+        "file_appender"
+      ]
+    }
+  ],
+  "root_layout": {
+    "log_level": "info",
+    "appenders": [
+      "console_appender",
+      "file_appender",
+      "tcp_appender",
+      "udp_appender"
+    ]
+  }
 }
 ```
 
@@ -392,14 +401,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 file(COPY ./log4cpp.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.3)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.4)
 
 FetchContent_MakeAvailable(log4cpp)
 
 target_link_libraries(${TARGET_NAME} log4cpp)
 
 if (CMAKE_HOST_UNIX)
-	target_link_libraries(demo pthread)
+    target_link_libraries(demo pthread)
 endif ()
 ```
 
@@ -418,40 +427,25 @@ Configuration file:
 
 [A sample configuration file is here](demo/log4cpp.json)
 
-### 3.7 Contribution
+### 3.7 Building
 
 Welcome to submit PR. There are some things to know before submitting PR:
 
 #### 3.7.1 boost library
 
-This project pulls the boost library from github online. You can also modify [CMakeLists.txt](src/main/CMakeLists.txt)to
-use the local boost library.
-Uncomment the corresponding position:
-
-```cmake
-find_package(Boost 1.75 REQUIRED COMPONENTS json)
-if (Boost_FOUND)
-    #message(STATUS "Boost_LIB_VERSION = ${Boost_VERSION}")
-    #message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
-    #message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
-    #message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIRS})
-    target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
-endif ()
-```
+This project will first search for local boost, if not found then download from github
 
 If CMake does not automatically find the Boost path, you can manually set the Boost path:
 
 ```cmake
 if (CMAKE_HOST_WIN32)
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-	elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-		set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-	endif ()
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+    endif ()
 else ()
-	set(BOOST_ROOT "/usr/local/boost")
+    set(BOOST_ROOT "/usr/local/boost")
 endif ()
 ```
 

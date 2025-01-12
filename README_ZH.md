@@ -8,7 +8,7 @@
 
 <!-- TOC -->
 * [log4cpp](#log4cpp)
-  * [1. 简述](#1-简述)
+  * [1. Log4cpp是什么?](#1-log4cpp是什么)
   * [2. 要求](#2-要求)
   * [3. 使用](#3-使用)
     * [3.1 在CMake项目中使用](#31-在cmake项目中使用)
@@ -23,7 +23,7 @@
     * [3.4 加载配置文件](#34-加载配置文件)
     * [3.5 在代码中使用](#35-在代码中使用)
     * [3.6 完整示例](#36-完整示例)
-    * [3.7 贡献](#37-贡献)
+    * [3.7 构建](#37-构建)
       * [3.7.1 boost库](#371-boost库)
       * [3.7.2 CMake编译选项](#372-cmake编译选项)
       * [3.7.3 测试](#373-测试)
@@ -31,9 +31,19 @@
   * [4. 许可](#4-许可)
 <!-- TOC -->
 
-## 1. 简述
+## 1. Log4cpp是什么?
 
-log4cpp是一个简单的C++日志库, 支持多线程, 支持自定义输出格式, 支持配置文件, 支持控制台, 文件, TCP, UDP输出
+log4cpp是一个C++日志库, 参照log4j实现
+
+特性:
+
+* 通过JSON文件配置, 无需修改代码即可改变其行为
+* 支持输出日志到STDOUT和STDERR
+* 支持输出日志到指定文件
+* 支持输出日志到TCP客户端
+* 支持输出日志到UDP客户端
+* 单例模式
+* 线程安全
 
 ## 2. 要求
 
@@ -47,7 +57,7 @@ log4cpp是一个简单的C++日志库, 支持多线程, 支持自定义输出格
 
 ````cmake
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.3)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.4)
 
 FetchContent_MakeAvailable(log4cpp)
 
@@ -60,7 +70,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-	"layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -99,23 +109,23 @@ udp_appender)
 
 ```json
 {
-	"appenders": {
-		"console_appender": {
-			"out_stream": "stdout"
-		},
-		"file_appender": {
-			"file_path": "log/log4cpp.log",
-			"append": false
-		},
-		"tcp_appender": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		},
-		"udp_appender": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		}
-	}
+  "appenders": {
+    "console_appender": {
+      "out_stream": "stdout"
+    },
+    "file_appender": {
+      "file_path": "log/log4cpp.log",
+      "append": false
+    },
+    "tcp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    },
+    "udp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    }
+  }
 }
 ```
 
@@ -125,11 +135,11 @@ udp_appender)
 
 ```json
 {
-	"appenders": {
-		"console_appender": {
-			"out_stream": "stdout"
-		}
-	}
+  "appenders": {
+    "console_appender": {
+      "out_stream": "stdout"
+    }
+  }
 }
 ```
 
@@ -143,12 +153,12 @@ udp_appender)
 
 ```json
 {
-	"appenders": {
-		"file_appender": {
-			"file_path": "log/log4cpp.log",
-			"append": true
-		}
-	}
+  "appenders": {
+    "file_appender": {
+      "file_path": "log/log4cpp.log",
+      "append": true
+    }
+  }
 }
 ```
 
@@ -163,12 +173,12 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 
 ```json
 {
-	"appenders": {
-		"tcp_appender": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		}
-	}
+  "appenders": {
+    "tcp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    }
+  }
 }
 ```
 
@@ -195,12 +205,12 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 
 ```json
 {
-	"appenders": {
-		"udp_appender": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		}
-	}
+  "appenders": {
+    "udp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    }
+  }
 }
 ```
 
@@ -226,32 +236,32 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 
 ```json
 {
-	"layouts": [
-		{
-			"name": "consoleLogger",
-			"log_level": "info",
-			"appenders": [
-				"console_appender"
-			]
-		},
-		{
-			"name": "recordLogger",
-			"log_level": "error",
-			"appenders": [
-				"file_appender",
-				"tcp_appender",
-				"udp_appender"
-			]
-		}
-	],
-	"rootLogger": {
-		"log_level": "info",
-		"appenders": [
-			"file_appender",
-			"tcp_appender",
-			"udp_appender"
-		]
-	}
+  "layouts": [
+    {
+      "name": "consoleLogger",
+      "log_level": "info",
+      "appenders": [
+        "console_appender"
+      ]
+    },
+    {
+      "name": "recordLogger",
+      "log_level": "error",
+      "appenders": [
+        "file_appender",
+        "tcp_appender",
+        "udp_appender"
+      ]
+    }
+  ],
+  "rootLogger": {
+    "log_level": "info",
+    "appenders": [
+      "file_appender",
+      "tcp_appender",
+      "udp_appender"
+    ]
+  }
 }
 ```
 
@@ -376,14 +386,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 file(COPY ./log4cpp.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.3)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.4)
 
 FetchContent_MakeAvailable(log4cpp)
 
 target_link_libraries(${TARGET_NAME} log4cpp)
 
 if (CMAKE_HOST_UNIX)
-	target_link_libraries(demo pthread)
+    target_link_libraries(demo pthread)
 endif ()
 ```
 
@@ -402,7 +412,7 @@ endif ()
 
 [参考配置文件示例](demo/log4cpp.json)
 
-### 3.7 贡献
+### 3.7 构建
 
 欢迎提交PR, 再提交PR之前有些事项需了解:
 
@@ -428,13 +438,13 @@ endif ()
 
 ```cmake
 if (CMAKE_HOST_WIN32)
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-	elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-		set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-	endif ()
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+    endif ()
 else ()
-	set(BOOST_ROOT "/usr/local/boost")
+    set(BOOST_ROOT "/usr/local/boost")
 endif ()
 ```
 

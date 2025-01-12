@@ -1,5 +1,7 @@
 #if defined(__linux__)
+
 #include <unistd.h>
+
 #endif
 
 #ifdef _WIN32
@@ -28,7 +30,7 @@ int stream_name_to_file_no(const std::string &out_stream) {
 	}
 	else {
 		throw std::invalid_argument(
-			"Invalid 'console_appender' out_stream \"" + out_stream + "\", valid name: stdout, stderr");
+				"Invalid 'console_appender' out_stream \"" + out_stream + "\", valid name: stdout, stderr");
 	}
 	return file_no;
 }
@@ -55,7 +57,7 @@ console_appender::console_appender(const std::string &out_stream) {
 
 void console_appender::log(const char *msg, size_t msg_len) {
 	std::lock_guard lock_guard(this->lock);
-	(void)write(this->file_no, msg, msg_len);
+	(void) write(this->file_no, msg, msg_len);
 }
 
 log_lock console_appender_config::instance_lock;
@@ -76,7 +78,7 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 }
 
 console_appender_config log4cpp::tag_invoke(boost::json::value_to_tag<console_appender_config>,
-											boost::json::value const &json) {
+                                            boost::json::value const &json) {
 	console_appender_config config;
 	config.out_stream = boost::json::value_to<std::string>(json.at("out_stream"));
 	return config;

@@ -5,8 +5,10 @@
 #endif
 
 #ifdef __linux__
+
 #include <sys/socket.h>
 #include <netinet/in.h>
+
 #endif
 
 #include "layout_pattern.h"
@@ -82,8 +84,8 @@ namespace log4cpp {
 				sockaddr_storage client_addr{};
 				socklen_t client_addr_len = sizeof(client_addr);
 				ssize_t len = recvfrom(listen_fd, buffer, sizeof(buffer) - 1, 0,
-										reinterpret_cast<struct sockaddr *>(&client_addr),
-										&client_addr_len);
+				                       reinterpret_cast<struct sockaddr *>(&client_addr),
+				                       &client_addr_len);
 				if (len < 0) {
 					continue;
 				}
@@ -102,7 +104,7 @@ namespace log4cpp {
 					saddr.port = ntohs(client_addr_in6->sin6_port);
 				}
 #ifdef _DEBUG
-				printf("New UDP client: %hs\n", saddr.to_string().c_str());
+				printf("New UDP client: %s\n", saddr.to_string().c_str());
 #endif
 				buffer[len] = '\0';
 				if (strcmp(buffer, UDP_OUTPUT_HELLO) == 0) {
@@ -146,7 +148,7 @@ namespace log4cpp {
 		}
 		this->instance->fd = server_fd;
 		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
-													std::ref(this->instance->clients));
+		                                            std::ref(this->instance->clients));
 		return this->instance;
 	}
 
@@ -170,22 +172,22 @@ namespace log4cpp {
 
 	void udp_appender::log(const char *msg, size_t msg_len) {
 		std::lock_guard lock_guard(this->lock);
-		for (auto &client:this->clients) {
+		for (auto &client: this->clients) {
 			if (client.addr.family == net::net_family::NET_IPv4) {
 				sockaddr_in client_addr{};
 				client_addr.sin_family = AF_INET;
 				client_addr.sin_port = htons(client.port);
 				client_addr.sin_addr.s_addr = htonl(client.addr.ip.addr4);
-				(void)sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-							sizeof(client_addr));
+				(void) sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
+				              sizeof(client_addr));
 			}
 			else {
 				sockaddr_in6 client_addr{};
 				client_addr.sin6_family = AF_INET6;
 				client_addr.sin6_port = htons(client.port);
 				client_addr.sin6_addr = in6addr_any;
-				(void)sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-							sizeof(client_addr));
+				(void) sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
+				              sizeof(client_addr));
 			}
 		}
 	}
@@ -198,7 +200,7 @@ namespace log4cpp {
 			std::lock_guard lock(udp_appender_config::instance_lock);
 			if (instance == nullptr) {
 				instance = udp_appender::builder::new_builder().set_local_addr(config.local_addr).set_port(
-					config.port).build();
+						config.port).build();
 			}
 		}
 		return instance;
@@ -206,8 +208,8 @@ namespace log4cpp {
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, const udp_appender_config &obj) {
 		json = boost::json::object{
-			{"local_addr", obj.local_addr.to_string()},
-			{"port", obj.port}
+				{"local_addr", obj.local_addr.to_string()},
+				{"port",       obj.port}
 		};
 	}
 

@@ -1,8 +1,10 @@
 #include <stdexcept>
 
 #if defined(__linux__)
+
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 #endif
 
 #if defined(_WIN32)
@@ -59,7 +61,7 @@ bool net_addr::operator==(const net_addr &rhs) const {
 		return ip.addr4 == rhs.ip.addr4;
 	}
 	return ip.addr6[0] == rhs.ip.addr6[0] && ip.addr6[1] == rhs.ip.addr6[1] && ip.addr6[2] == rhs.ip.addr6[2] &&
-			ip.addr6[3] == rhs.ip.addr6[3];
+	       ip.addr6[3] == rhs.ip.addr6[3];
 }
 
 bool net_addr::operator!=(const net_addr &rhs) const {
@@ -80,7 +82,7 @@ std::string net_addr::to_string() const {
 	else if (this->family == net_family::NET_IPv6) {
 		char buf[INET6_ADDRSTRLEN];
 		int len = 0;
-		for (const auto x:this->ip.addr6) {
+		for (const auto x: this->ip.addr6) {
 			const unsigned short a = x >> 16;
 			const unsigned short b = x & 0xffff;
 			if (const int l = snprintf(buf + len, sizeof(buf) - len, "%x%x:", a, b); l > 0) {
@@ -95,7 +97,7 @@ std::string net_addr::to_string() const {
 	}
 	else {
 		throw std::invalid_argument(
-			"Invalid addr family \"" + std::to_string(static_cast<int>(this->family)) + "\"");
+				"Invalid addr family \"" + std::to_string(static_cast<int>(this->family)) + "\"");
 	}
 	return s;
 }
@@ -115,7 +117,7 @@ sock_addr::sock_addr(const std::string &ip, unsigned short p) : sock_addr(ip.c_s
 
 bool sock_addr::operator==(const sock_addr &rhs) const {
 	return addr == rhs.addr &&
-			port == rhs.port;
+	       port == rhs.port;
 }
 
 bool sock_addr::operator!=(const sock_addr &rhs) const {

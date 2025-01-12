@@ -165,7 +165,7 @@ namespace log4cpp {
 		if (std::string::npos != pos) {
 			char delimiter = pattern[pos - 1];
 			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%02d", delimiter,
-									now_tm.tm_min);
+			                          now_tm.tm_min);
 			pattern_end = pos + strlen(FULL_MINUTES);
 		}
 		pos = pattern.find(SHORT_SECOND);
@@ -178,7 +178,7 @@ namespace log4cpp {
 		if (std::string::npos != pos) {
 			char delimiter = pattern[pos - 1];
 			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%02d", delimiter,
-									now_tm.tm_sec);
+			                          now_tm.tm_sec);
 			pattern_end = pos + strlen(FULL_SECOND);
 		}
 		pos = pattern.find(MILLISECOND);

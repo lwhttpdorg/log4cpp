@@ -93,7 +93,7 @@ file_appender::~file_appender() {
 
 void file_appender::log(const char *msg, size_t msg_len) {
 	std::lock_guard lock_guard(this->lock);
-	(void)write(this->fd, msg, msg_len);
+	(void) write(this->fd, msg, msg_len);
 }
 
 log_lock file_appender_config::instance_lock;
@@ -111,12 +111,12 @@ std::shared_ptr<file_appender> file_appender_config::get_instance(const file_app
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const file_appender_config &obj) {
 	json = boost::json::object{
-		{"file_path", obj.file_path}
+			{"file_path", obj.file_path}
 	};
 }
 
 file_appender_config log4cpp::tag_invoke(boost::json::value_to_tag<file_appender_config>,
-										boost::json::value const &json) {
+                                         boost::json::value const &json) {
 	file_appender_config config;
 	config.file_path = boost::json::value_to<std::string>(json.at("file_path"));
 	return config;

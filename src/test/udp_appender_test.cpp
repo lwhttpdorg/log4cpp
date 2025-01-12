@@ -8,16 +8,17 @@
 #endif
 
 #ifdef __linux__
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 #endif
 
 #include "gtest/gtest.h"
 
 #include "log4cpp.hpp"
 #include "main/log4cpp_config.h"
-#include "main/udp_appender.h"
 
 class TestEnvironment : public testing::Environment {
 public:

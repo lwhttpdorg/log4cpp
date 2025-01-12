@@ -12,8 +12,6 @@
 
 #include "log4cpp.hpp"
 #include "main/log4cpp_config.h"
-#include "main/tcp_appender.h"
-#include "main/udp_appender.h"
 
 class TestEnvironment : public testing::Environment {
 public:
@@ -149,7 +147,7 @@ namespace log4cpp {
 		appender_flag_to_name(obj.get_layout_flag(), appenders);
 		json = nlohmann::json{
 				{"name",      obj.get_logger_name()},
-				{"log_level",  obj.get_logger_level()},
+				{"log_level", obj.get_logger_level()},
 				{"appenders", appenders}
 		};
 	}

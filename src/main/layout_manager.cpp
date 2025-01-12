@@ -16,7 +16,6 @@
 using namespace log4cpp;
 
 /* Banner */
-
 constexpr char BANNER[] = R"(
    __    ___   ___  _  _      ___
   / /   /___\ / _ \| || |    / __\  _      _
@@ -41,7 +40,7 @@ void layout_manager::load_config(const std::string &json_filepath) {
 	}
 	else {
 		throw std::filesystem::filesystem_error("Config file " + json_filepath + " opening failed!",
-												std::make_error_code(std::io_errc::stream));
+		                                        std::make_error_code(std::io_errc::stream));
 	}
 }
 
@@ -79,24 +78,24 @@ void layout_manager::build_appender() {
 	appender_config appender_cfg = config.appender;
 	if (appender_cfg.APPENDER_FLAGS & CONSOLE_APPENDER_FLAG) {
 		console_appender = std::shared_ptr<log_appender>(
-			console_appender_config::get_instance(appender_cfg.console_cfg));
+				console_appender_config::get_instance(appender_cfg.console_cfg));
 	}
 	if (appender_cfg.APPENDER_FLAGS & FILE_APPENDER_FLAG) {
 		file_appender = std::shared_ptr<log_appender>(
-			file_appender_config::get_instance(appender_cfg.file_cfg));
+				file_appender_config::get_instance(appender_cfg.file_cfg));
 	}
 	if (appender_cfg.APPENDER_FLAGS & TCP_APPENDER_FLAG) {
 		tcp_appender = std::shared_ptr<log_appender>(
-			tcp_appender_config::get_instance(appender_cfg.tcp_cfg));
+				tcp_appender_config::get_instance(appender_cfg.tcp_cfg));
 	}
 	if (appender_cfg.APPENDER_FLAGS & UDP_APPENDER_FLAG) {
 		udp_appender = std::shared_ptr<log_appender>(
-			udp_appender_config::get_instance(appender_cfg.udp_cfg));
+				udp_appender_config::get_instance(appender_cfg.udp_cfg));
 	}
 }
 
 void layout_manager::build_layout() {
-	for (auto &x:config.layouts) {
+	for (auto &x: config.layouts) {
 		layout_builder::builder builder = layout_builder::builder::new_builder();
 		builder.set_name(x.get_logger_name());
 		builder.set_log_level(x.get_logger_level());

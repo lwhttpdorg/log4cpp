@@ -16,7 +16,7 @@ using namespace log4cpp;
 bool valid_appender(const std::string &name) {
 	bool valid = true;
 	if ((name != CONSOLE_APPENDER_NAME) && (name != FILE_APPENDER_NAME) && (name != TCP_APPENDER_NAME) &&
-		(name != UDP_APPENDER_NAME)) {
+	    (name != UDP_APPENDER_NAME)) {
 		valid = false;
 	}
 	return valid;
@@ -123,10 +123,10 @@ layout_config log4cpp::tag_invoke(boost::json::value_to_tag<layout_config>, boos
 	}
 	obj.level = log4cpp::from_string(boost::json::value_to<std::string>(json_obj.at("log_level")));
 	std::vector<std::string> appenders = boost::json::value_to<std::vector<std::string>>(json_obj.at("appenders"));
-	for (auto &appender:appenders) {
+	for (auto &appender: appenders) {
 		if (!valid_appender(appender)) {
 			throw std::invalid_argument(
-				"Malformed JSON configuration file: invalid layouts::appenders \"" + appender + "\"");
+					"Malformed JSON configuration file: invalid layouts::appenders \"" + appender + "\"");
 		}
 		if (appender == CONSOLE_APPENDER_NAME) {
 			obj.layout_flag |= CONSOLE_APPENDER_FLAG;
@@ -160,18 +160,18 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 	}
 
 	json = boost::json::object{
-		{"name", obj.name},
-		{"log_level", to_string(obj.level)},
-		{"appenders", boost::json::value_from(appenders)}
+			{"name",      obj.name},
+			{"log_level", to_string(obj.level)},
+			{"appenders", boost::json::value_from(appenders)}
 	};
 }
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const log4cpp_config &obj) {
 	json = boost::json::object{
-		{"layoutPattern", obj.layout_pattern},
-		{"appenders", boost::json::value_from(obj.appender)},
-		{"layouts", boost::json::value_from(obj.layouts)},
-		{"root_layout", boost::json::value_from(obj.root_layout)}
+			{"layoutPattern", obj.layout_pattern},
+			{"appenders",     boost::json::value_from(obj.appender)},
+			{"layouts",       boost::json::value_from(obj.layouts)},
+			{"root_layout",   boost::json::value_from(obj.root_layout)}
 	};
 }
 
@@ -204,7 +204,7 @@ log4cpp_config log4cpp_config::load_config(const std::string &json_file) {
 		std::filesystem::path current_path = std::filesystem::current_path();
 		char errbuf[1024];
 		log4c_scnprintf(errbuf, sizeof(errbuf), "%s:%u %s, can not open the file %s%s", __FILE__, __LINE__,
-						__FUNCTION__, current_path.c_str(), json_file.c_str() + 1);
+		                __FUNCTION__, current_path.c_str(), json_file.c_str() + 1);
 		throw std::filesystem::filesystem_error(errbuf, std::make_error_code(std::io_errc::stream));
 	}
 	std::string a_string;
@@ -242,7 +242,7 @@ std::string log4cpp_config::serialize(const log4cpp_config &obj) {
 }
 
 log4cpp_config::log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<layout_config> &l,
-								layout_config root) {
+                               layout_config root) {
 	this->layout_pattern = std::move(_pattern);
 	layout_pattern::set_pattern(this->layout_pattern);
 	this->appender = o;
