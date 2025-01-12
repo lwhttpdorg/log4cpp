@@ -85,21 +85,21 @@ udp_appender)
 ```json
 {
   "appenders": {
-    "console_appender": {
-      "out_stream": "stdout"
-    },
-    "file_appender": {
-      "file_path": "log/log4cpp.log",
-      "append": false
-    },
-    "tcp_appender": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    },
-    "udp_appender": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
+	"console_appender": {
+	  "out_stream": "stdout"
+	},
+	"file_appender": {
+	  "file_path": "log/log4cpp.log",
+	  "append": false
+	},
+	"tcp_appender": {
+	  "local_addr": "0.0.0.0",
+	  "port": 9443
+	},
+	"udp_appender": {
+	  "local_addr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -111,9 +111,9 @@ udp_appender)
 ```json
 {
   "appenders": {
-    "console_appender": {
-      "out_stream": "stdout"
-    }
+	"console_appender": {
+	  "out_stream": "stdout"
+	}
   }
 }
 ```
@@ -129,10 +129,10 @@ udp_appender)
 ```json
 {
   "appenders": {
-    "file_appender": {
-      "file_path": "log/log4cpp.log",
-      "append": true
-    }
+	"file_appender": {
+	  "file_path": "log/log4cpp.log",
+	  "append": true
+	}
   }
 }
 ```
@@ -149,10 +149,10 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 ```json
 {
   "appenders": {
-    "tcp_appender": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
+	"tcp_appender": {
+	  "local_addr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -181,10 +181,10 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 ```json
 {
   "appenders": {
-    "udp_appender": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
+	"udp_appender": {
+	  "local_addr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -212,30 +212,30 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 ```json
 {
   "layouts": [
-    {
-      "name": "consoleLogger",
-      "log_level": "info",
-      "appenders": [
-        "console_appender"
-      ]
-    },
-    {
-      "name": "recordLogger",
-      "log_level": "error",
-      "appenders": [
-        "file_appender",
-        "tcp_appender",
-        "udp_appender"
-      ]
-    }
+	{
+	  "name": "consoleLogger",
+	  "log_level": "info",
+	  "appenders": [
+		"console_appender"
+	  ]
+	},
+	{
+	  "name": "recordLogger",
+	  "log_level": "error",
+	  "appenders": [
+		"file_appender",
+		"tcp_appender",
+		"udp_appender"
+	  ]
+	}
   ],
   "rootLogger": {
-    "log_level": "info",
-    "appenders": [
-      "file_appender",
-      "tcp_appender",
-      "udp_appender"
-    ]
+	"log_level": "info",
+	"appenders": [
+	  "file_appender",
+	  "tcp_appender",
+	  "udp_appender"
+	]
   }
 }
 ```
@@ -367,9 +367,9 @@ FetchContent_MakeAvailable(log4cpp)
 
 target_link_libraries(${TARGET_NAME} log4cpp)
 
-if (CMAKE_HOST_UNIX)
-    target_link_libraries(demo pthread)
-endif ()
+if(CMAKE_HOST_UNIX)
+	target_link_libraries(demo pthread)
+endif()
 ```
 
 输出log示例:
@@ -398,36 +398,42 @@ endif ()
 
 ```cmake
 find_package(Boost 1.75 REQUIRED COMPONENTS json)
-if (Boost_FOUND)
-    #message(STATUS "Boost_LIB_VERSION = ${Boost_VERSION}")
-    #message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
-    #message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
-    #message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
-    include_directories(${Boost_INCLUDE_DIRS})
-    link_directories(${Boost_LIBRARY_DIRS})
-    target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
-endif ()
+if(Boost_FOUND)
+	#message(STATUS "Boost_LIB_VERSION = ${Boost_VERSION}")
+	#message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
+	#message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
+	#message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
+	include_directories(${Boost_INCLUDE_DIRS})
+	link_directories(${Boost_LIBRARY_DIRS})
+	target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
+endif()
 ```
 
 如果CMake没有自动找到Boost路径, 可以手动设置Boost路径:
 
 ```cmake
-if (CMAKE_HOST_WIN32)
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-    endif ()
-else ()
-    set(BOOST_ROOT "/usr/local/boost")
-endif ()
+if(CMAKE_HOST_WIN32)
+	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+		set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+	endif()
+else()
+	set(BOOST_ROOT "/usr/local/boost")
+endif()
 ```
 
 ### 4.2 CMake编译选项
 
 ```shell
 cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TESTS=ON -DENABLE_ASAN=ON
+```
+
+```shell
 cmake --build build --config=Debug
+```
+
+```shell
 ctest --test-dir build
 ```
 

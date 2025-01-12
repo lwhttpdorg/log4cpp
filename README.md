@@ -87,20 +87,20 @@ A simple configuration file example:
 ```json
 {
   "appenders": {
-    "console_appender": {
-      "out_stream": "stdout"
-    },
-    "file_appender": {
-      "file_path": "log/log4cpp.log"
-    },
-    "tcp_appender": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    },
-    "udp_appender": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
+	"console_appender": {
+	  "out_stream": "stdout"
+	},
+	"file_appender": {
+	  "file_path": "log/log4cpp.log"
+	},
+	"tcp_appender": {
+	  "local_addr": "0.0.0.0",
+	  "port": 9443
+	},
+	"udp_appender": {
+	  "local_addr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -112,9 +112,9 @@ The function of the console appender is to output logs to STDOUT or STDERR. Typi
 ```json
 {
   "appenders": {
-    "console_appender": {
-      "out_stream": "stdout"
-    }
+	"console_appender": {
+	  "out_stream": "stdout"
+	}
   }
 }
 ```
@@ -130,9 +130,9 @@ The function of the file appender is to output logs to a specified file. Typical
 ```json
 {
   "appenders": {
-    "file_appender": {
-      "file_path": "log/log4cpp.log"
-    }
+	"file_appender": {
+	  "file_path": "log/log4cpp.log"
+	}
   }
 }
 ```
@@ -149,10 +149,10 @@ which is used to output logs to remote devices. The typical configuration is as 
 ```json
 {
   "appenders": {
-    "tcp_appender": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
+	"tcp_appender": {
+	  "local_addr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -185,10 +185,10 @@ The typical configuration is as follows:
 ```json
 {
   "appenders": {
-    "udp_appender": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
+	"udp_appender": {
+	  "local_addr": "0.0.0.0",
+	  "port": 9443
+	}
   }
 }
 ```
@@ -221,31 +221,31 @@ Root layout is an object, only `log_level` and `Appenders`, no `name`, internal 
 ```json
 {
   "layouts": [
-    {
-      "name": "console_layout",
-      "log_level": "info",
-      "appenders": [
-        "console_appender",
-        "tcp_appender",
-        "udp_appender"
-      ]
-    },
-    {
-      "name": "file_layout",
-      "log_level": "warn",
-      "appenders": [
-        "file_appender"
-      ]
-    }
+	{
+	  "name": "console_layout",
+	  "log_level": "info",
+	  "appenders": [
+		"console_appender",
+		"tcp_appender",
+		"udp_appender"
+	  ]
+	},
+	{
+	  "name": "file_layout",
+	  "log_level": "warn",
+	  "appenders": [
+		"file_appender"
+	  ]
+	}
   ],
   "root_layout": {
-    "log_level": "info",
-    "appenders": [
-      "console_appender",
-      "file_appender",
-      "tcp_appender",
-      "udp_appender"
-    ]
+	"log_level": "info",
+	"appenders": [
+	  "console_appender",
+	  "file_appender",
+	  "tcp_appender",
+	  "udp_appender"
+	]
   }
 }
 ```
@@ -382,9 +382,9 @@ FetchContent_MakeAvailable(log4cpp)
 
 target_link_libraries(${TARGET_NAME} log4cpp)
 
-if (CMAKE_HOST_UNIX)
-    target_link_libraries(demo pthread)
-endif ()
+if(CMAKE_HOST_UNIX)
+	target_link_libraries(demo pthread)
+endif()
 ```
 
 Output log example:
@@ -413,22 +413,28 @@ This project will first search for local boost, if not found then download from 
 If CMake does not automatically find the Boost path, you can manually set the Boost path:
 
 ```cmake
-if (CMAKE_HOST_WIN32)
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-    endif ()
-else ()
-    set(BOOST_ROOT "/usr/local/boost")
-endif ()
+if(CMAKE_HOST_WIN32)
+	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+		set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+	endif()
+else()
+	set(BOOST_ROOT "/usr/local/boost")
+endif()
 ```
 
 ### 4.2 CMake compile options
 
 ```shell
 cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TESTS=ON -DENABLE_ASAN=ON
+```
+
+```shell
 cmake --build build --config=Debug
+```
+
+```shell
 ctest --test-dir build
 ```
 
