@@ -1,8 +1,8 @@
 #include <filesystem>
 
 #if defined(_WIN32)
-#include <windows.h>
 #include <io.h>
+#include <windows.h>
 #endif
 
 #ifdef _MSC_VER
@@ -10,8 +10,8 @@
 #endif
 
 #include "log4cpp.hpp"
-#include "logger_builder.h"
 #include "log4cpp_config.h"
+#include "logger_builder.h"
 
 using namespace log4cpp;
 
@@ -40,7 +40,7 @@ void layout_manager::load_config(const std::string &json_filepath) {
 	}
 	else {
 		throw std::filesystem::filesystem_error("Config file " + json_filepath + " opening failed!",
-		                                        std::make_error_code(std::io_errc::stream));
+												std::make_error_code(std::io_errc::stream));
 	}
 }
 
@@ -77,20 +77,17 @@ std::shared_ptr<layout> layout_manager::get_layout(const std::string &name) {
 void layout_manager::build_appender() {
 	appender_config appender_cfg = config.appender;
 	if (appender_cfg.APPENDER_FLAGS & CONSOLE_APPENDER_FLAG) {
-		console_appender = std::shared_ptr<log_appender>(
-				console_appender_config::get_instance(appender_cfg.console_cfg));
+		console_appender =
+			std::shared_ptr<log_appender>(console_appender_config::get_instance(appender_cfg.console_cfg));
 	}
 	if (appender_cfg.APPENDER_FLAGS & FILE_APPENDER_FLAG) {
-		file_appender = std::shared_ptr<log_appender>(
-				file_appender_config::get_instance(appender_cfg.file_cfg));
+		file_appender = std::shared_ptr<log_appender>(file_appender_config::get_instance(appender_cfg.file_cfg));
 	}
 	if (appender_cfg.APPENDER_FLAGS & TCP_APPENDER_FLAG) {
-		tcp_appender = std::shared_ptr<log_appender>(
-				tcp_appender_config::get_instance(appender_cfg.tcp_cfg));
+		tcp_appender = std::shared_ptr<log_appender>(tcp_appender_config::get_instance(appender_cfg.tcp_cfg));
 	}
 	if (appender_cfg.APPENDER_FLAGS & UDP_APPENDER_FLAG) {
-		udp_appender = std::shared_ptr<log_appender>(
-				udp_appender_config::get_instance(appender_cfg.udp_cfg));
+		udp_appender = std::shared_ptr<log_appender>(udp_appender_config::get_instance(appender_cfg.udp_cfg));
 	}
 }
 

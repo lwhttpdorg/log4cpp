@@ -1,5 +1,5 @@
 {
-	"layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"layout_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
 		"console_appender": {
 			"out_stream": "stdout"
@@ -16,7 +16,7 @@
 	"layouts": [
 		{
 			"name": "tcpLayout",
-			"log_level": "info",
+			"log_level": "INFO",
 			"appenders": [
 				"console_appender",
 				"tcp_appender"
@@ -24,7 +24,7 @@
 		},
 		{
 			"name": "udpLayout",
-			"log_level": "info",
+			"log_level": "INFO",
 			"appenders": [
 				"console_appender",
 				"udp_appender"
@@ -32,7 +32,7 @@
 		}
 	],
 	"root_layout": {
-		"log_level": "warn",
+		"log_level": "WARN",
 		"appenders": [
 			"console_appender",
 			"tcp_appender",

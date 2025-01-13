@@ -2,9 +2,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <regex>
 #include <cstdarg>
 #include <cstring>
+#include <regex>
 
 #if defined(_WIN32)
 
@@ -29,7 +29,8 @@ namespace log4cpp {
 
 	/* A two digit representation of a year. e.g. 99 or 03 */
 	const char *SHORT_YEAR = "${yy}";
-	/* A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999, 2003, 10191 */
+	/* A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999, 2003,
+	 * 10191 */
 	const char *FULL_YEAR = "${yyyy}";
 	/* Numeric representation of a month, without leading zeros. 1 through 12 */
 	const char *SHORT_MONTH = "${M}";
@@ -41,9 +42,11 @@ namespace log4cpp {
 	const char *SHORT_DAY = "${d}";
 	/* Day of the month, 2 digits with leading zeros. 01 to 31 */
 	const char *FULL_DAY = "${dd}";
-	/* 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem. 0 through 12 e.g. AM 01 or PM 11 */
+	/* 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem. 0 through 12
+	 * e.g. AM 01 or PM 11 */
 	const char *SHORT_12HOUR = "${h}";
-	/* 12-hour format of an hour with leading zeros, with Uppercase Ante meridiem and Post meridiem. 00 through 12 e.g. AM 01 or PM 11 */
+	/* 12-hour format of an hour with leading zeros, with Uppercase Ante meridiem and Post meridiem. 00 through 12 e.g.
+	 * AM 01 or PM 11 */
 	const char *FULL_12HOUR = "${hh}";
 	/* 24-hour format of an hour without leading zeros, 0 through 23. e.g. 1 or 23 */
 	const char *SHORT_24HOUR = "${H}";
@@ -59,7 +62,8 @@ namespace log4cpp {
 	const char *FULL_SECOND = "${ss}";
 	/* Milliseconds with leading zeros. 001 to 999 */
 	const char *MILLISECOND = "${ms}";
-	/* The regular expression to match the thread name pattern, e.g. ${8TN}. max width is 16. e.g. "main". If the name is empty, use thread id instead */
+	/* The regular expression to match the thread name pattern, e.g. ${8TN}. max width is 16. e.g. "main". If the name
+	 * is empty, use thread id instead */
 	const std::regex THREAD_NAME_REGEX(R"(\$\{(\d{1,2})?TN\})");
 	/* The regular expression to match the thread id pattern, e.g. ${8TH}. max width is 8. e.g. T12345 */
 	const std::regex THREAD_ID_REGEX(R"(\$\{(\d{1,2})?TH\})");
@@ -68,11 +72,7 @@ namespace log4cpp {
 	/* Log message, e.g.: hello world! */
 	const char *LOG_MESSAGE = "${W}";
 
-	enum class HOUR_BASE {
-		HOUR_NONE,
-		HOUR_12,
-		HOUR_24
-	};
+	enum class HOUR_BASE { HOUR_NONE, HOUR_12, HOUR_24 };
 
 	void format_day(char *buf, size_t len, const std::string &pattern, const tm &now_tm) {
 		log4c_scnprintf(buf, len, "%s", pattern.c_str());
@@ -164,8 +164,7 @@ namespace log4cpp {
 		pos = pattern.find(FULL_MINUTES);
 		if (std::string::npos != pos) {
 			char delimiter = pattern[pos - 1];
-			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%02d", delimiter,
-			                          now_tm.tm_min);
+			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%02d", delimiter, now_tm.tm_min);
 			pattern_end = pos + strlen(FULL_MINUTES);
 		}
 		pos = pattern.find(SHORT_SECOND);
@@ -177,8 +176,7 @@ namespace log4cpp {
 		pos = pattern.find(FULL_SECOND);
 		if (std::string::npos != pos) {
 			char delimiter = pattern[pos - 1];
-			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%02d", delimiter,
-			                          now_tm.tm_sec);
+			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%02d", delimiter, now_tm.tm_sec);
 			pattern_end = pos + strlen(FULL_SECOND);
 		}
 		pos = pattern.find(MILLISECOND);

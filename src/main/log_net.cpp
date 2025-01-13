@@ -2,8 +2,8 @@
 
 #if defined(__linux__)
 
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 
 #endif
 
@@ -60,8 +60,8 @@ bool net_addr::operator==(const net_addr &rhs) const {
 	if (family == net_family::NET_IPv4) {
 		return ip.addr4 == rhs.ip.addr4;
 	}
-	return ip.addr6[0] == rhs.ip.addr6[0] && ip.addr6[1] == rhs.ip.addr6[1] && ip.addr6[2] == rhs.ip.addr6[2] &&
-	       ip.addr6[3] == rhs.ip.addr6[3];
+	return ip.addr6[0] == rhs.ip.addr6[0] && ip.addr6[1] == rhs.ip.addr6[1] && ip.addr6[2] == rhs.ip.addr6[2]
+		   && ip.addr6[3] == rhs.ip.addr6[3];
 }
 
 bool net_addr::operator!=(const net_addr &rhs) const {
@@ -96,8 +96,7 @@ std::string net_addr::to_string() const {
 		s = std::string{buf};
 	}
 	else {
-		throw std::invalid_argument(
-				"Invalid addr family \"" + std::to_string(static_cast<int>(this->family)) + "\"");
+		throw std::invalid_argument("Invalid addr family \"" + std::to_string(static_cast<int>(this->family)) + "\"");
 	}
 	return s;
 }
@@ -116,8 +115,7 @@ sock_addr::sock_addr(const std::string &ip, unsigned short p) : sock_addr(ip.c_s
 }
 
 bool sock_addr::operator==(const sock_addr &rhs) const {
-	return addr == rhs.addr &&
-	       port == rhs.port;
+	return addr == rhs.addr && port == rhs.port;
 }
 
 bool sock_addr::operator!=(const sock_addr &rhs) const {

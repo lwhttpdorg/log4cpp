@@ -1,5 +1,5 @@
 #ifdef _MSC_VER
-#define  _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #ifdef _WIN32
@@ -30,8 +30,8 @@
 
 #include <cstdarg>
 
-#include <boost/json.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/json.hpp>
 
 #include "../include/log4cpp.hpp"
 #include "file_appender.h"

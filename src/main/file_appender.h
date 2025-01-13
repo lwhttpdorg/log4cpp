@@ -2,8 +2,8 @@
 
 #include <boost/json.hpp>
 
-#include "log_lock.h"
 #include "log_appender.h"
+#include "log_lock.h"
 
 namespace log4cpp {
 	class file_appender;
@@ -28,7 +28,7 @@ namespace log4cpp {
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, file_appender_config const &obj);
 
 		friend file_appender_config tag_invoke(boost::json::value_to_tag<file_appender_config>,
-												boost::json::value const &json);
+											   boost::json::value const &json);
 
 	private:
 		std::string file_path{};
@@ -40,7 +40,7 @@ namespace log4cpp {
 
 	file_appender_config tag_invoke(boost::json::value_to_tag<file_appender_config>, boost::json::value const &json);
 
-	class file_appender : public log_appender {
+	class file_appender: public log_appender {
 	public:
 		class builder {
 		public:

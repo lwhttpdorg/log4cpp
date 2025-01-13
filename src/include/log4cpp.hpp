@@ -18,14 +18,7 @@ namespace log4cpp {
 	/**
 	 * The log level.
 	 */
-	enum class log_level {
-		FATAL = 0,
-		ERROR = 1,
-		WARN = 2,
-		INFO = 3,
-		DEBUG = 4,
-		TRACE = 5
-	};
+	enum class log_level { FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5 };
 
 	/**
 	 * Convert log level to string.

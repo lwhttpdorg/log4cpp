@@ -1,19 +1,21 @@
 #if defined(_WIN32)
+// clang-format off
 #include <winsock2.h>
 #include <windows.h>
+// clang-format on
 #include <ws2tcpip.h>
 #endif
 
 #ifdef __linux__
 
-#include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
 #endif
 
-#include "log_net.h"
 #include "layout_pattern.h"
+#include "log_net.h"
 #include "tcp_appender.h"
 
 namespace log4cpp {
@@ -84,8 +86,8 @@ namespace log4cpp {
 			if (FD_ISSET(listen_fd, &tmp_fds)) {
 				sockaddr_storage client_addr{};
 				socklen_t client_addr_len = sizeof(client_addr);
-				net::socket_fd client_fd = accept(listen_fd, reinterpret_cast<struct sockaddr *>(&client_addr),
-				                                  &client_addr_len);
+				net::socket_fd client_fd =
+					accept(listen_fd, reinterpret_cast<struct sockaddr *>(&client_addr), &client_addr_len);
 				if (net::INVALID_FD != client_fd) {
 #ifdef _DEBUG
 					char client_ip[INET6_ADDRSTRLEN];
@@ -163,8 +165,8 @@ namespace log4cpp {
 			throw std::runtime_error("Can not create tcp socket");
 		}
 		this->instance->fd = server_fd;
-		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
-		                                            std::ref(this->instance->clients));
+		this->instance->accept_thread =
+			std::thread(accept_worker, server_fd, this->instance->lock, std::ref(this->instance->clients));
 		return this->instance;
 	}
 
@@ -197,7 +199,7 @@ namespace log4cpp {
 	void tcp_appender::log(const char *msg, size_t msg_len) {
 		std::lock_guard lock_guard(this->lock);
 		for (auto &client: this->clients) {
-			(void) send(client, msg, msg_len, 0);
+			(void)send(client, msg, msg_len, 0);
 		}
 	}
 
@@ -208,18 +210,17 @@ namespace log4cpp {
 		if (instance == nullptr) {
 			std::lock_guard lock(instance_lock);
 			if (instance == nullptr) {
-				instance = tcp_appender::builder::new_builder().set_local_addr(config.local_addr).set_port(
-						config.port).build();
+				instance = tcp_appender::builder::new_builder()
+							   .set_local_addr(config.local_addr)
+							   .set_port(config.port)
+							   .build();
 			}
 		}
 		return instance;
 	}
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, tcp_appender_config const &obj) {
-		json = boost::json::object{
-				{"local_addr", obj.local_addr.to_string()},
-				{"port",       obj.port}
-		};
+		json = boost::json::object{{"local_addr", obj.local_addr.to_string()}, {"port", obj.port}};
 	}
 
 	tcp_appender_config tag_invoke(boost::json::value_to_tag<tcp_appender_config>, boost::json::value const &json) {

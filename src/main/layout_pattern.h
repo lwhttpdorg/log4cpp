@@ -6,10 +6,8 @@
 
 namespace log4cpp {
 	constexpr unsigned short LOG_LINE_MAX = 512;
-	constexpr std::array<const char *, 12> MONTH_ABBR_NAME = {
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	};
+	constexpr std::array<const char *, 12> MONTH_ABBR_NAME = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+															  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 	void format_day(char *buf, size_t len, const std::string &pattern, const tm &now_tm);
 

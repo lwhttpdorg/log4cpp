@@ -1,13 +1,13 @@
 #pragma once
 
+#include <boost/json.hpp>
 #include <memory>
 #include <thread>
 #include <unordered_set>
-#include <boost/json.hpp>
 
+#include "log_appender.h"
 #include "log_lock.h"
 #include "log_net.h"
-#include "log_appender.h"
 
 namespace log4cpp {
 	class udp_appender;
@@ -40,7 +40,7 @@ namespace log4cpp {
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, udp_appender_config const &obj);
 
 		friend udp_appender_config tag_invoke(boost::json::value_to_tag<udp_appender_config>,
-											boost::json::value const &json);
+											  boost::json::value const &json);
 
 	private:
 		net::net_addr local_addr{};
@@ -53,7 +53,7 @@ namespace log4cpp {
 
 	udp_appender_config tag_invoke(boost::json::value_to_tag<udp_appender_config>, boost::json::value const &json);
 
-	class udp_appender final : public log_appender {
+	class udp_appender final: public log_appender {
 	public:
 		class builder {
 		public:

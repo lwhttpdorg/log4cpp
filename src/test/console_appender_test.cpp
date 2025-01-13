@@ -5,7 +5,7 @@
 
 #include "log4cpp.hpp"
 
-class TestEnvironment : public testing::Environment {
+class TestEnvironment: public testing::Environment {
 public:
 	explicit TestEnvironment(const std::string &cur_path) {
 		size_t end = cur_path.find_last_of('\\');

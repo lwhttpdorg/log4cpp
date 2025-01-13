@@ -1,41 +1,42 @@
 #ifdef _MSC_VER
-#define  _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #endif
 
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 #include <utility>
 
-#include "log4cpp_config.h"
 #include "layout_pattern.h"
+#include "log4cpp_config.h"
 #include "log_utils.h"
 
 using namespace log4cpp;
 
 bool valid_appender(const std::string &name) {
 	bool valid = true;
-	if ((name != CONSOLE_APPENDER_NAME) && (name != FILE_APPENDER_NAME) && (name != TCP_APPENDER_NAME) &&
-	    (name != UDP_APPENDER_NAME)) {
+	if ((name != CONSOLE_APPENDER_NAME) && (name != FILE_APPENDER_NAME) && (name != TCP_APPENDER_NAME)
+		&& (name != UDP_APPENDER_NAME)) {
 		valid = false;
 	}
 	return valid;
 }
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const appender_config &obj) {
-	json = boost::json::object{};
+	boost::json::object json_obj = boost::json::object{};
 	if (obj.APPENDER_FLAGS & CONSOLE_APPENDER_FLAG) {
-		json.at(CONSOLE_APPENDER_NAME) = boost::json::value_from(obj.console_cfg);
+		json_obj[CONSOLE_APPENDER_NAME] = boost::json::value_from(obj.console_cfg);
 	}
 	if (obj.APPENDER_FLAGS & FILE_APPENDER_FLAG) {
-		json.at(FILE_APPENDER_NAME) = boost::json::value_from(obj.file_cfg);
+		json_obj[FILE_APPENDER_NAME] = boost::json::value_from(obj.file_cfg);
 	}
 	if (obj.APPENDER_FLAGS & TCP_APPENDER_FLAG) {
-		json.at(TCP_APPENDER_NAME) = boost::json::value_from(obj.tcp_cfg);
+		json_obj[TCP_APPENDER_NAME] = boost::json::value_from(obj.tcp_cfg);
 	}
 	if (obj.APPENDER_FLAGS & UDP_APPENDER_FLAG) {
-		json.at(UDP_APPENDER_NAME) = boost::json::value_from(obj.udp_cfg);
+		json_obj[UDP_APPENDER_NAME] = boost::json::value_from(obj.udp_cfg);
 	}
+	json = json_obj;
 }
 
 appender_config log4cpp::tag_invoke(boost::json::value_to_tag<appender_config>, boost::json::value const &json) {
@@ -125,8 +126,8 @@ layout_config log4cpp::tag_invoke(boost::json::value_to_tag<layout_config>, boos
 	std::vector<std::string> appenders = boost::json::value_to<std::vector<std::string>>(json_obj.at("appenders"));
 	for (auto &appender: appenders) {
 		if (!valid_appender(appender)) {
-			throw std::invalid_argument(
-					"Malformed JSON configuration file: invalid layouts::appenders \"" + appender + "\"");
+			throw std::invalid_argument("Malformed JSON configuration file: invalid layouts::appenders \"" + appender
+										+ "\"");
 		}
 		if (appender == CONSOLE_APPENDER_NAME) {
 			obj.layout_flag |= CONSOLE_APPENDER_FLAG;
@@ -159,27 +160,27 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 		appenders.emplace_back(UDP_APPENDER_NAME);
 	}
 
-	json = boost::json::object{
-			{"name",      obj.name},
-			{"log_level", to_string(obj.level)},
-			{"appenders", boost::json::value_from(appenders)}
-	};
+	boost::json::object json_obj = boost::json::object{};
+	if ("root" != obj.name) {
+		json_obj["name"] = obj.name;
+	}
+	json_obj["log_level"] = to_string(obj.level);
+	json_obj["appenders"] = boost::json::value_from(appenders);
+	json = json_obj;
 }
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const log4cpp_config &obj) {
-	json = boost::json::object{
-			{"layoutPattern", obj.layout_pattern},
-			{"appenders",     boost::json::value_from(obj.appender)},
-			{"layouts",       boost::json::value_from(obj.layouts)},
-			{"root_layout",   boost::json::value_from(obj.root_layout)}
-	};
+	json = boost::json::object{{"layout_pattern", obj.layout_pattern},
+							   {"appenders", boost::json::value_from(obj.appender)},
+							   {"layouts", boost::json::value_from(obj.layouts)},
+							   {"root_layout", boost::json::value_from(obj.root_layout)}};
 }
 
 log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, boost::json::value const &json) {
 	auto json_obj = json.as_object();
 	std::string pattern;
-	if (json_obj.contains("layoutPattern")) {
-		pattern = boost::json::value_to<std::string>(json_obj.at("layoutPattern"));
+	if (json_obj.contains("layout_pattern")) {
+		pattern = boost::json::value_to<std::string>(json_obj.at("layout_pattern"));
 		layout_pattern::set_pattern(pattern);
 	}
 	if (!json_obj.contains("appenders")) {
@@ -204,7 +205,7 @@ log4cpp_config log4cpp_config::load_config(const std::string &json_file) {
 		std::filesystem::path current_path = std::filesystem::current_path();
 		char errbuf[1024];
 		log4c_scnprintf(errbuf, sizeof(errbuf), "%s:%u %s, can not open the file %s%s", __FILE__, __LINE__,
-		                __FUNCTION__, current_path.c_str(), json_file.c_str() + 1);
+						__FUNCTION__, current_path.c_str(), json_file.c_str() + 1);
 		throw std::filesystem::filesystem_error(errbuf, std::make_error_code(std::io_errc::stream));
 	}
 	std::string a_string;
@@ -242,7 +243,7 @@ std::string log4cpp_config::serialize(const log4cpp_config &obj) {
 }
 
 log4cpp_config::log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<layout_config> &l,
-                               layout_config root) {
+							   layout_config root) {
 	this->layout_pattern = std::move(_pattern);
 	layout_pattern::set_pattern(this->layout_pattern);
 	this->appender = o;

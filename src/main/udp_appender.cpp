@@ -1,13 +1,15 @@
 #if defined(_WIN32)
+// clang-format off
 #include <winsock2.h>
 #include <windows.h>
+// clang-format on
 #include <ws2tcpip.h>
 #endif
 
 #ifdef __linux__
 
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
 #endif
 
@@ -84,8 +86,7 @@ namespace log4cpp {
 				sockaddr_storage client_addr{};
 				socklen_t client_addr_len = sizeof(client_addr);
 				ssize_t len = recvfrom(listen_fd, buffer, sizeof(buffer) - 1, 0,
-				                       reinterpret_cast<struct sockaddr *>(&client_addr),
-				                       &client_addr_len);
+									   reinterpret_cast<struct sockaddr *>(&client_addr), &client_addr_len);
 				if (len < 0) {
 					continue;
 				}
@@ -147,8 +148,8 @@ namespace log4cpp {
 			throw std::runtime_error("Can not create tcp socket");
 		}
 		this->instance->fd = server_fd;
-		this->instance->accept_thread = std::thread(accept_worker, server_fd, this->instance->lock,
-		                                            std::ref(this->instance->clients));
+		this->instance->accept_thread =
+			std::thread(accept_worker, server_fd, this->instance->lock, std::ref(this->instance->clients));
 		return this->instance;
 	}
 
@@ -178,16 +179,16 @@ namespace log4cpp {
 				client_addr.sin_family = AF_INET;
 				client_addr.sin_port = htons(client.port);
 				client_addr.sin_addr.s_addr = htonl(client.addr.ip.addr4);
-				(void) sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-				              sizeof(client_addr));
+				(void)sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
+							 sizeof(client_addr));
 			}
 			else {
 				sockaddr_in6 client_addr{};
 				client_addr.sin6_family = AF_INET6;
 				client_addr.sin6_port = htons(client.port);
 				client_addr.sin6_addr = in6addr_any;
-				(void) sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
-				              sizeof(client_addr));
+				(void)sendto(this->fd, msg, msg_len, 0, reinterpret_cast<sockaddr *>(&client_addr),
+							 sizeof(client_addr));
 			}
 		}
 	}
@@ -199,18 +200,17 @@ namespace log4cpp {
 		if (instance == nullptr) {
 			std::lock_guard lock(udp_appender_config::instance_lock);
 			if (instance == nullptr) {
-				instance = udp_appender::builder::new_builder().set_local_addr(config.local_addr).set_port(
-						config.port).build();
+				instance = udp_appender::builder::new_builder()
+							   .set_local_addr(config.local_addr)
+							   .set_port(config.port)
+							   .build();
 			}
 		}
 		return instance;
 	}
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, const udp_appender_config &obj) {
-		json = boost::json::object{
-				{"local_addr", obj.local_addr.to_string()},
-				{"port",       obj.port}
-		};
+		json = boost::json::object{{"local_addr", obj.local_addr.to_string()}, {"port", obj.port}};
 	}
 
 	udp_appender_config tag_invoke(boost::json::value_to_tag<udp_appender_config>, boost::json::value const &json) {

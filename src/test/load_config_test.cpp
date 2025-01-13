@@ -13,7 +13,7 @@
 #include "log4cpp.hpp"
 #include "main/log4cpp_config.h"
 
-class TestEnvironment : public testing::Environment {
+class TestEnvironment: public testing::Environment {
 public:
 	explicit TestEnvironment(const std::string &cur_path) {
 		size_t end = cur_path.find_last_of('\\');
@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 }
 
 void layout_pattern_cfg_check(const nlohmann::json &expected_json, const std::string &layout_pattern) {
-	const std::string expected = expected_json.at("layoutPattern");
+	const std::string expected = expected_json.at("layout_pattern");
 	EXPECT_EQ(layout_pattern, expected);
 }
 
@@ -146,10 +146,7 @@ namespace log4cpp {
 		std::vector<std::string> appenders;
 		appender_flag_to_name(obj.get_layout_flag(), appenders);
 		json = nlohmann::json{
-				{"name",      obj.get_logger_name()},
-				{"log_level", obj.get_logger_level()},
-				{"appenders", appenders}
-		};
+			{"name", obj.get_logger_name()}, {"log_level", obj.get_logger_level()}, {"appenders", appenders}};
 	}
 }
 
@@ -159,8 +156,8 @@ void layout_cfg_check(const nlohmann::json &expected_json, const std::vector<log
 		return;
 	}
 	const nlohmann::json &layouts_json = expected_json.at("layouts");
-	const std::vector<log4cpp::layout_config> expected_layouts = layouts_json.get<std::vector<
-			log4cpp::layout_config>>();
+	const std::vector<log4cpp::layout_config> expected_layouts =
+		layouts_json.get<std::vector<log4cpp::layout_config>>();
 	EXPECT_EQ(actual_layouts, expected_layouts);
 }
 

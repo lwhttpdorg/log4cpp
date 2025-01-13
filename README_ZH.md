@@ -45,7 +45,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "layoutPattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "layout_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -214,14 +214,14 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
   "layouts": [
 	{
 	  "name": "consoleLogger",
-	  "log_level": "info",
+	  "log_level": "INFO",
 	  "appenders": [
 		"console_appender"
 	  ]
 	},
 	{
 	  "name": "recordLogger",
-	  "log_level": "error",
+	  "log_level": "ERROR",
 	  "appenders": [
 		"file_appender",
 		"tcp_appender",
@@ -230,7 +230,7 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 	}
   ],
   "rootLogger": {
-	"log_level": "info",
+	"log_level": "INFO",
 	"appenders": [
 	  "file_appender",
 	  "tcp_appender",

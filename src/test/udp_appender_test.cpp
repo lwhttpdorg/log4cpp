@@ -1,17 +1,17 @@
-#include <thread>
 #include <filesystem>
+#include <thread>
 
 #ifdef _WIN32
-#include <winsock2.h>
-#include <windows.h>
 #include <WS2tcpip.h>
+#include <windows.h>
+#include <winsock2.h>
 #endif
 
 #ifdef __linux__
 
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 #endif
 
@@ -20,7 +20,7 @@
 #include "log4cpp.hpp"
 #include "main/log4cpp_config.h"
 
-class TestEnvironment : public testing::Environment {
+class TestEnvironment: public testing::Environment {
 public:
 	explicit TestEnvironment(const std::string &cur_path) {
 		size_t end = cur_path.find_last_of('\\');

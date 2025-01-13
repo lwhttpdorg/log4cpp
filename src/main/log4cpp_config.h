@@ -65,14 +65,10 @@ namespace log4cpp {
 		layout_config &operator=(layout_config &&other) noexcept;
 
 		friend bool operator<(const layout_config &lhs, const layout_config &rhs) {
-			if (lhs.name < rhs.name)
-				return true;
-			if (rhs.name < lhs.name)
-				return false;
-			if (lhs.level < rhs.level)
-				return true;
-			if (rhs.level < lhs.level)
-				return false;
+			if (lhs.name < rhs.name) return true;
+			if (rhs.name < lhs.name) return false;
+			if (lhs.level < rhs.level) return true;
+			if (rhs.level < lhs.level) return false;
 			return lhs.layout_flag < rhs.layout_flag;
 		}
 
@@ -161,7 +157,7 @@ namespace log4cpp {
 		log4cpp_config() = default;
 
 		log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<layout_config> &l,
-						layout_config root);
+					   layout_config root);
 
 		log4cpp_config(const log4cpp_config &other);
 
@@ -182,7 +178,7 @@ namespace log4cpp {
 		friend class layout_manager;
 
 	private:
-		std::string layout_pattern; // layoutPattern
+		std::string layout_pattern; // layout_pattern
 		appender_config appender{}; // appenders
 		std::vector<layout_config> layouts; // layouts
 		layout_config root_layout; // root_layout

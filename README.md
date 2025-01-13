@@ -45,7 +45,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "layoutPattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -223,7 +223,7 @@ Root layout is an object, only `log_level` and `Appenders`, no `name`, internal 
   "layouts": [
 	{
 	  "name": "console_layout",
-	  "log_level": "info",
+	  "log_level": "INFO",
 	  "appenders": [
 		"console_appender",
 		"tcp_appender",
@@ -232,14 +232,14 @@ Root layout is an object, only `log_level` and `Appenders`, no `name`, internal 
 	},
 	{
 	  "name": "file_layout",
-	  "log_level": "warn",
+	  "log_level": "WARN",
 	  "appenders": [
 		"file_appender"
 	  ]
 	}
   ],
   "root_layout": {
-	"log_level": "info",
+	"log_level": "INFO",
 	"appenders": [
 	  "console_appender",
 	  "file_appender",

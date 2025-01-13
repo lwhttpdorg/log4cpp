@@ -50,9 +50,7 @@ namespace log4cpp::net {
 	};
 #endif
 
-	enum class net_family {
-		NET_IPv4, NET_IPv6
-	};
+	enum class net_family { NET_IPv4, NET_IPv6 };
 
 	class net_addr {
 	public:
@@ -107,7 +105,7 @@ namespace std {
 				h = std::hash<unsigned int>{}(addr.ip.addr4);
 			}
 			else {
-				for (const auto x:addr.ip.addr6) {
+				for (const auto x: addr.ip.addr6) {
 					h ^= std::hash<unsigned int>{}(x);
 				}
 			}

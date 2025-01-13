@@ -1,5 +1,5 @@
 {
-	"layoutPattern": "${yyyy}-${MM}-${dd} ${h}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"layout_pattern": "${yyyy}-${MM}-${dd} ${h}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
 		"console_appender": {
 			"out_stream": "stdout"
@@ -17,7 +17,7 @@
 		}
 	},
 	"root_layout": {
-		"log_level": "info",
+		"log_level": "INFO",
 		"appenders": [
 			"console_appender",
 			"file_appender",

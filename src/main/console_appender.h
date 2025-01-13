@@ -2,11 +2,11 @@
 
 #include <boost/json.hpp>
 
-#include "log_lock.h"
 #include "log_appender.h"
+#include "log_lock.h"
 
 namespace log4cpp {
-	class console_appender final : public log_appender {
+	class console_appender final: public log_appender {
 	public:
 		console_appender(const console_appender &other) = delete;
 
@@ -68,10 +68,10 @@ namespace log4cpp {
 		}
 
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json,
-								console_appender_config const &obj);
+							   console_appender_config const &obj);
 
 		friend console_appender_config tag_invoke(boost::json::value_to_tag<console_appender_config>,
-												boost::json::value const &json);
+												  boost::json::value const &json);
 
 	private:
 		/* The out stream, "stdout" or "stderr" */
@@ -83,5 +83,5 @@ namespace log4cpp {
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, console_appender_config const &obj);
 
 	console_appender_config tag_invoke(boost::json::value_to_tag<console_appender_config>,
-										boost::json::value const &json);
+									   boost::json::value const &json);
 }
