@@ -89,8 +89,7 @@ udp_appender)
 	  "out_stream": "stdout"
 	},
 	"file_appender": {
-	  "file_path": "log/log4cpp.log",
-	  "append": false
+	  "file_path": "log/log4cpp.log"
 	},
 	"tcp_appender": {
 	  "local_addr": "0.0.0.0",
@@ -130,8 +129,7 @@ udp_appender)
 {
   "appenders": {
 	"file_appender": {
-	  "file_path": "log/log4cpp.log",
-	  "append": true
+	  "file_path": "log/log4cpp.log"
 	}
   }
 }
@@ -140,7 +138,6 @@ udp_appender)
 说明:
 
 * `file_path`: 输出文件名
-* `append`: 追加还是覆盖, 默认追加(true)
 
 #### 3.2.5 TCP输出器
 
@@ -159,7 +156,7 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 
 说明:
 
-* `local_addr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
+* `local_addr`: 监听地址. 如`0.0.0.0`, `::`, `127.0.0.1`, `::1`
 * `port`: 监听端口
 
 _注意: 如果有多个TCP客户端, 会便利所有客户端逐个发送日志_
@@ -191,47 +188,49 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 
 说明:
 
-* `local_addr`: 监听地址. 如"0.0.0.0", "::", "127.0.0.1", "::1"
+* `local_addr`: 监听地址. 如`0.0.0.0`, `::`, `127.0.0.1`, `::1`
 * `port`: 监听端口
 
-### 3.3 配置logger
+### 3.3 配置layout
 
-logger分为命名logger(配置名`layouts`)和默认logger(配置名`rootLogger`), getLogger时如果没有指定名称的logger, 则返回默认logger
+layout分为命名layout(配置名`layouts`)和默认layout(配置名`root_layout`), `log4cpp::layout_manager::get_layout`
+时如果没有指定名称的layout, 则返回默认layout
 
-_注意: 命名logger可以没有, 但是默认logger必须有_
+_注意: 命名layout可以没有, 但是默认layout必须有_
 
-命名logger是一个数组, 每个logger配置包括:
+命名layout是一个数组, 每个layout配置包括:
 
-* `name`: logger名称, 用于获取logger, 不能重复, 不能是`root`
+* `name`: layout名称, 用于获取layout, 不能重复, 不能是`root`
 * `log_level`: log级别, 只有大于等于此级别的log才会输出
-* `Appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console_appender`, `file_appender`, `tcp_appender`,
+* `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console_appender`, `file_appender`, `tcp_appender`,
   `udp_appender`
 
-默认logger是一个对象, 只有`log_level`和`Appenders`, 没有`name`, 内部实现`name`为`root`
+默认layout是一个对象, 只有`log_level`和`appenders`, 没有`name`, 内部实现`name`为`root`
 
 ```json
 {
   "layouts": [
 	{
-	  "name": "consoleLogger",
+	  "name": "console_layout",
 	  "log_level": "INFO",
 	  "appenders": [
-		"console_appender"
-	  ]
-	},
-	{
-	  "name": "recordLogger",
-	  "log_level": "ERROR",
-	  "appenders": [
-		"file_appender",
+		"console_appender",
 		"tcp_appender",
 		"udp_appender"
 	  ]
+	},
+	{
+	  "name": "file_layout",
+	  "log_level": "WARN",
+	  "appenders": [
+		"file_appender"
+	  ]
 	}
   ],
-  "rootLogger": {
+  "root_layout": {
 	"log_level": "INFO",
 	"appenders": [
+	  "console_appender",
 	  "file_appender",
 	  "tcp_appender",
 	  "udp_appender"
@@ -248,7 +247,7 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 2. 如果配置文件不在当前路径下, 或者文件名不是`log4cpp.json`, 需要手动加载配置文件
 
 ```c++
-log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
+log4cpp::layout_manager::load_config("/config_path/log4cpp.json");
 ```
 
 ### 3.5 在代码中使用
@@ -259,13 +258,13 @@ log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
 #include "log4cpp.hpp"
 ```
 
-然后获取logger实例. 通过`name`获取配置logger, 如果不存在指定的logger, 则返回默认的`rootLogger`
+然后获取layout实例. 通过`name`获取配置layout, 如果不存在指定的layout, 则返回默认的`root_layout`
 
 ```c++
-std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
+std::shared_ptr<log4cpp::layout> layout = log4cpp::layout_manager::get_layout("recordLogger");
 ```
 
-获取logger后, 可以使用下面的方法输出log:
+获取layout后, 可以使用下面的方法输出log:
 
 ```c++
 void trace(const char *__restrict fmt, ...);
@@ -393,21 +392,7 @@ endif()
 
 ### 4.1 boost库
 
-本项目从github在线拉去boost库, 你也可以修改[CMakeLists.txt](src/main/CMakeLists.txt)使用本地boost库,
-取消对应位置的注释即可:
-
-```cmake
-find_package(Boost 1.75 REQUIRED COMPONENTS json)
-if(Boost_FOUND)
-	#message(STATUS "Boost_LIB_VERSION = ${Boost_VERSION}")
-	#message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
-	#message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
-	#message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
-	include_directories(${Boost_INCLUDE_DIRS})
-	link_directories(${Boost_LIBRARY_DIRS})
-	target_link_libraries(${TARGET_NAME} ${Boost_LIBRARIES})
-endif()
-```
+本项目优先使用本地boost库, 如果没找到本地boost库则从github在线拉取boost库
 
 如果CMake没有自动找到Boost路径, 可以手动设置Boost路径:
 

@@ -45,7 +45,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "layout_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -205,7 +205,7 @@ There are two types of Layouts:
 * **Named layout**: configuration name `layouts`
 * **Root layout**: configuration name `root_layout`
 
-If there is no layout with a specified name when getLayout, the `root_layout` is returned
+If there is no layout with a specified name when `log4cpp::layout_manager::get_layout`, the `root_layout` is returned
 
 _Note: The named layout is optional, but the root layout must be present_
 
@@ -213,10 +213,10 @@ Named layouts are an array, and each layout configuration includes:
 
 * `name`: layout name, used to get layouts, unique, cannot be `root`
 * `log_level`: log level, only logs greater than or equal to this level will be output
-* `Appenders`: appender, Must be configured in `Appenders` before it can be referenced here. Appender can be
+* `appenders`: appender, Must be configured in `appenders` before it can be referenced here. Appender can be
   `console_appender`, `file_appender`, `tcp_appender`, `udp_appender`
 
-Root layout is an object, only `log_level` and `Appenders`, no `name`, internal implementation of `name` is `root`
+Root layout is an object, only `log_level` and `appenders`, no `name`, internal implementation of `name` is `root`
 
 ```json
 {
