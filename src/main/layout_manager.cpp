@@ -1,5 +1,9 @@
 #include <filesystem>
 
+#include "log4cpp.hpp"
+#include "log4cpp_config.h"
+#include "logger_builder.h"
+
 #if defined(_WIN32)
 #include <io.h>
 #include <windows.h>
@@ -8,10 +12,6 @@
 #ifdef _MSC_VER
 #define F_OK 0
 #endif
-
-#include "log4cpp.hpp"
-#include "log4cpp_config.h"
-#include "logger_builder.h"
 
 using namespace log4cpp;
 
@@ -30,7 +30,7 @@ std::shared_ptr<log_appender> layout_manager::console_appender = nullptr;
 std::shared_ptr<log_appender> layout_manager::file_appender = nullptr;
 std::shared_ptr<log_appender> layout_manager::tcp_appender = nullptr;
 std::shared_ptr<log_appender> layout_manager::udp_appender = nullptr;
-std::unordered_map<std::string, std::shared_ptr<layout>> layout_manager::layouts;
+std::unordered_map<std::string, std::shared_ptr<layout> > layout_manager::layouts;
 std::shared_ptr<layout> layout_manager::root_layout = nullptr;
 
 void layout_manager::load_config(const std::string &json_filepath) {
@@ -40,7 +40,7 @@ void layout_manager::load_config(const std::string &json_filepath) {
 	}
 	else {
 		throw std::filesystem::filesystem_error("Config file " + json_filepath + " opening failed!",
-												std::make_error_code(std::io_errc::stream));
+		                                        std::make_error_code(std::io_errc::stream));
 	}
 }
 
@@ -77,8 +77,8 @@ std::shared_ptr<layout> layout_manager::get_layout(const std::string &name) {
 void layout_manager::build_appender() {
 	appender_config appender_cfg = config.appender;
 	if (appender_cfg.APPENDER_FLAGS & CONSOLE_APPENDER_FLAG) {
-		console_appender =
-			std::shared_ptr<log_appender>(console_appender_config::get_instance(appender_cfg.console_cfg));
+		console_appender = std::shared_ptr<log_appender>(
+			console_appender_config::get_instance(appender_cfg.console_cfg));
 	}
 	if (appender_cfg.APPENDER_FLAGS & FILE_APPENDER_FLAG) {
 		file_appender = std::shared_ptr<log_appender>(file_appender_config::get_instance(appender_cfg.file_cfg));
