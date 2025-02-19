@@ -27,7 +27,7 @@ Features:
 3. Boost >= 1.75
 
 _Warning: Due to a series of bugs in the MSVC compiler, this project no longer supports MSVC. Any errors on the MSVC
-platform will no longer be resolved. It is recommended to use MingW64_
+platform will no longer be fixed. It is recommended to use MingW64_
 
 ## 3. Usage
 
