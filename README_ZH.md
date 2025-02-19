@@ -26,6 +26,8 @@ log4cpp是一个C++日志库, 参照log4j实现
 2. CMake 3.11及以上版本
 3. Boost >= 1.75
 
+_警告: 由于MSVC编译器的一些列bug，本项目不再支持MSVC。任何MSVC平台的错误都不再解决，建议使用MingW64_
+
 ## 3. 使用
 
 ### 3.1 在CMake项目中使用
@@ -85,20 +87,20 @@ udp_appender)
 ```json
 {
   "appenders": {
-	"console_appender": {
-	  "out_stream": "stdout"
-	},
-	"file_appender": {
-	  "file_path": "log/log4cpp.log"
-	},
-	"tcp_appender": {
-	  "local_addr": "0.0.0.0",
-	  "port": 9443
-	},
-	"udp_appender": {
-	  "local_addr": "0.0.0.0",
-	  "port": 9443
-	}
+    "console_appender": {
+      "out_stream": "stdout"
+    },
+    "file_appender": {
+      "file_path": "log/log4cpp.log"
+    },
+    "tcp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    },
+    "udp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    }
   }
 }
 ```
@@ -110,9 +112,9 @@ udp_appender)
 ```json
 {
   "appenders": {
-	"console_appender": {
-	  "out_stream": "stdout"
-	}
+    "console_appender": {
+      "out_stream": "stdout"
+    }
   }
 }
 ```
@@ -128,9 +130,9 @@ udp_appender)
 ```json
 {
   "appenders": {
-	"file_appender": {
-	  "file_path": "log/log4cpp.log"
-	}
+    "file_appender": {
+      "file_path": "log/log4cpp.log"
+    }
   }
 }
 ```
@@ -146,10 +148,10 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 ```json
 {
   "appenders": {
-	"tcp_appender": {
-	  "local_addr": "0.0.0.0",
-	  "port": 9443
-	}
+    "tcp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    }
   }
 }
 ```
@@ -178,10 +180,10 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 ```json
 {
   "appenders": {
-	"udp_appender": {
-	  "local_addr": "0.0.0.0",
-	  "port": 9443
-	}
+    "udp_appender": {
+      "local_addr": "0.0.0.0",
+      "port": 9443
+    }
   }
 }
 ```
@@ -210,31 +212,31 @@ _注意: 命名layout可以没有, 但是默认layout必须有_
 ```json
 {
   "layouts": [
-	{
-	  "name": "console_layout",
-	  "log_level": "INFO",
-	  "appenders": [
-		"console_appender",
-		"tcp_appender",
-		"udp_appender"
-	  ]
-	},
-	{
-	  "name": "file_layout",
-	  "log_level": "WARN",
-	  "appenders": [
-		"file_appender"
-	  ]
-	}
+    {
+      "name": "console_layout",
+      "log_level": "INFO",
+      "appenders": [
+        "console_appender",
+        "tcp_appender",
+        "udp_appender"
+      ]
+    },
+    {
+      "name": "file_layout",
+      "log_level": "WARN",
+      "appenders": [
+        "file_appender"
+      ]
+    }
   ],
   "root_layout": {
-	"log_level": "INFO",
-	"appenders": [
-	  "console_appender",
-	  "file_appender",
-	  "tcp_appender",
-	  "udp_appender"
-	]
+    "log_level": "INFO",
+    "appenders": [
+      "console_appender",
+      "file_appender",
+      "tcp_appender",
+      "udp_appender"
+    ]
   }
 }
 ```
@@ -366,9 +368,9 @@ FetchContent_MakeAvailable(log4cpp)
 
 target_link_libraries(${TARGET_NAME} log4cpp)
 
-if(CMAKE_HOST_UNIX)
-	target_link_libraries(demo pthread)
-endif()
+if (CMAKE_HOST_UNIX)
+    target_link_libraries(demo pthread)
+endif ()
 ```
 
 输出log示例:
@@ -397,15 +399,15 @@ endif()
 如果CMake没有自动找到Boost路径, 可以手动设置Boost路径:
 
 ```cmake
-if(CMAKE_HOST_WIN32)
-	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-		set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-	endif()
-else()
-	set(BOOST_ROOT "/usr/local/boost")
-endif()
+if (CMAKE_HOST_WIN32)
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
+    endif ()
+else ()
+    set(BOOST_ROOT "/usr/local/boost")
+endif ()
 ```
 
 ### 4.2 CMake编译选项
