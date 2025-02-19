@@ -120,11 +120,11 @@ namespace log4cpp {
 		if (std::string::npos != pos) {
 			hour_base = HOUR_BASE::HOUR_12;
 			pattern_start = pos;
-			if (now_tm.tm_hour < 12) {
-				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm.tm_hour);
+			if (now_tm.tm_hour > 12) {
+				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm.tm_hour - 12);
 			}
 			else {
-				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm.tm_hour - 12);
+				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%d", now_tm.tm_hour);
 			}
 			pattern_end = pos + strlen(SHORT_12HOUR);
 		}
@@ -139,11 +139,11 @@ namespace log4cpp {
 		if (std::string::npos != pos) {
 			hour_base = HOUR_BASE::HOUR_12;
 			pattern_start = pos;
-			if (now_tm.tm_hour < 12) {
-				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm.tm_hour);
+			if (now_tm.tm_hour > 12) {
+				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm.tm_hour - 12);
 			}
 			else {
-				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm.tm_hour - 12);
+				tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%02d", now_tm.tm_hour);
 			}
 			pattern_end = pos + strlen(FULL_12HOUR);
 		}

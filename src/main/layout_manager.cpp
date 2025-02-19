@@ -1,12 +1,16 @@
 #include <filesystem>
 
 #include "log4cpp.hpp"
+
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
+
 #include "log4cpp_config.h"
 #include "logger_builder.h"
 
 #if defined(_WIN32)
 #include <io.h>
-#include <windows.h>
 #endif
 
 #ifdef _MSC_VER
@@ -30,7 +34,7 @@ std::shared_ptr<log_appender> layout_manager::console_appender = nullptr;
 std::shared_ptr<log_appender> layout_manager::file_appender = nullptr;
 std::shared_ptr<log_appender> layout_manager::tcp_appender = nullptr;
 std::shared_ptr<log_appender> layout_manager::udp_appender = nullptr;
-std::unordered_map<std::string, std::shared_ptr<layout> > layout_manager::layouts;
+std::unordered_map<std::string, std::shared_ptr<layout>> layout_manager::layouts;
 std::shared_ptr<layout> layout_manager::root_layout = nullptr;
 
 void layout_manager::load_config(const std::string &json_filepath) {

@@ -3,6 +3,14 @@
 #include <nlohmann/json.hpp>
 
 #include "log4cpp.hpp"
+
+#ifdef _MSC_VER
+// clang-format off
+#include <winsock2.h>
+#include <windows.h>
+// clang-format on
+
+#endif
 #include "main/log4cpp_config.h"
 
 #include "gtest/gtest.h"
