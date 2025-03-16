@@ -35,7 +35,7 @@ platform will no longer be fixed. It is recommended to use MingW64_
 
 ````cmake
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.5)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.6)
 
 FetchContent_MakeAvailable(log4cpp)
 
@@ -379,7 +379,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 file(COPY ./log4cpp.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.5)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/SandroDickens/log4cpp.git GIT_TAG v3.0.6)
 
 FetchContent_MakeAvailable(log4cpp)
 
