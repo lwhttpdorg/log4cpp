@@ -1,4 +1,4 @@
-set(TARGET_NAME demo)
+set(TARGET_NAME log4cpp_demo)
 
 add_executable(${TARGET_NAME} demo.cpp)
 
@@ -16,5 +16,5 @@ target_include_directories(${TARGET_NAME} PUBLIC "../src/include")
 target_link_libraries(${TARGET_NAME} log4cpp)
 
 if (CMAKE_HOST_UNIX)
-    target_link_libraries(demo pthread)
+    target_link_libraries(${TARGET_NAME} pthread)
 endif ()
