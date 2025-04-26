@@ -99,3 +99,7 @@ endif ()
 if (CMAKE_HOST_UNIX)
     target_link_libraries(${TARGET_NAME} pthread)
 endif ()
+
+install(FILES ${INSTALL_HEAD_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
