@@ -3,9 +3,9 @@
 #include <string>
 #include <unordered_map>
 
+#include <cstdarg>
 #include <list>
 #include <memory>
-#include <cstdarg>
 
 #include <stdexcept>
 
@@ -21,9 +21,7 @@ namespace log4cpp {
 	/**
 	 * The log level.
 	 */
-	enum class log_level {
-		FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5
-	};
+	enum class log_level { FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5 };
 
 	/**
 	 * Convert log level to string.
@@ -104,7 +102,7 @@ namespace log4cpp {
 		virtual void trace(const char *__restrict fmt, ...) const = 0;
 	};
 
-	class layout : public logger {
+	class layout: public logger {
 	public:
 		layout();
 
@@ -155,7 +153,7 @@ namespace log4cpp {
 		std::list<std::shared_ptr<log_appender>> appenders;
 	};
 
-	class layout_proxy : public logger {
+	class layout_proxy: public logger {
 	public:
 		explicit layout_proxy(std::shared_ptr<layout> target_logger) : real_logger(std::move(target_logger)) {
 			if (!real_logger) {

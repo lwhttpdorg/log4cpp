@@ -25,7 +25,7 @@ typedef SSIZE_T ssize_t;
 #include "log4cpp.hpp"
 #include "main/log4cpp_config.h"
 
-class TestEnvironment : public testing::Environment {
+class TestEnvironment: public testing::Environment {
 public:
 	explicit TestEnvironment(const std::string &cur_path) {
 		size_t end = cur_path.find_last_of('\\');
@@ -110,8 +110,8 @@ TEST(tcp_appender_test, tcp_appender_test) {
 	log4cpp::log_level max_level = log->get_level();
 	unsigned int log_count = static_cast<int>(max_level) + 1; // enum start from 0q
 
-	std::thread tcp_appender_thread = std::thread(&tcp_appender_client, std::ref(running), std::ref(finished),
-	                                              log_count, port);
+	std::thread tcp_appender_thread =
+		std::thread(&tcp_appender_client, std::ref(running), std::ref(finished), log_count, port);
 
 	while (!running) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
