@@ -263,7 +263,7 @@ log4cpp::layout_manager::load_config("/config_path/log4cpp.json");
 然后获取layout实例. 通过`name`获取配置layout, 如果不存在指定的layout, 则返回默认的`root_layout`
 
 ```c++
-std::shared_ptr<log4cpp::layout> layout = log4cpp::layout_manager::get_layout("recordLogger");
+std::shared_ptr<log4cpp::logger> layout = log4cpp::layout_manager::get_layout("recordLogger");
 ```
 
 获取layout后, 可以使用下面的方法输出log:
@@ -323,7 +323,7 @@ void set_thread_name(const char *name) {
 
 void thread_routine() {
 	set_thread_name("child");
-	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("recordLayout");
+	std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("recordLayout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
@@ -335,7 +335,7 @@ void thread_routine() {
 int main() {
 	std::thread t(thread_routine);
 	set_thread_name("main");
-	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("console_layout");
+	std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("console_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");

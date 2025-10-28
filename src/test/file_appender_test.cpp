@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 }
 
 void info_layout() {
-	const std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("info_layout");
+	const std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("info_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
@@ -34,7 +34,7 @@ void info_layout() {
 }
 
 void warn_layout() {
-	const std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("warn_layout");
+	const std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("warn_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");

@@ -25,7 +25,7 @@ typedef SSIZE_T ssize_t;
 #include "log4cpp.hpp"
 #include "main/log4cpp_config.h"
 
-class TestEnvironment: public testing::Environment {
+class TestEnvironment : public testing::Environment {
 public:
 	explicit TestEnvironment(const std::string &cur_path) {
 		size_t end = cur_path.find_last_of('\\');
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 	return RUN_ALL_TESTS();
 }
 
-int tcp_appender_client(std::atomic_bool &running, unsigned int log_count, unsigned port) {
+int tcp_appender_client(std::atomic_bool &running, std::atomic_bool &finished, unsigned int log_count, unsigned port) {
 	log4cpp::net::socket_fd fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (log4cpp::net::INVALID_FD == fd) {
 		printf("socket creation failed...\n");
@@ -72,11 +72,11 @@ int tcp_appender_client(std::atomic_bool &running, unsigned int log_count, unsig
 	running.store(true);
 	char buffer[1024];
 	unsigned int index = 0;
-	for (index = 0; index < log_count; index++) {
+	while (!finished) {
 		ssize_t len = recv(fd, buffer, sizeof(buffer) - 1, 0);
 		if (len > 0) {
 			buffer[len] = 0;
-			printf("TCP[%u]: %s", index, buffer);
+			printf("TCP[%u]: %s", index++, buffer);
 		}
 		else if (len == -1) {
 			break;
@@ -104,12 +104,14 @@ TEST(tcp_appender_test, tcp_appender_test) {
 	WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
 	std::atomic_bool running(false);
+	std::atomic_bool finished(false);
 
-	const std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("tcpLayout");
+	const std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("tcpLayout");
 	log4cpp::log_level max_level = log->get_level();
-	unsigned int log_count = static_cast<int>(max_level);
+	unsigned int log_count = static_cast<int>(max_level) + 1; // enum start from 0q
 
-	std::thread tcp_appender_thread = std::thread(&tcp_appender_client, std::ref(running), log_count, port);
+	std::thread tcp_appender_thread = std::thread(&tcp_appender_client, std::ref(running), std::ref(finished),
+	                                              log_count, port);
 
 	while (!running) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -117,8 +119,11 @@ TEST(tcp_appender_test, tcp_appender_test) {
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
+	log->warn("this is a warning");
 	log->error("this is an error");
 	log->fatal("this is a fatal");
+
+	finished.store(true);
 
 	tcp_appender_thread.join();
 #ifdef _WIN32

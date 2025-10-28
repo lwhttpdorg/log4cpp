@@ -4,7 +4,7 @@
 
 void thread_routine() {
 	log4cpp::set_thread_name("child");
-	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("recordLayout");
+	std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("recordLayout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
@@ -16,7 +16,7 @@ void thread_routine() {
 int main() {
 	std::thread child(thread_routine);
 	log4cpp::set_thread_name("main");
-	std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("console_layout");
+	std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("console_layout");
 
 	log->trace("this is a trace");
 	log->info("this is a info");

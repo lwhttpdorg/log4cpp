@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 }
 
 void console_appender_layout() {
-	const std::shared_ptr<log4cpp::layout> log = log4cpp::layout_manager::get_layout("console_layout");
+	const std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("console_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");

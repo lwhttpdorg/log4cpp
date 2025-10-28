@@ -199,7 +199,7 @@ void configuration_cfg_check(const nlohmann::json &expected_json, const log4cpp:
 
 TEST(load_config_test, auto_load_config) {
 	// Just to load the configuration file
-	std::shared_ptr<log4cpp::layout> layout = log4cpp::layout_manager::get_layout("console_layout");
+	std::shared_ptr<log4cpp::logger> layout = log4cpp::layout_manager::get_layout("console_layout");
 	const log4cpp::log4cpp_config *config = log4cpp::layout_manager::get_config();
 	ASSERT_NE(nullptr, config);
 
