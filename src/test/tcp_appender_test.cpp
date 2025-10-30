@@ -94,9 +94,8 @@ int tcp_appender_client(std::atomic_bool &running, std::atomic_bool &finished, u
 
 TEST(tcp_appender_test, tcp_appender_test) {
 	const std::string config_file = "tcp_udp_appender_test.json";
-	auto &log_mgr = log4cpp::logger_manager::instance();
-	log_mgr.load_config(config_file);
-	const log4cpp::log4cpp_config *config = log_mgr.get_config();
+	log4cpp::layout_manager::load_config(config_file);
+	const log4cpp::log4cpp_config *config = log4cpp::layout_manager::get_config();
 	const log4cpp::tcp_appender_config *tcp_config = config->get_appender().get_tcp_cfg();
 	unsigned short port = tcp_config->get_port();
 
@@ -107,7 +106,7 @@ TEST(tcp_appender_test, tcp_appender_test) {
 	std::atomic_bool running(false);
 	std::atomic_bool finished(false);
 
-	const std::shared_ptr<log4cpp::logger> log = log_mgr.get_logger("tcpLayout");
+	const std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("tcpLayout");
 	log4cpp::log_level max_level = log->get_level();
 	unsigned int log_count = static_cast<int>(max_level) + 1; // enum start from 0q
 

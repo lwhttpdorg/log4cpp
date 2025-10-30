@@ -1,13 +1,13 @@
 {
-	"logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"layout_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
 		"console_appender": {
 			"out_stream": "stderr"
 		}
 	},
-	"loggers": [
+	"layouts": [
 		{
-			"name": "console_logger",
+			"name": "console_layout",
 			"log_level": "INFO",
 			"appenders": [
 				"console_appender",
@@ -16,7 +16,7 @@
 			]
 		}
 	],
-	"root_logger": {
+	"root_layout": {
 		"log_level": "INFO",
 		"appenders": [
 			"console_appender"

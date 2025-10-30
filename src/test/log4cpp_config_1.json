@@ -1,5 +1,5 @@
 {
-	"logger_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
+	"layout_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
 	"appenders": {
 		"console_appender": {
 			"out_stream": "stdout"
@@ -16,9 +16,9 @@
 			"port": 9443
 		}
 	},
-	"loggers": [
+	"layouts": [
 		{
-			"name": "console_logger",
+			"name": "console_layout",
 			"log_level": "INFO",
 			"appenders": [
 				"console_appender",
@@ -27,7 +27,7 @@
 			]
 		},
 		{
-			"name": "file_logger",
+			"name": "file_layout",
 			"log_level": "INFO",
 			"appenders": [
 				"console_appender",
@@ -37,7 +37,7 @@
 			]
 		}
 	],
-	"root_logger": {
+	"root_layout": {
 		"log_level": "INFO",
 		"appenders": [
 			"file_appender",

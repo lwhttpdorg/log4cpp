@@ -12,7 +12,7 @@
 
 #endif
 
-#include "logger_pattern.h"
+#include "layout_pattern.h"
 #include "log_utils.h"
 
 namespace log4cpp {
@@ -21,9 +21,9 @@ namespace log4cpp {
 	constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
 	constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
 
-	std::string logger_pattern::_pattern = DEFAULT_LAYOUT_PATTERN;
+	std::string layout_pattern::_pattern = DEFAULT_LAYOUT_PATTERN;
 
-	void logger_pattern::set_pattern(const std::string &pattern) {
+	void layout_pattern::set_pattern(const std::string &pattern) {
 		_pattern = pattern;
 	}
 
@@ -205,7 +205,7 @@ namespace log4cpp {
 		format_time(buf, len, pattern, now_tm, ms);
 	}
 
-	size_t logger_pattern::format_with_pattern(char *buf, size_t len, log_level level, const char *msg) {
+	size_t layout_pattern::format_with_pattern(char *buf, size_t len, log_level level, const char *msg) {
 		tm now_tm{};
 		unsigned short ms;
 		get_time_now(now_tm, ms);
@@ -263,7 +263,7 @@ namespace log4cpp {
 		return 0;
 	}
 
-	size_t logger_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, va_list args) {
+	size_t layout_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, va_list args) {
 		char message[LOG_LINE_MAX];
 		message[0] = '\0';
 		log4c_vscnprintf(message, sizeof(message), fmt, args);
@@ -274,7 +274,7 @@ namespace log4cpp {
 		return used_len;
 	}
 
-	size_t logger_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, ...) {
+	size_t layout_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, ...) {
 		char message[LOG_LINE_MAX];
 		message[0] = '\0';
 		va_list args;

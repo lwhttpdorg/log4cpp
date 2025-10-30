@@ -13,7 +13,7 @@
 
 #endif
 
-#include "logger_pattern.h"
+#include "layout_pattern.h"
 #include "udp_appender.h"
 
 namespace log4cpp {

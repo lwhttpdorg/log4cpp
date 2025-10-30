@@ -15,7 +15,7 @@ namespace log4cpp {
 
 	void format_daytime(char *buf, size_t len, const std::string &pattern, const tm &now_tm, unsigned short ms);
 
-	class logger_pattern {
+	class layout_pattern {
 	public:
 		static void set_pattern(const std::string &pattern);
 

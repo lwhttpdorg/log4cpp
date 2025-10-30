@@ -24,9 +24,8 @@ int main(int argc, char **argv) {
 	return RUN_ALL_TESTS();
 }
 
-void info_logger() {
-	auto &log_mgr = log4cpp::logger_manager::instance();
-	const std::shared_ptr<log4cpp::logger> log = log_mgr.get_logger("info_logger");
+void info_layout() {
+	const std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("info_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
@@ -34,9 +33,8 @@ void info_logger() {
 	log->fatal("this is a fatal");
 }
 
-void warn_logger() {
-	auto &log_mgr = log4cpp::logger_manager::instance();
-	const std::shared_ptr<log4cpp::logger> log = log_mgr.get_logger("warn_logger");
+void warn_layout() {
+	const std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("warn_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
@@ -46,20 +44,19 @@ void warn_logger() {
 
 void load_configuration() {
 	const std::string config_file = "file_appender_test.json";
-	auto &log_mgr = log4cpp::logger_manager::instance();
-	log_mgr.load_config(config_file);
+	log4cpp::layout_manager::load_config(config_file);
 }
 
 TEST(file_appender_test, single_thread_test) {
 	load_configuration();
-	info_logger();
-	warn_logger();
+	info_layout();
+	warn_layout();
 }
 
 TEST(file_appender_test, multithread_test) {
 	load_configuration();
-	std::thread info_logger_thread(info_logger);
-	std::thread warn_logger_thread(warn_logger);
-	info_logger_thread.join();
-	warn_logger_thread.join();
+	std::thread info_layout_thread(info_layout);
+	std::thread warn_layout_thread(warn_layout);
+	info_layout_thread.join();
+	warn_layout_thread.join();
 }

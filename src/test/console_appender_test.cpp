@@ -24,9 +24,8 @@ int main(int argc, char **argv) {
 	return RUN_ALL_TESTS();
 }
 
-void console_appender_logger() {
-	auto &log_mgr = log4cpp::logger_manager::instance();
-	const std::shared_ptr<log4cpp::logger> log = log_mgr.get_logger("console_logger");
+void console_appender_layout() {
+	const std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("console_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
@@ -36,21 +35,19 @@ void console_appender_logger() {
 
 TEST(console_appender_test, stdout_test) {
 	const std::string config_file = "console_appender_stdout.json";
-	auto &log_mgr = log4cpp::logger_manager::instance();
-	log_mgr.load_config(config_file);
-	console_appender_logger();
+	log4cpp::layout_manager::load_config(config_file);
+	console_appender_layout();
 }
 
 TEST(console_appender_test, stderr_test) {
 	const std::string config_file = "console_appender_stderr.json";
-	auto &log_mgr = log4cpp::logger_manager::instance();
-	log_mgr.load_config(config_file);
-	console_appender_logger();
+	log4cpp::layout_manager::load_config(config_file);
+	console_appender_layout();
 }
 
 TEST(console_appender_test, multithread_test) {
-	std::thread info_logger_thread(console_appender_logger);
-	std::thread warn_logger_thread(console_appender_logger);
-	info_logger_thread.join();
-	warn_logger_thread.join();
+	std::thread info_layout_thread(console_appender_layout);
+	std::thread warn_layout_thread(console_appender_layout);
+	info_layout_thread.join();
+	warn_layout_thread.join();
 }

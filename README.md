@@ -44,11 +44,11 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ### 3.2. Configuration file
 
-#### 3.2.1. Configure logger pattern
+#### 3.2.1. Configure layout pattern
 
 ```json
 {
-  "logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "layout_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -201,31 +201,31 @@ Description:
 - `local_addr`: listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
 - `port`: listening port
 
-### 3.3. Configure Loggers
+### 3.3. Configure Layouts
 
-There are two types of Loggers:
+There are two types of Layouts:
 
-- **Named logger**: configuration name `loggers`
-- **Root logger**: configuration name `root_logger`
+- **Named layout**: configuration name `layouts`
+- **Root layout**: configuration name `root_layout`
 
-If there is no logger with a specified name when `log4cpp::logger_manager::get_logger`, the `root_logger` is returned
+If there is no layout with a specified name when `log4cpp::layout_manager::get_layout`, the `root_layout` is returned
 
-_Note: The named logger is optional, but the root logger must be present_
+_Note: The named layout is optional, but the root layout must be present_
 
-Named loggers are an array, and each logger configuration includes:
+Named layouts are an array, and each layout configuration includes:
 
-- `name`: logger name, used to get loggers, unique, cannot be `root`
+- `name`: layout name, used to get layouts, unique, cannot be `root`
 - `log_level`: log level, only logs greater than or equal to this level will be output
 - `appenders`: appender, Must be configured in `appenders` before it can be referenced here. Appender can be
   `console_appender`, `file_appender`, `tcp_appender`, `udp_appender`
 
-Root logger is an object, only `log_level` and `appenders`, no `name`, internal implementation of `name` is `root`
+Root layout is an object, only `log_level` and `appenders`, no `name`, internal implementation of `name` is `root`
 
 ```json
 {
-  "loggers": [
+  "layouts": [
     {
-      "name": "console_logger",
+      "name": "console_layout",
       "log_level": "INFO",
       "appenders": [
         "console_appender",
@@ -234,14 +234,14 @@ Root logger is an object, only `log_level` and `appenders`, no `name`, internal 
       ]
     },
     {
-      "name": "file_logger",
+      "name": "file_layout",
       "log_level": "WARN",
       "appenders": [
         "file_appender"
       ]
     }
   ],
-  "root_logger": {
+  "root_layout": {
     "log_level": "INFO",
     "appenders": [
       "console_appender",
@@ -262,7 +262,7 @@ There are two ways to load configuration file:
    configuration file manually
 
 ```c++
-log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
+log4cpp::layout_manager::load_config("/config_path/log4cpp.json");
 ```
 
 ### 3.5. Coding
@@ -273,17 +273,17 @@ First, you need to import the header file:
 #include "log4cpp.hpp"
 ```
 
-Then, get the logger instance
+Then, get the layout instance
 
-Get the logger by `name`. If the specified logger does not exist, return `root_logger`
+Get the layout by `name`. If the specified layout does not exist, return `root_layout`
 
 ```c++
-std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("logger_name");
+std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("layout_name");
 ```
 
 Write log message
 
-After getting the logger, you can use the following method to output the log:
+After getting the layout, you can use the following method to output the log:
 
 ```c++
 void trace(const char *__restrict fmt, ...);
@@ -340,7 +340,7 @@ void set_thread_name(const char *name) {
 
 void thread_routine() {
 	set_thread_name("child");
-	std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("recordLayout");
+	std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("recordLayout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
@@ -352,7 +352,7 @@ void thread_routine() {
 int main() {
 	std::thread t(thread_routine);
 	set_thread_name("main");
-	std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("console_logger");
+	std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("console_layout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
