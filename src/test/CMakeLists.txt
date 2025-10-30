@@ -11,7 +11,7 @@ file(COPY ${TEST_CONFIG_FILES} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 include_directories(../)
 
 set(LOAD_CONFIG_TEST "load_config_tests")
-set(LAYOUT_PATTERN_TEST "layout_pattern_tests")
+set(LAYOUT_PATTERN_TEST "logger_pattern_tests")
 set(CONSOLE_APPENDER_TEST "console_appender_tests")
 set(FILE_APPENDER_TEST "file_appender_tests")
 set(TCP_APPENDER_TEST "tcp_appender_tests")
@@ -30,7 +30,7 @@ FetchContent_Declare(nlohmann_json GIT_REPOSITORY https://github.com/nlohmann/js
 FetchContent_MakeAvailable(nlohmann_json)
 
 add_executable(${LOAD_CONFIG_TEST} load_config_test.cpp)
-add_executable(${LAYOUT_PATTERN_TEST} layout_pattern_test.cpp)
+add_executable(${LAYOUT_PATTERN_TEST} logger_pattern_test.cpp)
 add_executable(${CONSOLE_APPENDER_TEST} console_appender_test.cpp)
 add_executable(${FILE_APPENDER_TEST} file_appender_test.cpp)
 add_executable(${TCP_APPENDER_TEST} tcp_appender_test.cpp)

@@ -32,9 +32,9 @@ int main(int argc, char **argv) {
 	return RUN_ALL_TESTS();
 }
 
-void layout_pattern_cfg_check(const nlohmann::json &expected_json, const std::string &layout_pattern) {
-	const std::string expected = expected_json.at("layout_pattern");
-	EXPECT_EQ(layout_pattern, expected);
+void logger_pattern_cfg_check(const nlohmann::json &expected_json, const std::string &logger_pattern) {
+	const std::string expected = expected_json.at("logger_pattern");
+	EXPECT_EQ(logger_pattern, expected);
 }
 
 void console_appender_cfg_check(const nlohmann::json &console_appender, const log4cpp::console_appender_config *cfg) {
@@ -134,42 +134,42 @@ void appender_flag_to_name(unsigned char appenders_flag, std::vector<std::string
 }
 
 namespace log4cpp {
-	void from_json(const nlohmann::json &json, layout_config &obj) {
+	void from_json(const nlohmann::json &json, logger_config &obj) {
 		obj.set_name(json.at("name"));
 		obj.set_level(from_string(json.at("log_level")));
 		std::vector<std::string> appenders = json.at("appenders");
 		unsigned char appenders_flag = appender_name_to_flag(appenders);
-		obj.set_layout_flag(appenders_flag);
+		obj.set_logger_flag(appenders_flag);
 	}
 
-	void to_json(nlohmann::json &json, const layout_config &obj) {
+	void to_json(nlohmann::json &json, const logger_config &obj) {
 		std::vector<std::string> appenders;
-		appender_flag_to_name(obj.get_layout_flag(), appenders);
+		appender_flag_to_name(obj.get_logger_flag(), appenders);
 		json = nlohmann::json{
 			{"name", obj.get_logger_name()}, {"log_level", obj.get_logger_level()}, {"appenders", appenders}};
 	}
 }
 
-void layout_cfg_check(const nlohmann::json &expected_json, const std::vector<log4cpp::layout_config> &actual_layouts) {
-	EXPECT_EQ(actual_layouts.empty(), true != expected_json.contains("layouts"));
-	if (actual_layouts.empty()) {
+void logger_cfg_check(const nlohmann::json &expected_json, const std::vector<log4cpp::logger_config> &actual_loggers) {
+	EXPECT_EQ(actual_loggers.empty(), true != expected_json.contains("loggers"));
+	if (actual_loggers.empty()) {
 		return;
 	}
-	const nlohmann::json &layouts_json = expected_json.at("layouts");
-	const std::vector<log4cpp::layout_config> expected_layouts =
-		layouts_json.get<std::vector<log4cpp::layout_config>>();
-	EXPECT_EQ(actual_layouts, expected_layouts);
+	const nlohmann::json &loggers_json = expected_json.at("loggers");
+	const std::vector<log4cpp::logger_config> expected_loggers =
+		loggers_json.get<std::vector<log4cpp::logger_config>>();
+	EXPECT_EQ(actual_loggers, expected_loggers);
 }
 
-void root_layout_cfg_check(const nlohmann::json &expected_json, const log4cpp::layout_config &root_layout_cfg) {
-	const nlohmann::json &root_layout = expected_json.at("root_layout");
-	const std::string actual_name = root_layout_cfg.get_logger_name();
+void root_logger_cfg_check(const nlohmann::json &expected_json, const log4cpp::logger_config &root_logger_cfg) {
+	const nlohmann::json &root_logger = expected_json.at("root_logger");
+	const std::string actual_name = root_logger_cfg.get_logger_name();
 	EXPECT_EQ(actual_name, "root");
-	log4cpp::log_level actual_level = root_layout_cfg.get_logger_level();
-	log4cpp::log_level expected_level = log4cpp::from_string(root_layout.at("log_level"));
+	log4cpp::log_level actual_level = root_logger_cfg.get_logger_level();
+	log4cpp::log_level expected_level = log4cpp::from_string(root_logger.at("log_level"));
 	EXPECT_EQ(actual_level, expected_level);
-	unsigned char actual_appenders_flag = root_layout_cfg.get_layout_flag();
-	const std::vector<std::string> expected_appenders = root_layout.at("appenders");
+	unsigned char actual_appenders_flag = root_logger_cfg.get_logger_flag();
+	const std::vector<std::string> expected_appenders = root_logger.at("appenders");
 	unsigned char expected_appenders_flag = appender_name_to_flag(expected_appenders);
 	EXPECT_EQ(actual_appenders_flag, expected_appenders_flag);
 }
@@ -183,24 +183,25 @@ void parse_json(const std::string &config_file, nlohmann::json &expected_json) {
 
 void configuration_cfg_check(const nlohmann::json &expected_json, const log4cpp::log4cpp_config *config) {
 	// Layout pattern
-	const std::string &layout_pattern = config->get_layout_pattern();
-	layout_pattern_cfg_check(expected_json, layout_pattern);
+	const std::string &logger_pattern = config->get_logger_pattern();
+	logger_pattern_cfg_check(expected_json, logger_pattern);
 	// Appenders
 	const log4cpp::appender_config &appender_cfg = config->get_appender();
 	appenders_cfg_check(expected_json, appender_cfg);
-	// Layouts
-	std::vector<log4cpp::layout_config> layouts_cfg = config->get_layouts();
-	std::sort(layouts_cfg.begin(), layouts_cfg.end());
-	layout_cfg_check(expected_json, layouts_cfg);
-	// Root layout
-	const log4cpp::layout_config &root_layout_cfg = config->get_root_layout();
-	root_layout_cfg_check(expected_json, root_layout_cfg);
+	// Loggers
+	std::vector<log4cpp::logger_config> loggers_cfg = config->get_loggers();
+	std::sort(loggers_cfg.begin(), loggers_cfg.end());
+	logger_cfg_check(expected_json, loggers_cfg);
+	// Root logger
+	const log4cpp::logger_config &root_logger_cfg = config->get_root_logger();
+	root_logger_cfg_check(expected_json, root_logger_cfg);
 }
 
 TEST(load_config_test, auto_load_config) {
 	// Just to load the configuration file
-	std::shared_ptr<log4cpp::logger> layout = log4cpp::layout_manager::get_layout("console_layout");
-	const log4cpp::log4cpp_config *config = log4cpp::layout_manager::get_config();
+	auto &log_mgr = log4cpp::logger_manager::instance();
+	std::shared_ptr<log4cpp::logger> logger = log_mgr.get_logger("console_logger");
+	const log4cpp::log4cpp_config *config = log_mgr.get_config();
 	ASSERT_NE(nullptr, config);
 
 	nlohmann::json expected_json;
@@ -210,8 +211,9 @@ TEST(load_config_test, auto_load_config) {
 
 TEST(load_config_test, load_config_test_1) {
 	const std::string config_file = "log4cpp_config_1.json";
-	log4cpp::layout_manager::load_config(config_file);
-	const log4cpp::log4cpp_config *config = log4cpp::layout_manager::get_config();
+	auto &log_mgr = log4cpp::logger_manager::instance();
+	log_mgr.load_config(config_file);
+	const log4cpp::log4cpp_config *config = log_mgr.get_config();
 	ASSERT_NE(nullptr, config);
 
 	nlohmann::json expected_json;
@@ -221,8 +223,9 @@ TEST(load_config_test, load_config_test_1) {
 
 TEST(load_config_test, load_config_test_2) {
 	const std::string config_file = "log4cpp_config_2.json";
-	log4cpp::layout_manager::load_config(config_file);
-	const log4cpp::log4cpp_config *config = log4cpp::layout_manager::get_config();
+	auto &log_mgr = log4cpp::logger_manager::instance();
+	log_mgr.load_config(config_file);
+	const log4cpp::log4cpp_config *config = log_mgr.get_config();
 	ASSERT_NE(nullptr, config);
 
 	nlohmann::json expected_json;

@@ -52,43 +52,43 @@ namespace log4cpp {
 
 	appender_config tag_invoke(boost::json::value_to_tag<appender_config>, boost::json::value const &json);
 
-	class layout_config {
+	class logger_config {
 	public:
-		layout_config();
+		logger_config();
 
-		layout_config(const layout_config &other);
+		logger_config(const logger_config &other);
 
-		layout_config(layout_config &&other) noexcept;
+		logger_config(logger_config &&other) noexcept;
 
-		layout_config &operator=(const layout_config &other);
+		logger_config &operator=(const logger_config &other);
 
-		layout_config &operator=(layout_config &&other) noexcept;
+		logger_config &operator=(logger_config &&other) noexcept;
 
-		friend bool operator<(const layout_config &lhs, const layout_config &rhs) {
+		friend bool operator<(const logger_config &lhs, const logger_config &rhs) {
 			if (lhs.name < rhs.name) return true;
 			if (rhs.name < lhs.name) return false;
 			if (lhs.level < rhs.level) return true;
 			if (rhs.level < lhs.level) return false;
-			return lhs.layout_flag < rhs.layout_flag;
+			return lhs.logger_flag < rhs.logger_flag;
 		}
 
-		friend bool operator<=(const layout_config &lhs, const layout_config &rhs) {
+		friend bool operator<=(const logger_config &lhs, const logger_config &rhs) {
 			return rhs >= lhs;
 		}
 
-		friend bool operator>(const layout_config &lhs, const layout_config &rhs) {
+		friend bool operator>(const logger_config &lhs, const logger_config &rhs) {
 			return rhs < lhs;
 		}
 
-		friend bool operator>=(const layout_config &lhs, const layout_config &rhs) {
+		friend bool operator>=(const logger_config &lhs, const logger_config &rhs) {
 			return !(lhs < rhs);
 		}
 
-		friend bool operator==(const layout_config &lhs, const layout_config &rhs) {
-			return lhs.name == rhs.name && lhs.level == rhs.level && lhs.layout_flag == rhs.layout_flag;
+		friend bool operator==(const logger_config &lhs, const logger_config &rhs) {
+			return lhs.name == rhs.name && lhs.level == rhs.level && lhs.logger_flag == rhs.logger_flag;
 		}
 
-		friend bool operator!=(const layout_config &lhs, const layout_config &rhs) {
+		friend bool operator!=(const logger_config &lhs, const logger_config &rhs) {
 			return !(lhs == rhs);
 		}
 
@@ -109,16 +109,16 @@ namespace log4cpp {
 			this->level = _level;
 		}
 
-		/* Get the layout flags */
-		[[nodiscard]] unsigned char get_layout_flag() const;
+		/* Get the logger flags */
+		[[nodiscard]] unsigned char get_logger_flag() const;
 
-		void set_layout_flag(unsigned char flags) {
-			this->layout_flag = flags;
+		void set_logger_flag(unsigned char flags) {
+			this->logger_flag = flags;
 		}
 
-		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, layout_config const &obj);
+		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, logger_config const &obj);
 
-		friend layout_config tag_invoke(boost::json::value_to_tag<layout_config>, boost::json::value const &json);
+		friend logger_config tag_invoke(boost::json::value_to_tag<logger_config>, boost::json::value const &json);
 
 	private:
 		/* Logger name */
@@ -126,12 +126,12 @@ namespace log4cpp {
 		/* Logger level */
 		log_level level;
 		/* Layout flag */
-		unsigned char layout_flag{};
+		unsigned char logger_flag{};
 	};
 
-	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, layout_config const &obj);
+	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, logger_config const &obj);
 
-	layout_config tag_invoke(boost::json::value_to_tag<layout_config>, boost::json::value const &json);
+	logger_config tag_invoke(boost::json::value_to_tag<logger_config>, boost::json::value const &json);
 
 	class log4cpp_config {
 	public:
@@ -156,8 +156,8 @@ namespace log4cpp {
 
 		log4cpp_config() = default;
 
-		log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<layout_config> &l,
-					   layout_config root);
+		log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<logger_config> &l,
+					   logger_config root);
 
 		log4cpp_config(const log4cpp_config &other);
 
@@ -167,21 +167,21 @@ namespace log4cpp {
 
 		log4cpp_config &operator=(log4cpp_config &&other) noexcept;
 
-		[[nodiscard]] const std::string &get_layout_pattern() const;
+		[[nodiscard]] const std::string &get_logger_pattern() const;
 
 		[[nodiscard]] const appender_config &get_appender() const;
 
-		[[nodiscard]] const std::vector<layout_config> &get_layouts() const;
+		[[nodiscard]] const std::vector<logger_config> &get_loggers() const;
 
-		[[nodiscard]] const layout_config &get_root_layout() const;
+		[[nodiscard]] const logger_config &get_root_logger() const;
 
-		friend class layout_manager;
+		friend class logger_manager;
 
 	private:
-		std::string layout_pattern; // layout_pattern
+		std::string logger_pattern; // logger_pattern
 		appender_config appender{}; // appenders
-		std::vector<layout_config> layouts; // layouts
-		layout_config root_layout; // root_layout
+		std::vector<logger_config> loggers; // loggers
+		logger_config root_logger; // root_logger
 	};
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, log4cpp_config const &obj);
