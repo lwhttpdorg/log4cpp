@@ -7,7 +7,7 @@
 #include <fstream>
 #include <utility>
 
-#include "layout_pattern.h"
+#include "logger_pattern.h"
 #include "log4cpp_config.h"
 #include "log_utils.h"
 
@@ -61,54 +61,54 @@ appender_config log4cpp::tag_invoke(boost::json::value_to_tag<appender_config>, 
 	return append_cfg;
 }
 
-layout_config::layout_config() {
+logger_config::logger_config() {
 	this->level = log_level::WARN;
 }
 
-layout_config::layout_config(const layout_config &other) {
+logger_config::logger_config(const logger_config &other) {
 	this->name = other.name;
 	this->level = other.level;
-	this->layout_flag = other.layout_flag;
+	this->logger_flag = other.logger_flag;
 }
 
-layout_config::layout_config(layout_config &&other) noexcept {
+logger_config::logger_config(logger_config &&other) noexcept {
 	this->name = std::move(other.name);
 	this->level = other.level;
-	this->layout_flag = other.layout_flag;
+	this->logger_flag = other.logger_flag;
 }
 
-layout_config &layout_config::operator=(const layout_config &other) {
+logger_config &logger_config::operator=(const logger_config &other) {
 	if (this != &other) {
 		this->name = other.name;
 		this->level = other.level;
-		this->layout_flag = other.layout_flag;
+		this->logger_flag = other.logger_flag;
 	}
 	return *this;
 }
 
-layout_config &layout_config::operator=(layout_config &&other) noexcept {
+logger_config &logger_config::operator=(logger_config &&other) noexcept {
 	if (this != &other) {
 		this->name = std::move(other.name);
 		this->level = other.level;
-		this->layout_flag = other.layout_flag;
+		this->logger_flag = other.logger_flag;
 	}
 	return *this;
 }
 
-std::string layout_config::get_logger_name() const {
+std::string logger_config::get_logger_name() const {
 	return this->name;
 }
 
-log_level layout_config::get_logger_level() const {
+log_level logger_config::get_logger_level() const {
 	return this->level;
 }
 
-unsigned char layout_config::get_layout_flag() const {
-	return layout_flag;
+unsigned char logger_config::get_logger_flag() const {
+	return logger_flag;
 }
 
-layout_config log4cpp::tag_invoke(boost::json::value_to_tag<layout_config>, boost::json::value const &json) {
-	layout_config obj;
+logger_config log4cpp::tag_invoke(boost::json::value_to_tag<logger_config>, boost::json::value const &json) {
+	logger_config obj;
 	auto json_obj = json.as_object();
 	if (json_obj.contains("name")) {
 		obj.name = boost::json::value_to<std::string>(json_obj.at("name"));
@@ -126,37 +126,37 @@ layout_config log4cpp::tag_invoke(boost::json::value_to_tag<layout_config>, boos
 	std::vector<std::string> appenders = boost::json::value_to<std::vector<std::string>>(json_obj.at("appenders"));
 	for (auto &appender: appenders) {
 		if (!valid_appender(appender)) {
-			throw std::invalid_argument("Malformed JSON configuration file: invalid layouts::appenders \"" + appender
+			throw std::invalid_argument("Malformed JSON configuration file: invalid loggers::appenders \"" + appender
 										+ "\"");
 		}
 		if (appender == CONSOLE_APPENDER_NAME) {
-			obj.layout_flag |= CONSOLE_APPENDER_FLAG;
+			obj.logger_flag |= CONSOLE_APPENDER_FLAG;
 		}
 		else if (appender == FILE_APPENDER_NAME) {
-			obj.layout_flag |= FILE_APPENDER_FLAG;
+			obj.logger_flag |= FILE_APPENDER_FLAG;
 		}
 		else if (appender == TCP_APPENDER_NAME) {
-			obj.layout_flag |= TCP_APPENDER_FLAG;
+			obj.logger_flag |= TCP_APPENDER_FLAG;
 		}
 		else if (appender == UDP_APPENDER_NAME) {
-			obj.layout_flag |= UDP_APPENDER_FLAG;
+			obj.logger_flag |= UDP_APPENDER_FLAG;
 		}
 	}
 	return obj;
 }
 
-void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const layout_config &obj) {
+void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const logger_config &obj) {
 	std::vector<std::string> appenders;
-	if (obj.layout_flag & CONSOLE_APPENDER_FLAG) {
+	if (obj.logger_flag & CONSOLE_APPENDER_FLAG) {
 		appenders.emplace_back(CONSOLE_APPENDER_NAME);
 	}
-	if (obj.layout_flag & FILE_APPENDER_FLAG) {
+	if (obj.logger_flag & FILE_APPENDER_FLAG) {
 		appenders.emplace_back(FILE_APPENDER_NAME);
 	}
-	if (obj.layout_flag & TCP_APPENDER_FLAG) {
+	if (obj.logger_flag & TCP_APPENDER_FLAG) {
 		appenders.emplace_back(TCP_APPENDER_NAME);
 	}
-	if (obj.layout_flag & UDP_APPENDER_FLAG) {
+	if (obj.logger_flag & UDP_APPENDER_FLAG) {
 		appenders.emplace_back(UDP_APPENDER_NAME);
 	}
 
@@ -170,32 +170,32 @@ void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, 
 }
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const log4cpp_config &obj) {
-	json = boost::json::object{{"layout_pattern", obj.layout_pattern},
+	json = boost::json::object{{"logger_pattern", obj.logger_pattern},
 							   {"appenders", boost::json::value_from(obj.appender)},
-							   {"layouts", boost::json::value_from(obj.layouts)},
-							   {"root_layout", boost::json::value_from(obj.root_layout)}};
+							   {"loggers", boost::json::value_from(obj.loggers)},
+							   {"root_logger", boost::json::value_from(obj.root_logger)}};
 }
 
 log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, boost::json::value const &json) {
 	auto json_obj = json.as_object();
 	std::string pattern;
-	if (json_obj.contains("layout_pattern")) {
-		pattern = boost::json::value_to<std::string>(json_obj.at("layout_pattern"));
-		layout_pattern::set_pattern(pattern);
+	if (json_obj.contains("logger_pattern")) {
+		pattern = boost::json::value_to<std::string>(json_obj.at("logger_pattern"));
+		logger_pattern::set_pattern(pattern);
 	}
 	if (!json_obj.contains("appenders")) {
 		throw std::invalid_argument("Malformed JSON configuration file: \"appender\" is mandatory");
 	}
-	std::vector<layout_config> layouts;
-	if (json_obj.contains("layouts")) {
-		layouts = boost::json::value_to<std::vector<layout_config>>(json_obj.at("layouts"));
+	std::vector<logger_config> loggers;
+	if (json_obj.contains("loggers")) {
+		loggers = boost::json::value_to<std::vector<logger_config>>(json_obj.at("loggers"));
 	}
-	if (!json_obj.contains("root_layout")) {
-		throw std::invalid_argument("Malformed JSON configuration file: \"root_layout\" is mandatory");
+	if (!json_obj.contains("root_logger")) {
+		throw std::invalid_argument("Malformed JSON configuration file: \"root_logger\" is mandatory");
 	}
 	appender_config appenders = boost::json::value_to<appender_config>(json_obj.at("appenders"));
-	const layout_config root = boost::json::value_to<layout_config>(json_obj.at("root_layout"));
-	return log4cpp_config{pattern, appenders, layouts, root};
+	const logger_config root = boost::json::value_to<logger_config>(json_obj.at("root_logger"));
+	return log4cpp_config{pattern, appenders, loggers, root};
 }
 
 log4cpp_config log4cpp_config::load_config(const std::string &json_file) {
@@ -242,65 +242,65 @@ std::string log4cpp_config::serialize(const log4cpp_config &obj) {
 	return boost::json::serialize(json);
 }
 
-log4cpp_config::log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<layout_config> &l,
-							   layout_config root) {
-	this->layout_pattern = std::move(_pattern);
-	layout_pattern::set_pattern(this->layout_pattern);
+log4cpp_config::log4cpp_config(std::string _pattern, const appender_config &o, const std::vector<logger_config> &l,
+							   logger_config root) {
+	this->logger_pattern = std::move(_pattern);
+	logger_pattern::set_pattern(this->logger_pattern);
 	this->appender = o;
-	this->layouts = l;
-	this->root_layout = std::move(root);
+	this->loggers = l;
+	this->root_logger = std::move(root);
 }
 
 log4cpp_config::log4cpp_config(const log4cpp_config &other) {
-	this->layout_pattern = other.layout_pattern;
-	layout_pattern::set_pattern(this->layout_pattern);
+	this->logger_pattern = other.logger_pattern;
+	logger_pattern::set_pattern(this->logger_pattern);
 	this->appender = other.appender;
-	this->layouts = other.layouts;
-	this->root_layout = other.root_layout;
+	this->loggers = other.loggers;
+	this->root_logger = other.root_logger;
 }
 
 log4cpp_config::log4cpp_config(log4cpp_config &&other) noexcept {
-	this->layout_pattern = std::move(other.layout_pattern);
-	layout_pattern::set_pattern(this->layout_pattern);
+	this->logger_pattern = std::move(other.logger_pattern);
+	logger_pattern::set_pattern(this->logger_pattern);
 	this->appender = std::move(other.appender);
-	this->layouts = std::move(other.layouts);
-	this->root_layout = std::move(other.root_layout);
+	this->loggers = std::move(other.loggers);
+	this->root_logger = std::move(other.root_logger);
 }
 
 log4cpp_config &log4cpp_config::operator=(const log4cpp_config &other) {
 	if (this != &other) {
-		this->layout_pattern = other.layout_pattern;
-		layout_pattern::set_pattern(this->layout_pattern);
+		this->logger_pattern = other.logger_pattern;
+		logger_pattern::set_pattern(this->logger_pattern);
 		this->appender = other.appender;
-		this->layouts = other.layouts;
-		this->root_layout = other.root_layout;
+		this->loggers = other.loggers;
+		this->root_logger = other.root_logger;
 	}
 	return *this;
 }
 
 log4cpp_config &log4cpp_config::operator=(log4cpp_config &&other) noexcept {
 	if (this != &other) {
-		this->layout_pattern = std::move(other.layout_pattern);
-		layout_pattern::set_pattern(this->layout_pattern);
+		this->logger_pattern = std::move(other.logger_pattern);
+		logger_pattern::set_pattern(this->logger_pattern);
 		this->appender = std::move(other.appender);
-		this->layouts = std::move(other.layouts);
-		this->root_layout = std::move(other.root_layout);
+		this->loggers = std::move(other.loggers);
+		this->root_logger = std::move(other.root_logger);
 	}
 	return *this;
 }
 
-const std::string &log4cpp_config::get_layout_pattern() const {
-	return layout_pattern;
+const std::string &log4cpp_config::get_logger_pattern() const {
+	return logger_pattern;
 }
 
 const appender_config &log4cpp_config::get_appender() const {
 	return appender;
 }
 
-const std::vector<layout_config> &log4cpp_config::get_layouts() const {
-	return layouts;
+const std::vector<logger_config> &log4cpp_config::get_loggers() const {
+	return loggers;
 }
 
-const layout_config &log4cpp_config::get_root_layout() const {
-	return root_layout;
+const logger_config &log4cpp_config::get_root_logger() const {
+	return root_logger;
 }

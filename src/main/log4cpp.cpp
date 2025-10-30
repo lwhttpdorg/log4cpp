@@ -31,11 +31,10 @@
 #include <cstdarg>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/json.hpp>
 
 #include "../include/log4cpp.hpp"
 #include "file_appender.h"
-#include "layout_pattern.h"
+#include "logger_pattern.h"
 
 using namespace log4cpp;
 
@@ -67,6 +66,8 @@ std::string log4cpp::to_string(log_level level) {
 			break;
 		case log_level::TRACE:
 			str = LOG_LEVEL_TRACE;
+			break;
+		default:
 			break;
 	}
 	return str;
@@ -141,28 +142,28 @@ void log4cpp::set_thread_name(const char *name) {
 #endif
 }
 
-/**************************layout*****************************/
-layout::layout() {
+/**************************core_logger*****************************/
+core_logger::core_logger() {
 	this->level = log_level::WARN;
 }
 
-layout::layout(const std::string &log_name, log_level _level) {
+core_logger::core_logger(const std::string &log_name, log_level _level) {
 	this->name = log_name;
 	this->level = _level;
 }
 
-void layout::log(log_level _level, const char *fmt, va_list args) const {
+void core_logger::log(log_level _level, const char *fmt, va_list args) const {
 	if (this->level >= _level) {
 		char buffer[LOG_LINE_MAX];
 		buffer[0] = '\0';
-		const size_t used_len = layout_pattern::format(buffer, sizeof(buffer), _level, fmt, args);
+		const size_t used_len = logger_pattern::format(buffer, sizeof(buffer), _level, fmt, args);
 		for (auto &l: this->appenders) {
 			l->log(buffer, used_len);
 		}
 	}
 }
 
-void layout::trace(const char *__restrict fmt, ...) const {
+void core_logger::trace(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::TRACE) {
 		va_list args;
 		va_start(args, fmt);
@@ -171,7 +172,7 @@ void layout::trace(const char *__restrict fmt, ...) const {
 	}
 }
 
-void layout::info(const char *__restrict fmt, ...) const {
+void core_logger::info(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::INFO) {
 		va_list args;
 		va_start(args, fmt);
@@ -180,7 +181,7 @@ void layout::info(const char *__restrict fmt, ...) const {
 	}
 }
 
-void layout::debug(const char *__restrict fmt, ...) const {
+void core_logger::debug(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::DEBUG) {
 		va_list args;
 		va_start(args, fmt);
@@ -189,7 +190,7 @@ void layout::debug(const char *__restrict fmt, ...) const {
 	}
 }
 
-void layout::warn(const char *__restrict fmt, ...) const {
+void core_logger::warn(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::WARN) {
 		va_list args;
 		va_start(args, fmt);
@@ -198,7 +199,7 @@ void layout::warn(const char *__restrict fmt, ...) const {
 	}
 }
 
-void layout::error(const char *__restrict fmt, ...) const {
+void core_logger::error(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::ERROR) {
 		va_list args;
 		va_start(args, fmt);
@@ -207,7 +208,7 @@ void layout::error(const char *__restrict fmt, ...) const {
 	}
 }
 
-void layout::fatal(const char *__restrict fmt, ...) const {
+void core_logger::fatal(const char *__restrict fmt, ...) const {
 	if (this->level >= log_level::FATAL) {
 		va_list args;
 		va_start(args, fmt);
@@ -216,19 +217,19 @@ void layout::fatal(const char *__restrict fmt, ...) const {
 	}
 }
 
-layout::layout(const layout &other) {
+core_logger::core_logger(const core_logger &other) {
 	this->name = other.name;
 	this->level = other.level;
 	this->appenders = other.appenders;
 }
 
-layout::layout(layout &&other) noexcept {
+core_logger::core_logger(core_logger &&other) noexcept {
 	this->name = std::move(other.name);
 	this->level = other.level;
 	this->appenders = std::move(other.appenders);
 }
 
-layout &layout::operator=(const layout &other) {
+core_logger &core_logger::operator=(const core_logger &other) {
 	if (this != &other) {
 		this->name = other.name;
 		this->level = other.level;
@@ -237,7 +238,7 @@ layout &layout::operator=(const layout &other) {
 	return *this;
 }
 
-layout &layout::operator=(layout &&other) noexcept {
+core_logger &core_logger::operator=(core_logger &&other) noexcept {
 	if (this != &other) {
 		this->name = std::move(other.name);
 		this->level = other.level;

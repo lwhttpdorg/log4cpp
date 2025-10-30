@@ -43,8 +43,9 @@ void parse_json(const std::string &config_file, nlohmann::json &expected_json) {
 
 TEST(configuration_serialize_test, log4cpp_config_serialize_test) {
 	// Just to load the configuration file
-	std::shared_ptr<log4cpp::logger> layout = log4cpp::layout_manager::get_layout("console_layout");
-	const log4cpp::log4cpp_config *config = log4cpp::layout_manager::get_config();
+	auto &log_mgr = log4cpp::logger_manager::instance();
+	std::shared_ptr<log4cpp::logger> logger = log_mgr.get_logger("console_logger");
+	const log4cpp::log4cpp_config *config = log_mgr.get_config();
 	const std::string actual_json_str = log4cpp::log4cpp_config::serialize(*config);
 	nlohmann::json expected_json;
 	parse_json("log4cpp.json", expected_json);

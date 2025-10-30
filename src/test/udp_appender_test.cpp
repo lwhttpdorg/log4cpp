@@ -76,8 +76,9 @@ int udp_appender_client(std::atomic_bool &running, unsigned int log_count, unsig
 
 TEST(udp_appender_test, udp_appender_test) {
 	std::string config_file = "tcp_udp_appender_test.json";
-	log4cpp::layout_manager::load_config(config_file);
-	const log4cpp::log4cpp_config *config = log4cpp::layout_manager::get_config();
+	auto &log_mgr = log4cpp::logger_manager::instance();
+	log_mgr.load_config(config_file);
+	const log4cpp::log4cpp_config *config = log_mgr.get_config();
 	const log4cpp::udp_appender_config *udp_config = config->get_appender().get_udp_cfg();
 	unsigned short port = udp_config->get_port();
 
@@ -87,7 +88,7 @@ TEST(udp_appender_test, udp_appender_test) {
 #endif
 	std::atomic_bool running(false);
 
-	const std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("udpLayout");
+	const std::shared_ptr<log4cpp::logger> log = log_mgr.get_logger("udpLayout");
 	log4cpp::log_level max_level = log->get_level();
 	unsigned int log_count = static_cast<int>(max_level);
 

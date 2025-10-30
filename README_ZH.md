@@ -47,7 +47,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "layout_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -193,27 +193,27 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 - `local_addr`: 监听地址. 如`0.0.0.0`, `::`, `127.0.0.1`, `::1`
 - `port`: 监听端口
 
-### 3.3. 配置layout
+### 3.3. 配置logger
 
-layout分为命名layout(配置名`layouts`)和默认layout(配置名`root_layout`), `log4cpp::layout_manager::get_layout`
-时如果没有指定名称的layout, 则返回默认layout
+logger分为命名logger(配置名`loggers`)和默认logger(配置名`root_logger`), `log4cpp::logger_manager::get_logger`
+时如果没有指定名称的logger, 则返回默认logger
 
-_注意: 命名layout可以没有, 但是默认layout必须有_
+_注意: 命名logger可以没有, 但是默认logger必须有_
 
-命名layout是一个数组, 每个layout配置包括:
+命名logger是一个数组, 每个logger配置包括:
 
-- `name`: layout名称, 用于获取layout, 不能重复, 不能是`root`
+- `name`: logger名称, 用于获取logger, 不能重复, 不能是`root`
 - `log_level`: log级别, 只有大于等于此级别的log才会输出
 - `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console_appender`, `file_appender`, `tcp_appender`,
   `udp_appender`
 
-默认layout是一个对象, 只有`log_level`和`appenders`, 没有`name`, 内部实现`name`为`root`
+默认logger是一个对象, 只有`log_level`和`appenders`, 没有`name`, 内部实现`name`为`root`
 
 ```json
 {
-  "layouts": [
+  "loggers": [
     {
-      "name": "console_layout",
+      "name": "console_logger",
       "log_level": "INFO",
       "appenders": [
         "console_appender",
@@ -222,14 +222,14 @@ _注意: 命名layout可以没有, 但是默认layout必须有_
       ]
     },
     {
-      "name": "file_layout",
+      "name": "file_logger",
       "log_level": "WARN",
       "appenders": [
         "file_appender"
       ]
     }
   ],
-  "root_layout": {
+  "root_logger": {
     "log_level": "INFO",
     "appenders": [
       "console_appender",
@@ -249,7 +249,7 @@ _注意: 命名layout可以没有, 但是默认layout必须有_
 2. 如果配置文件不在当前路径下, 或者文件名不是`log4cpp.json`, 需要手动加载配置文件
 
 ```c++
-log4cpp::layout_manager::load_config("/config_path/log4cpp.json");
+log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
 ```
 
 ### 3.5. 在代码中使用
@@ -260,13 +260,13 @@ log4cpp::layout_manager::load_config("/config_path/log4cpp.json");
 #include "log4cpp.hpp"
 ```
 
-然后获取layout实例. 通过`name`获取配置layout, 如果不存在指定的layout, 则返回默认的`root_layout`
+然后获取logger实例. 通过`name`获取配置logger, 如果不存在指定的logger, 则返回默认的`root_logger`
 
 ```c++
-std::shared_ptr<log4cpp::logger> layout = log4cpp::layout_manager::get_layout("recordLogger");
+std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
 ```
 
-获取layout后, 可以使用下面的方法输出log:
+获取logger后, 可以使用下面的方法输出log:
 
 ```c++
 void trace(const char *__restrict fmt, ...);
@@ -323,7 +323,7 @@ void set_thread_name(const char *name) {
 
 void thread_routine() {
 	set_thread_name("child");
-	std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("recordLayout");
+	std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("recordLayout");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");
@@ -335,7 +335,7 @@ void thread_routine() {
 int main() {
 	std::thread t(thread_routine);
 	set_thread_name("main");
-	std::shared_ptr<log4cpp::logger> log = log4cpp::layout_manager::get_layout("console_layout");
+	std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("console_logger");
 	log->trace("this is a trace");
 	log->info("this is a info");
 	log->debug("this is a debug");

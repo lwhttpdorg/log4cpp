@@ -1,5 +1,5 @@
 {
-	"layout_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
 		"console_appender": {
 			"out_stream": "stdout"
@@ -13,7 +13,7 @@
 			"port": 9443
 		}
 	},
-	"layouts": [
+	"loggers": [
 		{
 			"name": "tcpLayout",
 			"log_level": "INFO",
@@ -31,7 +31,7 @@
 			]
 		}
 	],
-	"root_layout": {
+	"root_logger": {
 		"log_level": "WARN",
 		"appenders": [
 			"console_appender",
