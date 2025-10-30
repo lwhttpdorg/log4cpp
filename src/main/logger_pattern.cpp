@@ -16,7 +16,7 @@
 #include "log_utils.h"
 
 namespace log4cpp {
-	const char *DEFAULT_LAYOUT_PATTERN = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}";
+	const char *DEFAULT_LAYOUT_PATTERN = "${NM}: ${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}";
 
 	constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
 	constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
@@ -27,6 +27,7 @@ namespace log4cpp {
 		_pattern = pattern;
 	}
 
+	const char *LOGGER_NAME = "${NM}";
 	/* A two digit representation of a year. e.g. 99 or 03 */
 	const char *SHORT_YEAR = "${yy}";
 	/* A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999, 2003,
@@ -157,7 +158,7 @@ namespace log4cpp {
 		pos = pattern.find(SHORT_MINUTES);
 		if (std::string::npos != pos) {
 			char delimiter = pattern[pos - 1];
-			pattern_start = std::string::npos == pattern_start ? pos : pattern_start;
+			pattern_start = std::string::npos == pattern_start?pos:pattern_start;
 			tm_len += log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, "%c%d", delimiter, now_tm.tm_min);
 			pattern_end = pos + strlen(SHORT_MINUTES);
 		}
@@ -205,12 +206,14 @@ namespace log4cpp {
 		format_time(buf, len, pattern, now_tm, ms);
 	}
 
-	size_t logger_pattern::format_with_pattern(char *buf, size_t len, log_level level, const char *msg) {
+	size_t logger_pattern::format_with_pattern(char *buf, size_t len, const char *name, log_level level,
+												const char *msg) {
 		tm now_tm{};
 		unsigned short ms;
 		get_time_now(now_tm, ms);
 
 		format_daytime(buf, len, _pattern, now_tm, ms);
+
 		if (std::smatch match; std::regex_search(_pattern, match, THREAD_NAME_REGEX)) {
 			size_t width = THREAD_NAME_MAX_LEN;
 			if (match[1].matched) {
@@ -251,6 +254,10 @@ namespace log4cpp {
 			const std::string full_match_str = match[0];
 			replace(buf, len, full_match_str.c_str(), thread_id);
 		}
+		// replace ${NM} with logger name
+		if (_pattern.find(LOGGER_NAME) != std::string::npos) {
+			replace(buf, len, LOGGER_NAME, name);
+		}
 		// replace ${L} with log level, log level fixed length is 5, align left, fill with space
 		if (_pattern.find(LOG_LEVEL) != std::string::npos) {
 			char log_level[6];
@@ -263,25 +270,26 @@ namespace log4cpp {
 		return 0;
 	}
 
-	size_t logger_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, va_list args) {
+	size_t logger_pattern::format(char *buf, size_t buf_len, const char *name, log_level level, const char *fmt,
+								va_list args) {
 		char message[LOG_LINE_MAX];
 		message[0] = '\0';
 		log4c_vscnprintf(message, sizeof(message), fmt, args);
 
-		format_with_pattern(buf, buf_len, level, message);
+		format_with_pattern(buf, buf_len, name, level, message);
 		size_t used_len = strlen(buf);
 		used_len += log4c_scnprintf(buf + used_len, buf_len - used_len, "\n");
 		return used_len;
 	}
 
-	size_t logger_pattern::format(char *buf, size_t buf_len, log_level level, const char *fmt, ...) {
+	size_t logger_pattern::format(char *buf, size_t buf_len, const char *name, log_level level, const char *fmt, ...) {
 		char message[LOG_LINE_MAX];
 		message[0] = '\0';
 		va_list args;
 		va_start(args, fmt);
 		log4c_vscnprintf(message, sizeof(message), fmt, args);
 		va_end(args);
-		format_with_pattern(buf, buf_len, level, message);
+		format_with_pattern(buf, buf_len, name, level, message);
 		size_t used_len = strlen(buf);
 		used_len += log4c_scnprintf(buf + used_len, buf_len - used_len, "\n");
 		return used_len;
