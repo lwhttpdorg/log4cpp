@@ -122,7 +122,7 @@ namespace log4cpp {
 
 	udp_appender::builder &udp_appender::builder::set_local_addr(const net::net_addr &addr) {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call udp_appender::builder::new_builder() first");
+			throw std::runtime_error("Call udp_appender_instance::builder::new_builder() first");
 		}
 		this->config.set_local_addr(addr);
 		return *this;
@@ -130,7 +130,7 @@ namespace log4cpp {
 
 	udp_appender::builder &udp_appender::builder::set_port(unsigned short port) {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call udp_appender::builder::new_builder() first");
+			throw std::runtime_error("Call udp_appender_instance::builder::new_builder() first");
 		}
 		this->config.set_port(port);
 		return *this;
@@ -138,7 +138,7 @@ namespace log4cpp {
 
 	std::shared_ptr<udp_appender> udp_appender::builder::build() {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call udp_appender::builder::new_builder() first");
+			throw std::runtime_error("Call udp_appender_instance::builder::new_builder() first");
 		}
 		net::sock_addr saddr;
 		saddr.addr = this->config.get_local_addr();
@@ -193,19 +193,12 @@ namespace log4cpp {
 		}
 	}
 
-	std::shared_ptr<udp_appender> udp_appender_config::instance = nullptr;
+	std::shared_ptr<log_appender> udp_appender_config::instance = nullptr;
 	log_lock udp_appender_config::instance_lock;
 
-	std::shared_ptr<udp_appender> udp_appender_config::get_instance(const udp_appender_config &config) {
-		if (instance == nullptr) {
-			std::lock_guard lock(udp_appender_config::instance_lock);
-			if (instance == nullptr) {
-				instance = udp_appender::builder::new_builder()
-							   .set_local_addr(config.local_addr)
-							   .set_port(config.port)
-							   .build();
-			}
-		}
+	std::shared_ptr<log_appender> udp_appender_config::build_instance(const udp_appender_config &config) {
+		std::lock_guard lock(udp_appender_config::instance_lock);
+		instance = udp_appender::builder::new_builder().set_local_addr(config.local_addr).set_port(config.port).build();
 		return instance;
 	}
 

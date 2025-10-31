@@ -15,11 +15,11 @@ namespace log4cpp {
 	class tcp_appender_config {
 	public:
 		/**
-		 * @brief Get an instance of tcp_appender with the given configuration
+		 * @brief Get an instance of tcp_appender_instance with the given configuration
 		 * @param config: TCP appender configuration
 		 * @return TCP appender instance
 		 */
-		static std::shared_ptr<tcp_appender> get_instance(const tcp_appender_config &config);
+		static std::shared_ptr<log_appender> build_instance(const tcp_appender_config &config);
 
 		[[nodiscard]] net::net_addr get_local_addr() const {
 			return local_addr;
@@ -46,7 +46,7 @@ namespace log4cpp {
 		net::net_addr local_addr{};
 		unsigned short port{0};
 		static log_lock instance_lock;
-		static std::shared_ptr<tcp_appender> instance;
+		static std::shared_ptr<log_appender> instance;
 	};
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, tcp_appender_config const &obj);

@@ -48,7 +48,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "logger_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -82,25 +82,25 @@ _Warning: Some systems cannot set thread names, and only multiple threads can be
 
 #### 3.2.2. Configure Appender
 
-There are four types of appender: Console appender(`console_appender`), File appender(`file_appender`), TCP appender(
-`tcp_appender`), UDP appender(`udp_appender`)
+There are four types of appender: Console appender(`console_appender_instance`), File appender(`file_appender_instance`), TCP appender(
+`tcp_appender_instance`), UDP appender(`udp_appender_instance`)
 
 A simple configuration file example:
 
 ```json
 {
   "appenders": {
-    "console_appender": {
+    "console_appender_instance": {
       "out_stream": "stdout"
     },
-    "file_appender": {
+    "file_appender_instance": {
       "file_path": "log/log4cpp.log"
     },
-    "tcp_appender": {
+    "tcp_appender_instance": {
       "local_addr": "0.0.0.0",
       "port": 9443
     },
-    "udp_appender": {
+    "udp_appender_instance": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -115,7 +115,7 @@ The function of the console appender is to output logs to STDOUT or STDERR. Typi
 ```json
 {
   "appenders": {
-    "console_appender": {
+    "console_appender_instance": {
       "out_stream": "stdout"
     }
   }
@@ -133,7 +133,7 @@ The function of the file appender is to output logs to a specified file. Typical
 ```json
 {
   "appenders": {
-    "file_appender": {
+    "file_appender_instance": {
       "file_path": "log/log4cpp.log"
     }
   }
@@ -152,7 +152,7 @@ which is used to output logs to remote devices. The typical configuration is as 
 ```json
 {
   "appenders": {
-    "tcp_appender": {
+    "tcp_appender_instance": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -188,7 +188,7 @@ The typical configuration is as follows:
 ```json
 {
   "appenders": {
-    "udp_appender": {
+    "udp_appender_instance": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -217,7 +217,7 @@ Named loggers are an array, and each logger configuration includes:
 - `name`: logger name, used to get loggers, unique, cannot be `root`
 - `log_level`: log level, only logs greater than or equal to this level will be output
 - `appenders`: appender, Must be configured in `appenders` before it can be referenced here. Appender can be
-  `console_appender`, `file_appender`, `tcp_appender`, `udp_appender`
+  `console_appender_instance`, `file_appender_instance`, `tcp_appender_instance`, `udp_appender_instance`
 
 Root logger is an object, only `log_level` and `appenders`, no `name`, internal implementation of `name` is `root`
 
@@ -228,26 +228,26 @@ Root logger is an object, only `log_level` and `appenders`, no `name`, internal 
       "name": "console_logger",
       "log_level": "INFO",
       "appenders": [
-        "console_appender",
-        "tcp_appender",
-        "udp_appender"
+        "console_appender_instance",
+        "tcp_appender_instance",
+        "udp_appender_instance"
       ]
     },
     {
       "name": "file_logger",
       "log_level": "WARN",
       "appenders": [
-        "file_appender"
+        "file_appender_instance"
       ]
     }
   ],
   "root_logger": {
     "log_level": "INFO",
     "appenders": [
-      "console_appender",
-      "file_appender",
-      "tcp_appender",
-      "udp_appender"
+      "console_appender_instance",
+      "file_appender_instance",
+      "tcp_appender_instance",
+      "udp_appender_instance"
     ]
   }
 }

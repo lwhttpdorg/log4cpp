@@ -125,7 +125,7 @@ namespace log4cpp {
 		std::string name;
 		/* Logger level */
 		log_level level;
-		/* Layout flag */
+		/* Logger flag */
 		unsigned char logger_flag{};
 	};
 

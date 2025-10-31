@@ -3,8 +3,8 @@
 #endif
 
 #include <filesystem>
-#include <main/logger_pattern.h>
 #include <main/log_utils.h>
+#include <main/logger_pattern.h>
 
 #ifdef __GNUC__
 
@@ -34,14 +34,14 @@ int main(int argc, char **argv) {
 }
 
 TEST(logger_pattern_tests, full_format_test) {
-	const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}";
+	const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}";
 	log4cpp::logger_pattern::set_pattern(pattern);
 	char actual[1024];
 	tm now_tm{};
 	unsigned short ms;
 	log4cpp::log_level level = log4cpp::log_level::INFO;
 	get_time_now(now_tm, ms);
-	log4cpp::logger_pattern::format(actual, sizeof(actual), level, "hello");
+	log4cpp::logger_pattern::format(actual, sizeof(actual), "TEST", level, "hello");
 	char expected[1024];
 	char th_name[16];
 	char thread_name[16];
@@ -388,7 +388,7 @@ TEST(logger_pattern_tests, thread_id_format_test) {
 	log4cpp::log_level level = log4cpp::log_level::INFO;
 	get_time_now(now_tm, ms);
 
-	log4cpp::logger_pattern::format(actual, sizeof(actual), level, "hello");
+	log4cpp::logger_pattern::format(actual, sizeof(actual), "TEST", level, "hello");
 	char expected[1024];
 	size_t len =
 		log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d", now_tm.tm_year + 1900,
@@ -409,7 +409,7 @@ TEST(logger_pattern_tests, thread_id_format_test) {
 	LOG4C_EXPECT_STRN_EQ(actual + offset, expected + offset, 30);
 	// Set thread name
 	log4cpp::set_thread_name("test");
-	log4cpp::logger_pattern::format(actual, sizeof(actual), level, "hello");
+	log4cpp::logger_pattern::format(actual, sizeof(actual), "TEST", level, "hello");
 	tid = log4cpp::get_thread_name_id(th_name, sizeof(th_name));
 	len = day_time;
 	if ('\0' == th_name[0]) {
@@ -433,34 +433,34 @@ TEST(logger_pattern_tests, log_level_format_test) {
 	size_t cmp_len = 25;
 	// FATAL
 	log4cpp::log_level level = log4cpp::log_level::FATAL;
-	log4cpp::logger_pattern::format(actual, sizeof(actual), level, message);
+	log4cpp::logger_pattern::format(actual, sizeof(actual), "TEST", level, message);
 	char expected[1024];
 	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
 	size_t offset = strlen(actual) - cmp_len;
 	LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len);
 	// ERROR
 	level = log4cpp::log_level::ERROR;
-	log4cpp::logger_pattern::format(actual, sizeof(actual), level, message);
+	log4cpp::logger_pattern::format(actual, sizeof(actual), "TEST", level, message);
 	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
 	LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len);
 	// WARN
 	level = log4cpp::log_level::WARN;
-	log4cpp::logger_pattern::format(actual, sizeof(actual), level, message);
+	log4cpp::logger_pattern::format(actual, sizeof(actual), "TEST", level, message);
 	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
 	LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len);
 	// INFO
 	level = log4cpp::log_level::INFO;
-	log4cpp::logger_pattern::format(actual, sizeof(actual), level, message);
+	log4cpp::logger_pattern::format(actual, sizeof(actual), "TEST", level, message);
 	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
 	LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len);
 	// DEBUG
 	level = log4cpp::log_level::DEBUG;
-	log4cpp::logger_pattern::format(actual, sizeof(actual), level, message);
+	log4cpp::logger_pattern::format(actual, sizeof(actual), "TEST", level, message);
 	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
 	LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len);
 	// TRACE
 	level = log4cpp::log_level::TRACE;
-	log4cpp::logger_pattern::format(actual, sizeof(actual), level, message);
+	log4cpp::logger_pattern::format(actual, sizeof(actual), "TEST", level, message);
 	log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", to_string(level).c_str(), message);
 	LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len);
 }

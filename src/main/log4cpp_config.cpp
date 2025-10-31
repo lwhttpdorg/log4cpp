@@ -7,9 +7,9 @@
 #include <fstream>
 #include <utility>
 
-#include "logger_pattern.h"
 #include "log4cpp_config.h"
 #include "log_utils.h"
+#include "logger_pattern.h"
 
 using namespace log4cpp;
 
@@ -186,16 +186,16 @@ log4cpp_config log4cpp::tag_invoke(boost::json::value_to_tag<log4cpp_config>, bo
 	if (!json_obj.contains("appenders")) {
 		throw std::invalid_argument("Malformed JSON configuration file: \"appender\" is mandatory");
 	}
-	std::vector<logger_config> loggers;
+	std::vector<logger_config> loggers_config;
 	if (json_obj.contains("loggers")) {
-		loggers = boost::json::value_to<std::vector<logger_config>>(json_obj.at("loggers"));
+		loggers_config = boost::json::value_to<std::vector<logger_config>>(json_obj.at("loggers"));
 	}
 	if (!json_obj.contains("root_logger")) {
 		throw std::invalid_argument("Malformed JSON configuration file: \"root_logger\" is mandatory");
 	}
 	appender_config appenders = boost::json::value_to<appender_config>(json_obj.at("appenders"));
 	const logger_config root = boost::json::value_to<logger_config>(json_obj.at("root_logger"));
-	return log4cpp_config{pattern, appenders, loggers, root};
+	return log4cpp_config{pattern, appenders, loggers_config, root};
 }
 
 log4cpp_config log4cpp_config::load_config(const std::string &json_file) {

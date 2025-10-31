@@ -6,9 +6,8 @@
 
 namespace log4cpp {
 	constexpr unsigned short LOG_LINE_MAX = 512;
-	constexpr std::array<const char*, 12> MONTH_ABBR_NAME = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
-		"Sep", "Oct", "Nov", "Dec"
-	};
+	constexpr std::array<const char *, 12> MONTH_ABBR_NAME = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+															  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 	void format_day(char *buf, size_t len, const std::string &pattern, const tm &now_tm);
 
@@ -31,7 +30,7 @@ namespace log4cpp {
 		 * @return The length of the formatted message
 		 */
 		static size_t format(char *__restrict buf, size_t buf_len, const char *name, log_level level, const char *fmt,
-							va_list args);
+							 va_list args);
 
 		/**
 		 * Format the log message
@@ -44,7 +43,7 @@ namespace log4cpp {
 		 * @return The length of the formatted message
 		 */
 		static size_t format(char *__restrict buf, size_t buf_len, const char *name, log_level level, const char *fmt,
-							...);
+							 ...);
 
 	private:
 		// The pattern to format the log message

@@ -32,8 +32,8 @@ constexpr char BANNER[] = R"(
 
 const char *DEFAULT_CONFIG_FILE_PATH = "./log4cpp.json";
 
-log_lock logger_manager::lock;
 log4cpp_config logger_manager::config;
+std::shared_mutex logger_manager::rw_lock;
 
 enum event_type {
 	HOT_RELOAD = 1, SHUTDOWN = 2
@@ -41,6 +41,9 @@ enum event_type {
 
 void logger_manager::handle_sigusr2([[maybe_unused]] int sig_num) {
 	auto &mgr = logger_manager::instance();
+#ifdef _DEBUG
+	printf("%s:%d, log4pp received hot reload trigger event\n", __func__, __LINE__);
+#endif
 	mgr.notify_config_hot_reload();
 }
 
@@ -62,12 +65,11 @@ bool logger_manager::enable_config_hot_loading() {
 logger_manager::logger_manager() {
 	evt_fd = -1;
 	evt_loop_run = false;
-	initialized = false;
 	config_file_path = DEFAULT_CONFIG_FILE_PATH;
-	console_appender = nullptr;
-	file_appender = nullptr;
-	tcp_appender = nullptr;
-	udp_appender = nullptr;
+	console_appender_instance = nullptr;
+	file_appender_instance = nullptr;
+	tcp_appender_instance = nullptr;
+	udp_appender_instance = nullptr;
 	root_logger = nullptr;
 }
 
@@ -87,7 +89,6 @@ void logger_manager::load_config(const std::string &file_path) {
 	if (-1 != access(file_path.c_str(), F_OK)) {
 		config = log4cpp_config::load_config(file_path);
 		config_file_path = file_path;
-		initialized = true;
 	}
 	else {
 		throw std::filesystem::filesystem_error("Config file " + file_path + " opening failed!",
@@ -100,6 +101,7 @@ const log4cpp_config *logger_manager::get_config() {
 }
 
 void logger_manager::event_loop() {
+	log4cpp::set_thread_name("event_loop");
 	uint64_t event;
 
 	while (evt_loop_run.load()) {
@@ -108,6 +110,11 @@ void logger_manager::event_loop() {
 			if (event_type::HOT_RELOAD == event) {
 				hot_reload_config();
 			}
+#ifdef _DEBUG
+			else {
+				printf("%s:%d, received unknown event %lu\n", __func__, __LINE__, event);
+			}
+#endif
 		}
 		else if (s == -1) {
 			if (errno == EINTR) {
@@ -127,37 +134,35 @@ void logger_manager::notify_config_hot_reload() const {
 }
 
 void logger_manager::hot_reload_config() {
-	std::lock_guard guard(lock);
-	initialized = false;
+#ifdef _DEBUG
+	printf("%s:%d, trigger hot reload config\n", __func__, __LINE__);
+#endif
+	std::unique_lock<std::shared_mutex> writer_lock(rw_lock);
 	load_config(config_file_path);
-	for (auto &logger: loggers) {
-		logger.second.reset();
-	}
-	loggers.clear();
-	root_logger.reset();
 	build_appender();
 	build_logger();
 	build_root_logger();
+	for (auto it = loggers.begin(); it != loggers.end(); ++it) {
+		auto &proxy = it->second;
+		if (proxy->hot_reload_flag_is_set()) {
+			proxy->reset_hot_reload_flag();
+		}
+		else {
+			it = loggers.erase(it);
+		}
+	}
 }
 
 std::shared_ptr<logger> logger_manager::get_logger(const std::string &name) {
-	if (!initialized) {
-		std::lock_guard guard(lock);
-		if (!initialized) {
-			fprintf(stdout, "%s\n", BANNER);
-			fflush(stdout);
-			config = log4cpp_config::load_config(config_file_path);
-			initialized = true;
-		}
-	}
-	if (loggers.empty()) {
-		std::lock_guard guard(lock);
-		if (loggers.empty()) {
-			build_appender();
-			build_logger();
-			build_root_logger();
-		}
-	}
+	std::call_once(init_flag, [this]() {
+		fprintf(stdout, "%s\n", BANNER);
+		fflush(stdout);
+		config = log4cpp_config::load_config(config_file_path);
+		build_appender();
+		build_logger();
+		build_root_logger();
+	});
+	std::shared_lock<std::shared_mutex> reader_lock(rw_lock);
 	if (loggers.find(name) == loggers.end()) {
 		return root_logger;
 	}
@@ -167,17 +172,30 @@ std::shared_ptr<logger> logger_manager::get_logger(const std::string &name) {
 void logger_manager::build_appender() {
 	appender_config appender_cfg = logger_manager::config.appender;
 	if (appender_cfg.APPENDER_FLAGS & CONSOLE_APPENDER_FLAG) {
-		console_appender =
-				std::shared_ptr<log_appender>(console_appender_config::get_instance(appender_cfg.console_cfg));
+		auto new_appender = console_appender_config::build_instance(appender_cfg.console_cfg);
+		// printf("%s: %d\n", __FILE_NAME__, nullptr == dynamic_cast<console_appender *>(new_appender.get()));
+		std::atomic_store(&console_appender_instance, new_appender);
+		// printf("%s: %d\n", __FILE_NAME__, nullptr == dynamic_cast<console_appender
+		// *>(console_appender_instance.get()));
 	}
 	if (appender_cfg.APPENDER_FLAGS & FILE_APPENDER_FLAG) {
-		file_appender = std::shared_ptr<log_appender>(file_appender_config::get_instance(appender_cfg.file_cfg));
+		// printf("%s: new log file %s\n", __FILE_NAME__, log4cpp::file_appender_config::get_file_path().c_str());
+		auto new_appender = file_appender_config::build_instance(appender_cfg.file_cfg);
+		// printf("%s: %d\n", __FILE_NAME__, nullptr == dynamic_cast<file_appender *>(new_appender.get()));
+		std::atomic_store(&file_appender_instance, new_appender);
+		// printf("%s: %d\n", __FILE_NAME__, nullptr == dynamic_cast<file_appender *>(file_appender_instance.get()));
 	}
 	if (appender_cfg.APPENDER_FLAGS & TCP_APPENDER_FLAG) {
-		tcp_appender = std::shared_ptr<log_appender>(tcp_appender_config::get_instance(appender_cfg.tcp_cfg));
+		auto new_appender = tcp_appender_config::build_instance(appender_cfg.tcp_cfg);
+		// printf("%s: %d\n", __FILE_NAME__, nullptr == dynamic_cast<tcp_appender *>(new_appender.get()));
+		std::atomic_store(&tcp_appender_instance, new_appender);
+		// printf("%s: %d\n", __FILE_NAME__, nullptr == dynamic_cast<tcp_appender *>(tcp_appender_instance.get()));
 	}
 	if (appender_cfg.APPENDER_FLAGS & UDP_APPENDER_FLAG) {
-		udp_appender = std::shared_ptr<log_appender>(udp_appender_config::get_instance(appender_cfg.udp_cfg));
+		auto new_appender = udp_appender_config::build_instance(appender_cfg.udp_cfg);
+		// printf("%s: %d\n", __FILE_NAME__, nullptr == dynamic_cast<udp_appender *>(new_appender.get()));
+		std::atomic_store(&udp_appender_instance, new_appender);
+		// printf("%s: %d\n", __FILE_NAME__, nullptr == dynamic_cast<udp_appender *>(udp_appender_instance.get()));
 	}
 }
 
@@ -188,25 +206,25 @@ void logger_manager::build_logger() {
 		builder.set_log_level(x.get_logger_level());
 		const auto flags = x.get_logger_flag();
 		if ((flags & CONSOLE_APPENDER_FLAG) != 0) {
-			builder.set_console_appender(console_appender);
+			builder.set_console_appender(console_appender_instance);
 		}
 		else {
 			builder.set_console_appender(nullptr);
 		}
 		if ((flags & FILE_APPENDER_FLAG) != 0) {
-			builder.set_file_appender(file_appender);
+			builder.set_file_appender(file_appender_instance);
 		}
 		else {
 			builder.set_file_appender(nullptr);
 		}
 		if ((flags & TCP_APPENDER_FLAG) != 0) {
-			builder.set_tcp_appender(tcp_appender);
+			builder.set_tcp_appender(tcp_appender_instance);
 		}
 		else {
 			builder.set_tcp_appender(nullptr);
 		}
 		if ((flags & UDP_APPENDER_FLAG) != 0) {
-			builder.set_udp_appender(udp_appender);
+			builder.set_udp_appender(udp_appender_instance);
 		}
 		else {
 			builder.set_udp_appender(nullptr);
@@ -230,25 +248,25 @@ void logger_manager::build_root_logger() {
 	builder.set_log_level(root_log_cfg.get_logger_level());
 	const auto flags = root_log_cfg.get_logger_flag();
 	if ((flags & CONSOLE_APPENDER_FLAG) != 0) {
-		builder.set_console_appender(console_appender);
+		builder.set_console_appender(console_appender_instance);
 	}
 	else {
 		builder.set_console_appender(nullptr);
 	}
 	if ((flags & FILE_APPENDER_FLAG) != 0) {
-		builder.set_file_appender(file_appender);
+		builder.set_file_appender(file_appender_instance);
 	}
 	else {
 		builder.set_file_appender(nullptr);
 	}
 	if ((flags & TCP_APPENDER_FLAG) != 0) {
-		builder.set_tcp_appender(tcp_appender);
+		builder.set_tcp_appender(tcp_appender_instance);
 	}
 	else {
 		builder.set_tcp_appender(nullptr);
 	}
 	if ((flags & UDP_APPENDER_FLAG) != 0) {
-		builder.set_udp_appender(udp_appender);
+		builder.set_udp_appender(udp_appender_instance);
 	}
 	else {
 		builder.set_udp_appender(nullptr);

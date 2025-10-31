@@ -54,7 +54,7 @@ else ()
         set(BUILD_SHARED_LIBS ON)
     endif ()
     set(BOOST_RUNTIME_LINK shared)
-    set(BOOST_INSTALL_LAYOUT system)
+    set(BOOST_INSTALL_LOGGER system)
     set(BOOST_ENABLE_PYTHON OFF)
     set(BOOST_ENABLE_MPI OFF)
 

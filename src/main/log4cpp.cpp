@@ -157,7 +157,7 @@ void core_logger::log(log_level _level, const char *fmt, va_list args) const {
 		char buffer[LOG_LINE_MAX];
 		buffer[0] = '\0';
 		const size_t used_len = logger_pattern::format(buffer, sizeof(buffer), this->name.c_str(), _level, fmt, args);
-		for (auto &l:this->appenders) {
+		for (auto &l: this->appenders) {
 			l->log(buffer, used_len);
 		}
 	}

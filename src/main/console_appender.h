@@ -61,7 +61,7 @@ namespace log4cpp {
 		 * Get an instance of console appender with the specified configuration
 		 * @return Console appender instance
 		 */
-		static std::shared_ptr<console_appender> get_instance(const console_appender_config &config);
+		static std::shared_ptr<log_appender> build_instance(const console_appender_config &config);
 
 		[[nodiscard]] std::string get_out_stream() const {
 			return out_stream;
@@ -77,7 +77,6 @@ namespace log4cpp {
 		/* The out stream, "stdout" or "stderr" */
 		std::string out_stream{};
 		static log_lock instance_lock;
-		static std::shared_ptr<console_appender> instance;
 	};
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, console_appender_config const &obj);

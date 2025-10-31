@@ -29,7 +29,7 @@ int stream_name_to_file_no(const std::string &out_stream) {
 		file_no = STDERR_FILENO;
 	}
 	else {
-		throw std::invalid_argument("Invalid 'console_appender' out_stream \"" + out_stream
+		throw std::invalid_argument("Invalid 'console_appender_instance' out_stream \"" + out_stream
 									+ "\", valid name: stdout, stderr");
 	}
 	return file_no;
@@ -46,7 +46,7 @@ console_appender::builder &console_appender::builder::set_out_stream(const std::
 
 std::shared_ptr<console_appender> console_appender::builder::build() {
 	if (this->instance == nullptr) {
-		throw std::runtime_error("Call console_appender::builder::new_builder() first");
+		throw std::runtime_error("Call console_appender_instance::builder::new_builder() first");
 	}
 	return this->instance;
 }
@@ -61,16 +61,10 @@ void console_appender::log(const char *msg, size_t msg_len) {
 }
 
 log_lock console_appender_config::instance_lock;
-std::shared_ptr<console_appender> console_appender_config::instance = nullptr;
 
-std::shared_ptr<console_appender> console_appender_config::get_instance(const console_appender_config &config) {
-	if (instance == nullptr) {
-		std::lock_guard lock(instance_lock);
-		if (instance == nullptr) {
-			instance = console_appender::builder::new_builder().set_out_stream(config.out_stream).build();
-		}
-	}
-	return instance;
+std::shared_ptr<log_appender> console_appender_config::build_instance(const console_appender_config &config) {
+	std::lock_guard lock(instance_lock);
+	return console_appender::builder::new_builder().set_out_stream(config.out_stream).build();
 }
 
 void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const console_appender_config &obj) {

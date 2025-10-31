@@ -11,36 +11,35 @@ namespace log4cpp {
 	class file_appender_config {
 	public:
 		/**
-		 * @brief Get a file_appender instance with the given configuration
-		 * @param config: The configuration of the file_appender
+		 * @brief Get a file_appender_instance instance with the given configuration
+		 * @param config: The configuration of the file_appender_instance
 		 * @return File appender instance
 		 */
-		static std::shared_ptr<file_appender> get_instance(const file_appender_config &config);
+		static std::shared_ptr<log_appender> build_instance(const file_appender_config &config);
 
 		[[nodiscard]] std::string get_file_path() const {
 			return file_path;
 		}
 
 		void set_file_path(const std::string &path) {
-			this->file_path = path;
+			file_path = path;
 		}
 
 		friend void tag_invoke(boost::json::value_from_tag, boost::json::value &json, file_appender_config const &obj);
 
 		friend file_appender_config tag_invoke(boost::json::value_to_tag<file_appender_config>,
-											   boost::json::value const &json);
+		                                       boost::json::value const &json);
 
 	private:
-		std::string file_path{};
+		std::string file_path;
 		static log_lock instance_lock;
-		static std::shared_ptr<file_appender> instance;
 	};
 
 	void tag_invoke(boost::json::value_from_tag, boost::json::value &json, file_appender_config const &obj);
 
 	file_appender_config tag_invoke(boost::json::value_to_tag<file_appender_config>, boost::json::value const &json);
 
-	class file_appender: public log_appender {
+	class file_appender : public log_appender {
 	public:
 		class builder {
 		public:

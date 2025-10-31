@@ -71,30 +71,30 @@ void appenders_cfg_check(const nlohmann::json &appenders_json, const log4cpp::ap
 	const nlohmann::json &appenders = appenders_json.at("appenders");
 	// Console Appender
 	const log4cpp::console_appender_config *console_appender_cfg = appenders_cfg.get_console_cfg();
-	ASSERT_EQ(true == appenders.contains("console_appender"), nullptr != console_appender_cfg);
+	ASSERT_EQ(true == appenders.contains("console_appender_instance"), nullptr != console_appender_cfg);
 	if (nullptr != console_appender_cfg) {
-		const nlohmann::json &console_appender = appenders.at("console_appender");
+		const nlohmann::json &console_appender = appenders.at("console_appender_instance");
 		console_appender_cfg_check(console_appender, console_appender_cfg);
 	}
 	// File Appender
 	const log4cpp::file_appender_config *file_appender_cfg = appenders_cfg.get_file_cfg();
-	ASSERT_EQ(true == appenders.contains("file_appender"), nullptr != file_appender_cfg);
+	ASSERT_EQ(true == appenders.contains("file_appender_instance"), nullptr != file_appender_cfg);
 	if (nullptr != file_appender_cfg) {
-		const nlohmann::json &file_appender = appenders.at("file_appender");
+		const nlohmann::json &file_appender = appenders.at("file_appender_instance");
 		file_appender_cfg_check(file_appender, file_appender_cfg);
 	}
 	// TCP Appender
 	const log4cpp::tcp_appender_config *tcp_appender_cfg = appenders_cfg.get_tcp_cfg();
-	ASSERT_EQ(true == appenders.contains("tcp_appender"), nullptr != tcp_appender_cfg);
+	ASSERT_EQ(true == appenders.contains("tcp_appender_instance"), nullptr != tcp_appender_cfg);
 	if (nullptr != tcp_appender_cfg) {
-		const nlohmann::json &tcp_appender = appenders.at("tcp_appender");
+		const nlohmann::json &tcp_appender = appenders.at("tcp_appender_instance");
 		tcp_appender_cfg_check(tcp_appender, tcp_appender_cfg);
 	}
 	// UDP Appender
 	const log4cpp::udp_appender_config *udp_appender_cfg = appenders_cfg.get_udp_cfg();
-	ASSERT_EQ(true == appenders.contains("udp_appender"), nullptr != udp_appender_cfg);
+	ASSERT_EQ(true == appenders.contains("udp_appender_instance"), nullptr != udp_appender_cfg);
 	if (nullptr != udp_appender_cfg) {
-		const nlohmann::json &udp_appender = appenders.at("udp_appender");
+		const nlohmann::json &udp_appender = appenders.at("udp_appender_instance");
 		udp_appender_cfg_check(udp_appender, udp_appender_cfg);
 	}
 }
@@ -182,7 +182,7 @@ void parse_json(const std::string &config_file, nlohmann::json &expected_json) {
 }
 
 void configuration_cfg_check(const nlohmann::json &expected_json, const log4cpp::log4cpp_config *config) {
-	// Layout pattern
+	// Logger pattern
 	const std::string &logger_pattern = config->get_logger_pattern();
 	logger_pattern_cfg_check(expected_json, logger_pattern);
 	// Appenders

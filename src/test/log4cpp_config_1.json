@@ -1,5 +1,5 @@
 {
-	"logger_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
+	"logger_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}",
 	"appenders": {
 		"console_appender": {
 			"out_stream": "stdout"
@@ -18,7 +18,7 @@
 	},
 	"loggers": [
 		{
-			"name": "console_logger",
+			"name": "aaa",
 			"log_level": "INFO",
 			"appenders": [
 				"console_appender",
@@ -27,7 +27,7 @@
 			]
 		},
 		{
-			"name": "file_logger",
+			"name": "bbb",
 			"log_level": "INFO",
 			"appenders": [
 				"console_appender",

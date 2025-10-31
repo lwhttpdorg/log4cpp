@@ -8,11 +8,11 @@
 #include <memory>
 
 #include <atomic>
+#include <mutex>
+#include <shared_mutex>
 #include <stdexcept>
 #include <thread>
 #include <utility>
-#include <shared_mutex>
-#include <mutex>
 
 #if defined(_WIN32)
 
@@ -160,9 +160,17 @@ namespace log4cpp {
 		std::list<std::shared_ptr<log_appender>> appenders;
 	};
 
+	constexpr unsigned int PROXY_HOT_RELOADED = 1;
+
 	class logger_proxy : public logger {
 	public:
-		explicit logger_proxy(std::shared_ptr<logger> target_logger) : real_logger(std::move(target_logger)) {
+		explicit logger_proxy(std::shared_ptr<logger> target_logger) : real_logger(std::move(target_logger)
+		), hot_reload_flag(0) {
+#ifdef _DEBUG
+			auto ptr = real_logger.get();
+			printf("%s:%d, constructor new logger_proxy with target %p(%s)\n", __func__, __LINE__, ptr,
+			       ptr->get_name().c_str());
+#endif
 			if (!real_logger) {
 				throw std::invalid_argument("logger_proxy: real_logger (delegated logger) must not be null");
 			}
@@ -189,6 +197,11 @@ namespace log4cpp {
 			if (real_logger) {
 				real_logger->log(_level, fmt, args);
 			}
+#ifdef _DEBUG
+			else {
+				printf("%s:%d, logger_proxy target is null!\n", __func__, __LINE__);
+			}
+#endif
 		}
 
 		void fatal(const char *__restrict fmt, ...) const override {
@@ -200,6 +213,11 @@ namespace log4cpp {
 				real_logger->log(log_level::FATAL, fmt, args);
 				va_end(args);
 			}
+#ifdef _DEBUG
+			else {
+				printf("%s:%d, logger_proxy target is null!\n", __func__, __LINE__);
+			}
+#endif
 		}
 
 		void error(const char *__restrict fmt, ...) const override {
@@ -210,6 +228,11 @@ namespace log4cpp {
 				real_logger->log(log_level::ERROR, fmt, args);
 				va_end(args);
 			}
+#ifdef _DEBUG
+			else {
+				printf("%s:%d, logger_proxy target is null!\n", __func__, __LINE__);
+			}
+#endif
 		}
 
 		void warn(const char *__restrict fmt, ...) const override {
@@ -220,6 +243,11 @@ namespace log4cpp {
 				real_logger->log(log_level::WARN, fmt, args);
 				va_end(args);
 			}
+#ifdef _DEBUG
+			else {
+				printf("%s:%d, logger_proxy target is null!\n", __func__, __LINE__);
+			}
+#endif
 		}
 
 		void info(const char *__restrict fmt, ...) const override {
@@ -230,6 +258,11 @@ namespace log4cpp {
 				real_logger->log(log_level::INFO, fmt, args);
 				va_end(args);
 			}
+#ifdef _DEBUG
+			else {
+				printf("%s:%d, logger_proxy target is null!\n", __func__, __LINE__);
+			}
+#endif
 		}
 
 		void debug(const char *__restrict fmt, ...) const override {
@@ -240,6 +273,11 @@ namespace log4cpp {
 				real_logger->log(log_level::DEBUG, fmt, args);
 				va_end(args);
 			}
+#ifdef _DEBUG
+			else {
+				printf("%s:%d, logger_proxy target is null!\n", __func__, __LINE__);
+			}
+#endif
 		}
 
 		void trace(const char *__restrict fmt, ...) const override {
@@ -250,6 +288,11 @@ namespace log4cpp {
 				real_logger->log(log_level::TRACE, fmt, args);
 				va_end(args);
 			}
+#ifdef _DEBUG
+			else {
+				printf("%s:%d, logger_proxy target is null!\n", __func__, __LINE__);
+			}
+#endif
 		}
 
 		~logger_proxy() override = default;
@@ -259,20 +302,37 @@ namespace log4cpp {
 			return real_logger;
 		}
 
+		void set_hot_reload_flag() {
+			hot_reload_flag |= PROXY_HOT_RELOADED;
+		}
+
+		void reset_hot_reload_flag() {
+			hot_reload_flag &= ~PROXY_HOT_RELOADED;
+		}
+
+		bool hot_reload_flag_is_set() {
+			return (hot_reload_flag & PROXY_HOT_RELOADED) != 0;
+		}
+
 		void set_target(std::shared_ptr<logger> target) {
 			std::unique_lock<std::shared_mutex> lock(mtx);
 			real_logger = std::move(target);
+			hot_reload_flag = PROXY_HOT_RELOADED;
+#ifdef _DEBUG
+			auto ptr = real_logger.get();
+			printf("%s:%d, set new logger_proxy with target %p(%s)\n", __func__, __LINE__, ptr,
+			       ptr->get_name().c_str());
+#endif
 		}
 
 	private:
 		mutable std::shared_mutex mtx;
 		std::shared_ptr<logger> real_logger;
+		unsigned int hot_reload_flag;
 	};
 
 	/*********************** logger_manager ***********************/
 	class log4cpp_config;
-
-	class log_lock;
 
 	class logger_manager final {
 	public:
@@ -325,17 +385,17 @@ namespace log4cpp {
 
 		void build_root_logger();
 
-		static log_lock lock;
+		static std::shared_mutex rw_lock;
 		int evt_fd;
 		std::atomic<bool> evt_loop_run{false};
 		std::thread evt_loop_thread;
-		bool initialized;
+		std::once_flag init_flag;
 		std::string config_file_path;
 		static log4cpp_config config;
-		std::shared_ptr<log_appender> console_appender;
-		std::shared_ptr<log_appender> file_appender;
-		std::shared_ptr<log_appender> tcp_appender;
-		std::shared_ptr<log_appender> udp_appender;
+		std::shared_ptr<log_appender> console_appender_instance;
+		std::shared_ptr<log_appender> file_appender_instance;
+		std::shared_ptr<log_appender> tcp_appender_instance;
+		std::shared_ptr<log_appender> udp_appender_instance;
 		std::unordered_map<std::string, std::shared_ptr<logger_proxy>> loggers;
 		std::shared_ptr<logger_proxy> root_logger;
 	};

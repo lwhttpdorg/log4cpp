@@ -107,7 +107,7 @@ TEST(tcp_appender_test, tcp_appender_test) {
 	std::atomic_bool running(false);
 	std::atomic_bool finished(false);
 
-	const std::shared_ptr<log4cpp::logger> log = log_mgr.get_logger("tcpLayout");
+	const std::shared_ptr<log4cpp::logger> log = log_mgr.get_logger("tcp");
 	log4cpp::log_level max_level = log->get_level();
 	unsigned int log_count = static_cast<int>(max_level) + 1; // enum start from 0q
 

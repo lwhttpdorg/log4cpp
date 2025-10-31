@@ -15,11 +15,11 @@ namespace log4cpp {
 	class udp_appender_config {
 	public:
 		/**
-		 * @brief Get an instance of udp_appender with the given configuration
+		 * @brief Get an instance of udp_appender_instance with the given configuration
 		 * @param config: UDP appender configuration
 		 * @return UDP appender instance
 		 */
-		static std::shared_ptr<udp_appender> get_instance(const udp_appender_config &config);
+		static std::shared_ptr<log_appender> build_instance(const udp_appender_config &config);
 
 		[[nodiscard]] net::net_addr get_local_addr() const {
 			return local_addr;
@@ -45,7 +45,7 @@ namespace log4cpp {
 	private:
 		net::net_addr local_addr{};
 		unsigned short port{0};
-		static std::shared_ptr<udp_appender> instance;
+		static std::shared_ptr<log_appender> instance;
 		static log_lock instance_lock;
 	};
 

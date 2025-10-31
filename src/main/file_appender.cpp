@@ -38,17 +38,17 @@ using namespace log4cpp;
 
 file_appender::builder &file_appender::builder::set_file(const std::string &file) {
 	if (this->instance == nullptr) {
-		throw std::runtime_error("Call file_appender::builder::new_builder() first");
+		throw std::runtime_error("Call file_appender_instance::builder::new_builder() first");
 	}
-	this->config.set_file_path(file);
+	config.set_file_path(file);
 	return *this;
 }
 
 std::shared_ptr<file_appender> file_appender::builder::build() {
 	if (this->instance == nullptr) {
-		throw std::runtime_error("Call file_appender::builder::new_builder() first");
+		throw std::runtime_error("Call file_appender_instance::builder::new_builder() first");
 	}
-	const std::string file_path = this->config.get_file_path();
+	const std::string file_path = config.get_file_path();
 	if (const auto pos = file_path.find_last_of('/'); pos != std::string::npos) {
 		std::string path = file_path.substr(0, pos);
 		if (0 != access(path.c_str(), F_OK)) {
@@ -70,6 +70,9 @@ std::shared_ptr<file_appender> file_appender::builder::build() {
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 #endif
 	this->instance->fd = open(file_path.c_str(), openFlags, mode);
+#ifdef _DEBUG
+	printf("%s: open new file %s@fd %d\n", __FILE_NAME__, file_path.c_str(), this->instance->fd);
+#endif
 	if (this->instance->fd == -1) {
 		std::string what("Can not open log file: ");
 		what.append(strerror(errno));
@@ -94,23 +97,18 @@ file_appender::~file_appender() {
 void file_appender::log(const char *msg, size_t msg_len) {
 	std::lock_guard lock_guard(this->lock);
 	(void)write(this->fd, msg, msg_len);
+	printf("write fd: %d\n", this->fd);
 }
 
 log_lock file_appender_config::instance_lock;
-std::shared_ptr<file_appender> file_appender_config::instance = nullptr;
 
-std::shared_ptr<file_appender> file_appender_config::get_instance(const file_appender_config &config) {
-	if (instance == nullptr) {
-		std::lock_guard lock(instance_lock);
-		if (instance == nullptr) {
-			instance = file_appender::builder::new_builder().set_file(config.file_path).build();
-		}
-	}
-	return instance;
+std::shared_ptr<log_appender> file_appender_config::build_instance(const file_appender_config &config) {
+	std::lock_guard lock(instance_lock);
+	return file_appender::builder::new_builder().set_file(config.file_path).build();
 }
 
-void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const file_appender_config &obj) {
-	json = boost::json::object{{"file_path", obj.file_path}};
+void log4cpp::tag_invoke(boost::json::value_from_tag, boost::json::value &json, const file_appender_config &config) {
+	json = boost::json::object{{"file_path", config.file_path}};
 }
 
 file_appender_config log4cpp::tag_invoke(boost::json::value_to_tag<file_appender_config>,

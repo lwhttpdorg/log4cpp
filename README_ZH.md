@@ -47,7 +47,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "logger_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+  "logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -80,25 +80,25 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 
 #### 3.2.2. 配置输出器
 
-配置输出器有四种类型: 控制台输出器(console_appender), 文件输出器(file_appender), TCP输出器(tcp_appender), UDP输出器(
-udp_appender)
+配置输出器有四种类型: 控制台输出器(console_appender_instance), 文件输出器(file_appender_instance), TCP输出器(tcp_appender_instance), UDP输出器(
+udp_appender_instance)
 
 一个简单的配置文件示例:
 
 ```json
 {
   "appenders": {
-    "console_appender": {
+    "console_appender_instance": {
       "out_stream": "stdout"
     },
-    "file_appender": {
+    "file_appender_instance": {
       "file_path": "log/log4cpp.log"
     },
-    "tcp_appender": {
+    "tcp_appender_instance": {
       "local_addr": "0.0.0.0",
       "port": 9443
     },
-    "udp_appender": {
+    "udp_appender_instance": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -113,7 +113,7 @@ udp_appender)
 ```json
 {
   "appenders": {
-    "console_appender": {
+    "console_appender_instance": {
       "out_stream": "stdout"
     }
   }
@@ -131,7 +131,7 @@ udp_appender)
 ```json
 {
   "appenders": {
-    "file_appender": {
+    "file_appender_instance": {
       "file_path": "log/log4cpp.log"
     }
   }
@@ -149,7 +149,7 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 ```json
 {
   "appenders": {
-    "tcp_appender": {
+    "tcp_appender_instance": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -181,7 +181,7 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 ```json
 {
   "appenders": {
-    "udp_appender": {
+    "udp_appender_instance": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -205,8 +205,8 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 
 - `name`: logger名称, 用于获取logger, 不能重复, 不能是`root`
 - `log_level`: log级别, 只有大于等于此级别的log才会输出
-- `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console_appender`, `file_appender`, `tcp_appender`,
-  `udp_appender`
+- `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console_appender_instance`, `file_appender_instance`, `tcp_appender_instance`,
+  `udp_appender_instance`
 
 默认logger是一个对象, 只有`log_level`和`appenders`, 没有`name`, 内部实现`name`为`root`
 
@@ -217,26 +217,26 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
       "name": "console_logger",
       "log_level": "INFO",
       "appenders": [
-        "console_appender",
-        "tcp_appender",
-        "udp_appender"
+        "console_appender_instance",
+        "tcp_appender_instance",
+        "udp_appender_instance"
       ]
     },
     {
       "name": "file_logger",
       "log_level": "WARN",
       "appenders": [
-        "file_appender"
+        "file_appender_instance"
       ]
     }
   ],
   "root_logger": {
     "log_level": "INFO",
     "appenders": [
-      "console_appender",
-      "file_appender",
-      "tcp_appender",
-      "udp_appender"
+      "console_appender_instance",
+      "file_appender_instance",
+      "tcp_appender_instance",
+      "udp_appender_instance"
     ]
   }
 }

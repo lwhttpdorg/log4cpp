@@ -88,7 +88,7 @@ TEST(udp_appender_test, udp_appender_test) {
 #endif
 	std::atomic_bool running(false);
 
-	const std::shared_ptr<log4cpp::logger> log = log_mgr.get_logger("udpLayout");
+	const std::shared_ptr<log4cpp::logger> log = log_mgr.get_logger("udp");
 	log4cpp::log_level max_level = log->get_level();
 	unsigned int log_count = static_cast<int>(max_level);
 

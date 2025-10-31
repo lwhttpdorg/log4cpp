@@ -14,8 +14,8 @@
 
 #endif
 
-#include "logger_pattern.h"
 #include "log_net.h"
+#include "logger_pattern.h"
 #include "tcp_appender.h"
 
 namespace log4cpp {
@@ -139,7 +139,7 @@ namespace log4cpp {
 
 	tcp_appender::builder &tcp_appender::builder::set_local_addr(const net::net_addr &addr) {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call tcp_appender::builder::new_builder() first");
+			throw std::runtime_error("Call tcp_appender_instance::builder::new_builder() first");
 		}
 		this->config.set_local_addr(addr);
 		return *this;
@@ -147,7 +147,7 @@ namespace log4cpp {
 
 	tcp_appender::builder &tcp_appender::builder::set_port(unsigned short port) {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call tcp_appender::builder::new_builder() first");
+			throw std::runtime_error("Call tcp_appender_instance::builder::new_builder() first");
 		}
 		this->config.set_port(port);
 		return *this;
@@ -155,7 +155,7 @@ namespace log4cpp {
 
 	std::shared_ptr<tcp_appender> tcp_appender::builder::build() {
 		if (this->instance == nullptr) {
-			throw std::runtime_error("Call tcp_appender::builder::new_builder() first");
+			throw std::runtime_error("Call tcp_appender_instance::builder::new_builder() first");
 		}
 		net::sock_addr saddr;
 		saddr.addr = this->config.get_local_addr();
@@ -203,19 +203,12 @@ namespace log4cpp {
 		}
 	}
 
-	std::shared_ptr<tcp_appender> tcp_appender_config::instance = nullptr;
+	std::shared_ptr<log_appender> tcp_appender_config::instance = nullptr;
 	log_lock tcp_appender_config::instance_lock;
 
-	std::shared_ptr<tcp_appender> tcp_appender_config::get_instance(const tcp_appender_config &config) {
-		if (instance == nullptr) {
-			std::lock_guard lock(instance_lock);
-			if (instance == nullptr) {
-				instance = tcp_appender::builder::new_builder()
-							   .set_local_addr(config.local_addr)
-							   .set_port(config.port)
-							   .build();
-			}
-		}
+	std::shared_ptr<log_appender> tcp_appender_config::build_instance(const tcp_appender_config &config) {
+		std::lock_guard lock(instance_lock);
+		instance = tcp_appender::builder::new_builder().set_local_addr(config.local_addr).set_port(config.port).build();
 		return instance;
 	}
 
