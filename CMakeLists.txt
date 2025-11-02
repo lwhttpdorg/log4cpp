@@ -41,7 +41,7 @@ if ((CMAKE_C_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU
 endif ()
 
 option(ENABLE_DEMO "Enable demo" OFF)
-option(ENABLE_TESTS "Enable test" OFF)
+option(ENABLE_TEST "Enable test" OFF)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 
 if (MSVC AND ENABLE_ASAN)
@@ -101,7 +101,7 @@ if (ENABLE_DEMO)
 	add_subdirectory(demo)
 endif ()
 
-if (ENABLE_TESTS)
+if (ENABLE_TEST)
 	enable_testing()
 	if ((CMAKE_C_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"))
 		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebug$<$<CONFIG:Debug>:Debug>")

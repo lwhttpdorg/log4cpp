@@ -430,7 +430,7 @@ endif ()
 ### 4.2. CMake compile options
 
 ```shell
-cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TESTS=ON -DENABLE_ASAN=ON
+cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TEST=ON -DENABLE_ASAN=ON
 ```
 
 ```shell
