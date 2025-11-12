@@ -18,7 +18,10 @@
 	},
 	"root": {
 		"level": "INFO",
-		"appenders": ["console", "file"]
+		"appenders": [
+			"console",
+			"file"
+		]
 	},
 	"loggers": [
 		{

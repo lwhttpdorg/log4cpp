@@ -24,7 +24,7 @@ log4cpp是一个C++日志库, 参照log4j实现
 
 1. 支持C++17及以上的C++编译器
 2. CMake 3.11及以上版本
-3. Boost >= 1.75
+3. nlohmann-json >= 3.7
 
 _警告: 由于MSVC编译器的一些列bug, 本项目不再支持MSVC. 任何MSVC平台的错误都不再解决, 建议使用MingW64_
 
@@ -393,28 +393,10 @@ endif ()
 
 欢迎提交PR, 再提交PR之前有些事项需了解:
 
-### 4.1. boost库
-
-本项目优先使用本地boost库, 如果没找到本地boost库则从github在线拉取boost库
-
-如果CMake没有自动找到Boost路径, 可以手动设置Boost路径:
-
-```cmake
-if (CMAKE_HOST_WIN32)
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-    endif ()
-else ()
-    set(BOOST_ROOT "/usr/local/boost")
-endif ()
-```
-
-### 4.2. CMake编译选项
+### 4.1. CMake编译选项
 
 ```shell
-cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TEST=ON -DENABLE_ASAN=ON
+cmake -S . -B build -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON
 ```
 
 ```shell
@@ -427,17 +409,17 @@ ctest --test-dir build
 
 选项说明:
 
-- `-DENABLE_DEMO=ON`: 编译demo, 默认不编译
-- `-DENABLE_TEST=ON`: 编译测试, 默认不开启
+- `-DBUILD_LOG4CPP_DEMO=ON`: 编译demo, 默认不编译
+- `-DBUILD_LOG4CPP_TEST=ON`: 编译测试, 默认不开启
 - `-DENABLE_ASAN=ON`: 开启地址检测, 默认不开启
 
-### 4.3. 测试
+### 4.2. 测试
 
-本项目使用Google Test进行单元测试, 测试代码在[test](src/test)目录下, 欢迎补充测试用例
+本项目使用Google Test进行单元测试, 测试代码在[test](test)目录下, 欢迎补充测试用例
 
 如果你的代码修改了现有功能, 请确保测试用例覆盖到你的修改
 
-### 4.4. ASAN
+### 4.3. ASAN
 
 如果你的代码修改了现有功能, 请确保ASAN检测通过, 未经ASAN检测通过的代码不会合并
 

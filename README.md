@@ -24,10 +24,14 @@ Features:
 
 1. C++ compiler that supports C++17 and above
 2. CMake 3.11 and above
-3. Boost >= 1.75
+3. nlohmann-json >= 3.7
 
 _Warning: Due to a series of bugs in the MSVC compiler, this project no longer supports MSVC. Any errors on the MSVC
 platform will no longer be fixed. It is recommended to use MingW64_
+
+```shell
+sudo apt install nlohmann-json3-dev
+```
 
 ## 3. Usage
 
@@ -409,28 +413,10 @@ Configuration file:
 
 Welcome to submit PR. There are some things to know before submitting PR:
 
-### 4.1. boost library
-
-This project will first search for local boost, if not found then download from github
-
-If CMake does not automatically find the Boost path, you can manually set the Boost path:
-
-```cmake
-if (CMAKE_HOST_WIN32)
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(BOOST_ROOT "D:/OpenCode/boost/gcc")
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-        set(BOOST_ROOT "D:/OpenCode/boost/msvc")
-    endif ()
-else ()
-    set(BOOST_ROOT "/usr/local/boost")
-endif ()
-```
-
-### 4.2. CMake compile options
+### 4.1. CMake compile options
 
 ```shell
-cmake -S . -B build -DENABLE_DEMO=ON -DENABLE_TEST=ON -DENABLE_ASAN=ON
+cmake -S . -B build -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON
 ```
 
 ```shell
@@ -443,18 +429,18 @@ ctest --test-dir build
 
 Option description:
 
-- `-DENABLE_DEMO=ON`: compile demo, not compiled by default
-- `-DENABLE_TEST=ON`: compile test, not enabled by default
+- `-DBUILD_LOG4CPP_DEMO=ON`: compile demo, not compiled by default
+- `-DBUILD_LOG4CPP_TEST=ON`: compile test, not enabled by default
 - `-DENABLE_ASAN=ON`: enable address detection, not enabled by default
 
-### 4.3. Test
+### 4.2. Test
 
-This project uses Google Test for unit testing. The test code is in the [test](src/test) directory. You are welcome to
+This project uses Google Test for unit testing. The test code is in the [test](test) directory. You are welcome to
 add test cases
 
 If your code modifies existing functions, Please make sure that the test cases cover your changes
 
-### 4.4. ASAN
+### 4.3. ASAN
 
 If your code modifies existing functions, please make sure that the ASAN test passes. Code that does not pass the ASAN
 test will not be merged
