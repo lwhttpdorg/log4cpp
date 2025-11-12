@@ -1,7 +1,7 @@
 #include <filesystem>
 #include <thread>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "log4cpp/log4cpp.hpp"
 
