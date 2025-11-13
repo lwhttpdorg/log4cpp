@@ -22,9 +22,9 @@ namespace log4cpp::config {
                                                            {"tcp", APPENDER_TYPE::TCP},
                                                            {"udp", APPENDER_TYPE::UDP}}};
 
-    std::vector<std::string> flag_to_appenders(unsigned char flag);
+    std::vector<std::string> appender_flag_to_name(unsigned char flag);
 
-    unsigned char appenders_to_flag(const std::vector<std::string> &arr);
+    unsigned char appender_name_to_flag(const std::vector<std::string> &arr);
 
     class log_appender {
     public:
@@ -42,7 +42,7 @@ namespace log4cpp::config {
 
     class log4cpp {
     public:
-        std::string log_pattern; // logger_pattern
+        std::string log_pattern; // log_pattern
         log_appender appenders{}; // appenders
         std::vector<logger> loggers; // loggers
         logger root_logger; // Root logger

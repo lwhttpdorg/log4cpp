@@ -185,10 +185,10 @@ namespace log4cpp {
         static logger_manager instance;
         std::string config_file_path;
         std::unique_ptr<config::log4cpp> config;
-        std::shared_ptr<appender::log_appender> console_appender_instance;
-        std::shared_ptr<appender::log_appender> file_appender_instance;
-        std::shared_ptr<appender::log_appender> tcp_appender_instance;
-        std::shared_ptr<appender::log_appender> udp_appender_instance;
+        std::shared_ptr<appender::log_appender> console_appender_ptr;
+        std::shared_ptr<appender::log_appender> file_appender_ptr;
+        std::shared_ptr<appender::log_appender> tcp_appender_ptr;
+        std::shared_ptr<appender::log_appender> udp_appender_ptr;
         std::unordered_map<std::string, std::shared_ptr<log::logger_proxy>> loggers;
         std::shared_ptr<log::logger_proxy> root_logger;
     };

@@ -47,7 +47,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}"
+  "log_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -80,25 +80,24 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 
 #### 3.2.2. 配置输出器
 
-配置输出器有四种类型: 控制台输出器(console_appender_instance), 文件输出器(file_appender_instance), TCP输出器(tcp_appender_instance), UDP输出器(
-udp_appender_instance)
+配置输出器有四种类型: 控制台输出器(`console`), 文件输出器(`file`), TCP输出器(`tcp`), UDP输出器(`udp`)
 
 一个简单的配置文件示例:
 
 ```json
 {
   "appenders": {
-    "console_appender_instance": {
+    "console": {
       "out_stream": "stdout"
     },
-    "file_appender_instance": {
+    "file": {
       "file_path": "log/log4cpp.log"
     },
-    "tcp_appender_instance": {
+    "tcp": {
       "local_addr": "0.0.0.0",
       "port": 9443
     },
-    "udp_appender_instance": {
+    "udp": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -113,7 +112,7 @@ udp_appender_instance)
 ```json
 {
   "appenders": {
-    "console_appender_instance": {
+    "console": {
       "out_stream": "stdout"
     }
   }
@@ -122,7 +121,7 @@ udp_appender_instance)
 
 说明:
 
-- `out_stream`: 输出流, 可以是stdout或stderr
+- `out_stream`: 输出流, 可以是`stdout`或`stderr`
 
 #### 3.2.4. 文件输出器
 
@@ -131,7 +130,7 @@ udp_appender_instance)
 ```json
 {
   "appenders": {
-    "file_appender_instance": {
+    "file": {
       "file_path": "log/log4cpp.log"
     }
   }
@@ -149,7 +148,7 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 ```json
 {
   "appenders": {
-    "tcp_appender_instance": {
+    "tcp": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -181,7 +180,7 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 ```json
 {
   "appenders": {
-    "udp_appender_instance": {
+    "udp": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -204,39 +203,38 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 命名logger是一个数组, 每个logger配置包括:
 
 - `name`: logger名称, 用于获取logger, 不能重复, 不能是`root`
-- `log_level`: log级别, 只有大于等于此级别的log才会输出
-- `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console_appender_instance`, `file_appender_instance`, `tcp_appender_instance`,
-  `udp_appender_instance`
+- `level`: log级别, 只有大于等于此级别的log才会输出
+- `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console`, `file`, `tcp`, `udp`
 
-默认logger是一个对象, 只有`log_level`和`appenders`, 没有`name`, 内部实现`name`为`root`
+默认logger是一个对象, 只有`level`和`appenders`, 没有`name`, 内部实现`name`为`root`
 
 ```json
 {
   "loggers": [
     {
       "name": "console_logger",
-      "log_level": "INFO",
+      "level"NFO",
       "appenders": [
-        "console_appender_instance",
-        "tcp_appender_instance",
-        "udp_appender_instance"
+        "console",
+        "tcp",
+        "udp"
       ]
     },
     {
       "name": "file_logger",
-      "log_level": "WARN",
+      "level"ARN",
       "appenders": [
-        "file_appender_instance"
+        "file"
       ]
     }
   ],
-  "root_logger": {
-    "log_level": "INFO",
+  "root": {
+    "level"NFO",
     "appenders": [
-      "console_appender_instance",
-      "file_appender_instance",
-      "tcp_appender_instance",
-      "udp_appender_instance"
+      "console",
+      "file",
+      "tcp",
+      "udp"
     ]
   }
 }
@@ -288,9 +286,7 @@ void log(log_level level, const char *fmt, ...);
 
 ```c++
 namespace log4cpp {
-  enum class log_level {
-    FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5
-  };
+    enum class log_level { OFF = 0, FATAL = 1, ERROR = 2, WARN = 3, INFO = 4, DEBUG = 5, TRACE = 6 };
 }
 ```
 
@@ -400,7 +396,7 @@ cmake -S . -B build -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASA
 ```
 
 ```shell
-cmake --build build --config=Debug
+cmake --build build --config=Debug -j $(nproc)
 ```
 
 ```shell
@@ -422,14 +418,6 @@ ctest --test-dir build
 ### 4.3. ASAN
 
 如果你的代码修改了现有功能, 请确保ASAN检测通过, 未经ASAN检测通过的代码不会合并
-
-**缺失clang_rt.asan_dynamic-x86_64.dll?**
-
-如果设置了`"ENABLE_ASAN=ON"`且使用的是MSVC编译器, 可能会遇到此问题. 解决办法是:
-
-复制
-`"D:\Program Files\Microsoft Visual Studio\<Visual Studio Version>\Professional\VC\Tools\MSVC\<MSVC Version>\bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll"`
-到`cmake-build-debug/bin/`
 
 ## 5. 许可
 

@@ -30,7 +30,7 @@ namespace log4cpp::appender {
             file_no = STDERR_FILENO;
         }
         else {
-            throw std::invalid_argument("Invalid 'console_appender_instance' out_stream \"" + out_stream
+            throw std::invalid_argument("Invalid 'console_appender' out_stream \"" + out_stream
                                         + "\", valid name: stdout, stderr");
         }
         return file_no;

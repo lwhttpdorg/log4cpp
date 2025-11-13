@@ -23,7 +23,7 @@
 
 namespace log4cpp::appender {
     /* TCP server accept thread running flag */
-    static std::atomic_bool running{true};
+    static std::atomic<bool> running{true};
 
     common::socket_fd create_tcp_socket(const common::sock_addr &saddr) {
         common::socket_fd fd;

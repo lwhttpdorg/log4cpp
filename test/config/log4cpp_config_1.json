@@ -1,48 +1,47 @@
 {
-	"logger_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}",
+	"log_pattern": "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}",
 	"appenders": {
-		"console_appender": {
+		"console": {
 			"out_stream": "stdout"
 		},
-		"file_appender": {
+		"file": {
 			"file_path": "log/log4cpp_config_1.log"
 		},
-		"tcp_appender": {
+		"tcp": {
 			"local_addr": "0.0.0.0",
 			"port": 9443
 		},
-		"udp_appender": {
+		"udp": {
 			"local_addr": "::",
 			"port": 9443
 		}
 	},
+	"root": {
+		"level": "INFO",
+		"appenders": [
+			"console",
+			"file"
+		]
+	},
 	"loggers": [
 		{
 			"name": "aaa",
-			"log_level": "INFO",
+			"level": "INFO",
 			"appenders": [
-				"console_appender",
-				"tcp_appender",
-				"udp_appender"
+				"console",
+				"tcp",
+				"udp"
 			]
 		},
 		{
 			"name": "bbb",
-			"log_level": "INFO",
+			"level": "WARN",
 			"appenders": [
-				"console_appender",
-				"file_appender",
-				"tcp_appender",
-				"udp_appender"
+				"console",
+				"file",
+				"tcp",
+				"udp"
 			]
 		}
-	],
-	"root_logger": {
-		"log_level": "INFO",
-		"appenders": [
-			"file_appender",
-			"tcp_appender",
-			"udp_appender"
-		]
-	}
+	]
 }

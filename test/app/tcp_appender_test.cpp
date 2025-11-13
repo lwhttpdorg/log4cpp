@@ -46,7 +46,8 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-int tcp_appender_client(std::atomic_bool &running, std::atomic_bool &finished, unsigned int log_count, unsigned port) {
+int tcp_appender_client(std::atomic<bool> &running, std::atomic<bool> &finished, unsigned int log_count,
+                        unsigned port) {
     log4cpp::common::socket_fd fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (log4cpp::common::INVALID_FD == fd) {
         printf("[log4cpp] socket creation failed...\n");
@@ -106,12 +107,12 @@ TEST(tcp_appender_test, tcp_appender_test) {
     WSADATA wsa_data{};
     WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
-    std::atomic_bool running(false);
-    std::atomic_bool finished(false);
+    std::atomic<bool> running(false);
+    std::atomic<bool> finished(false);
 
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("tcp");
     log4cpp::log_level max_level = log->get_level();
-    unsigned int log_count = static_cast<int>(max_level) + 1; // enum start from 0
+    unsigned int log_count = static_cast<int>(max_level);
 
     std::thread tcp_appender_thread =
         std::thread(&tcp_appender_client, std::ref(running), std::ref(finished), log_count, port);

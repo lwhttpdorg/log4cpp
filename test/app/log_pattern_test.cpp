@@ -34,24 +34,25 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-TEST(logger_pattern_tests, full_format_test) {
+TEST(log_pattern_tests, full_format_test) {
     const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}";
     log4cpp::pattern::log_pattern::set_pattern(pattern);
     char actual[1024];
     tm now_tm{};
     unsigned short ms;
     log4cpp::log_level level = log4cpp::log_level::INFO;
+    const char *LOGGER_NAME = "TEST";
     log4cpp::common::get_time_now(now_tm, ms);
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, "hello");
+    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), LOGGER_NAME, level, "hello");
     char expected[1024];
     char th_name[16];
     char thread_name[16];
     unsigned long tid = log4cpp::get_thread_name_id(th_name, sizeof(th_name));
     log4cpp::common::log4c_scnprintf(thread_name, sizeof(thread_name), "%08lu", tid);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected),
-                                     "%04d-%02d-%02d %02d:%02d:%02d:%03d [T%08s] [%-5s] -- %s\n", now_tm.tm_year + 1900,
-                                     now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec,
-                                     ms, thread_name, log4cpp::level_to_string(level).c_str(), "hello");
+    log4cpp::common::log4c_scnprintf(
+        expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d %-7s: [T%08s] [%-5s] -- %s\n",
+        now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms,
+        LOGGER_NAME, thread_name, log4cpp::level_to_string(level).c_str(), "hello");
     // The length of "2025-01-06 " is 11
     LOG4C_EXPECT_STRN_EQ(expected, actual, 11);
     // The length of " [T00008580] [FATAL] -- hello\n" is 30
@@ -59,7 +60,7 @@ TEST(logger_pattern_tests, full_format_test) {
     LOG4C_EXPECT_STRN_EQ(expected + offset, actual + offset, 30);
 }
 
-TEST(logger_pattern_tests, year_format_test) {
+TEST(log_pattern_tests, year_format_test) {
     tm now_tm{};
     unsigned short ms;
     log4cpp::common::get_time_now(now_tm, ms);
@@ -89,7 +90,7 @@ TEST(logger_pattern_tests, year_format_test) {
     LOG4C_EXPECT_STRN_EQ(expected, actual, cmp_len);
 }
 
-TEST(logger_pattern_tests, month_format_test) {
+TEST(log_pattern_tests, month_format_test) {
     tm now_tm{};
     unsigned short ms;
     log4cpp::common::get_time_now(now_tm, ms);
@@ -147,7 +148,7 @@ TEST(logger_pattern_tests, month_format_test) {
     }
 }
 
-TEST(logger_pattern_tests, day_format_test) {
+TEST(log_pattern_tests, day_format_test) {
     tm now_tm{};
     unsigned short ms;
     log4cpp::common::get_time_now(now_tm, ms);
@@ -194,7 +195,7 @@ TEST(logger_pattern_tests, day_format_test) {
     LOG4C_EXPECT_STRN_EQ(expected, actual, cmp_len);
 }
 
-TEST(logger_pattern_tests, time_hour_format_test) {
+TEST(log_pattern_tests, time_hour_format_test) {
     tm now_tm{};
     unsigned short ms;
     log4cpp::common::get_time_now(now_tm, ms);
@@ -282,7 +283,7 @@ TEST(logger_pattern_tests, time_hour_format_test) {
     LOG4C_EXPECT_STRN_EQ(expected, actual, strlen(expected));
 }
 
-TEST(logger_pattern_tests, time_minutes_format_test) {
+TEST(log_pattern_tests, time_minutes_format_test) {
     tm now_tm{};
     unsigned short ms;
     log4cpp::common::get_time_now(now_tm, ms);
@@ -326,7 +327,7 @@ TEST(logger_pattern_tests, time_minutes_format_test) {
     LOG4C_EXPECT_STRN_EQ(expected, actual, strlen(expected));
 }
 
-TEST(logger_pattern_tests, time_seconds_format_test) {
+TEST(log_pattern_tests, time_seconds_format_test) {
     tm now_tm{};
     unsigned short ms;
     log4cpp::common::get_time_now(now_tm, ms);
@@ -371,7 +372,7 @@ TEST(logger_pattern_tests, time_seconds_format_test) {
     LOG4C_EXPECT_STRN_EQ(expected, actual, strlen(expected));
 }
 
-TEST(logger_pattern_tests, time_milliseconds_format_test) {
+TEST(log_pattern_tests, time_milliseconds_format_test) {
     tm now_tm{};
     unsigned short ms;
     log4cpp::common::get_time_now(now_tm, ms);
@@ -408,7 +409,7 @@ TEST(logger_pattern_tests, time_milliseconds_format_test) {
     LOG4C_EXPECT_STRN_EQ(expected, actual, strlen(expected));
 }
 
-TEST(logger_pattern_tests, thread_id_format_test) {
+TEST(log_pattern_tests, thread_id_format_test) {
     const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
     log4cpp::pattern::log_pattern::set_pattern(pattern);
     char actual[1024];
@@ -455,7 +456,7 @@ TEST(logger_pattern_tests, thread_id_format_test) {
     LOG4C_EXPECT_STRN_EQ(actual + offset, expected + offset, 29);
 }
 
-TEST(logger_pattern_tests, log_level_format_test) {
+TEST(log_pattern_tests, log_level_format_test) {
     const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
     log4cpp::pattern::log_pattern::set_pattern(pattern);
     char actual[1024];

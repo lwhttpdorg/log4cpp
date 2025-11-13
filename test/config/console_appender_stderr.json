@@ -1,25 +1,23 @@
 {
-	"logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TN}] [${L}] -- ${W}",
+	"log_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TN}] [${L}] -- ${W}",
 	"appenders": {
-		"console_appender": {
+		"console": {
 			"out_stream": "stderr"
 		}
 	},
 	"loggers": [
 		{
 			"name": "aaa",
-			"log_level": "INFO",
+			"level": "INFO",
 			"appenders": [
-				"console_appender",
-				"tcp_appender",
-				"udp_appender"
+				"console"
 			]
 		}
 	],
-	"root_logger": {
-		"log_level": "INFO",
+	"root": {
+		"level": "INFO",
 		"appenders": [
-			"console_appender"
+			"console"
 		]
 	}
 }

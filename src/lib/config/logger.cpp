@@ -40,6 +40,6 @@ namespace log4cpp::config {
         std::vector<std::string> appenders;
         j.at("appenders").get_to(appenders);
 
-        config.appender_flag = appenders_to_flag(appenders);
+        config.appender_flag = appender_name_to_flag(appenders);
     }
 }

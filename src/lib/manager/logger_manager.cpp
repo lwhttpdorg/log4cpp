@@ -19,11 +19,11 @@
 
 /* Banner */
 constexpr char BANNER[] = R"(
-   __    ___   ___  _  _      ___
-  / /   /___\ / _ \| || |    / __\  _      _
- / /   //  /// /_\/| || |_  / /   _| |_  _| |_
-/ /___/ \_/// /_\\ |__   _|/ /___|_   _||_   _|
-\____/\___/ \____/    |_|  \____/  |_|    |_|
+   __    ___   ___        ___
+  / /   /___\ / _ \      / __\  _      _
+ / /   //  /// /_\/     / /   _| |_  _| |_
+/ /___/ \_/// /_\\     / /___|_   _||_   _|
+\____/\___/ \____/ for \____/  |_|    |_|
 )";
 
 constexpr const char *DEFAULT_CONFIG_FILE_PATH = "./log4cpp.json";
@@ -69,10 +69,10 @@ namespace log4cpp {
         evt_fd = -1;
         evt_loop_run.store(false);
         config_file_path = DEFAULT_CONFIG_FILE_PATH;
-        console_appender_instance = nullptr;
-        file_appender_instance = nullptr;
-        tcp_appender_instance = nullptr;
-        udp_appender_instance = nullptr;
+        console_appender_ptr = nullptr;
+        file_appender_ptr = nullptr;
+        tcp_appender_ptr = nullptr;
+        udp_appender_ptr = nullptr;
         root_logger = nullptr;
         fprintf(stdout, "%s\n", BANNER);
         fflush(stdout);
@@ -215,22 +215,22 @@ namespace log4cpp {
         if (appender_cfg.console.has_value()) {
             const std::shared_ptr<appender::log_appender> new_appender =
                 std::make_shared<appender::console_appender>(appender_cfg.console.value());
-            std::atomic_store(&console_appender_instance, new_appender);
+            std::atomic_store(&console_appender_ptr, new_appender);
         }
         if (appender_cfg.file.has_value()) {
             const std::shared_ptr<appender::log_appender> new_appender =
                 std::make_shared<appender::file_appender>(appender_cfg.file.value());
-            std::atomic_store(&file_appender_instance, new_appender);
+            std::atomic_store(&file_appender_ptr, new_appender);
         }
         if (appender_cfg.tcp.has_value()) {
             const std::shared_ptr<appender::log_appender> new_appender =
                 std::make_shared<appender::tcp_appender>(appender_cfg.tcp.value());
-            std::atomic_store(&tcp_appender_instance, new_appender);
+            std::atomic_store(&tcp_appender_ptr, new_appender);
         }
         if (appender_cfg.udp.has_value()) {
             const std::shared_ptr<appender::log_appender> new_appender =
                 std::make_shared<appender::udp_appender>(appender_cfg.udp.value());
-            std::atomic_store(&udp_appender_instance, new_appender);
+            std::atomic_store(&udp_appender_ptr, new_appender);
         }
     }
 
@@ -238,16 +238,16 @@ namespace log4cpp {
         for (auto &lg: config->loggers) {
             std::shared_ptr<log::core_logger> new_logger = std::make_shared<log::core_logger>(lg.name, lg.level);
             if (lg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) {
-                new_logger->add_appender(this->console_appender_instance);
+                new_logger->add_appender(this->console_appender_ptr);
             }
             if (lg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::FILE)) {
-                new_logger->add_appender(this->file_appender_instance);
+                new_logger->add_appender(this->file_appender_ptr);
             }
             if (lg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::TCP)) {
-                new_logger->add_appender(this->tcp_appender_instance);
+                new_logger->add_appender(this->tcp_appender_ptr);
             }
             if (lg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::UDP)) {
-                new_logger->add_appender(this->udp_appender_instance);
+                new_logger->add_appender(this->udp_appender_ptr);
             }
             std::shared_ptr<log::logger_proxy> proxy = loggers[lg.name];
             if (proxy == nullptr) {
@@ -264,16 +264,16 @@ namespace log4cpp {
         const config::logger &cfg = config->root_logger;
         std::shared_ptr<log::core_logger> new_logger = std::make_shared<log::core_logger>(cfg.name, cfg.level);
         if (cfg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) {
-            new_logger->add_appender(this->console_appender_instance);
+            new_logger->add_appender(this->console_appender_ptr);
         }
         if (cfg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::FILE)) {
-            new_logger->add_appender(this->file_appender_instance);
+            new_logger->add_appender(this->file_appender_ptr);
         }
         if (cfg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::TCP)) {
-            new_logger->add_appender(this->tcp_appender_instance);
+            new_logger->add_appender(this->tcp_appender_ptr);
         }
         if (cfg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::UDP)) {
-            new_logger->add_appender(this->udp_appender_instance);
+            new_logger->add_appender(this->udp_appender_ptr);
         }
         if (nullptr == root_logger) {
             root_logger = std::make_shared<log::logger_proxy>(new_logger);

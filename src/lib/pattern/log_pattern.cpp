@@ -8,12 +8,12 @@
 #include "pattern/log_pattern.hpp"
 
 namespace log4cpp::pattern {
-    const char *DEFAULT_LOGGER_PATTERN = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} ${NM}: [${8TH}] [${L}] -- ${W}";
+    const char *DEFAULT_LOG_PATTERN = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} ${NM}: [${8TH}] [${L}] -- ${W}";
 
     constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
     constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
 
-    std::string log_pattern::_pattern = DEFAULT_LOGGER_PATTERN;
+    std::string log_pattern::_pattern = DEFAULT_LOG_PATTERN;
 
     void log_pattern::set_pattern(const std::string &pattern) {
         _pattern = pattern;

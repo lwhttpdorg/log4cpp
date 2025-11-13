@@ -13,7 +13,7 @@ FetchContent_MakeAvailable(googletest)
 # List of test targets
 set(TEST_TARGETS
         load_config_tests
-        logger_pattern_tests
+        log_pattern_tests
         console_appender_tests
         file_appender_tests
         tcp_appender_tests
@@ -23,7 +23,7 @@ set(TEST_TARGETS
 
 # Map each test target to its source file
 set(load_config_tests_SRC app/load_config_test.cpp)
-set(logger_pattern_tests_SRC app/logger_pattern_test.cpp)
+set(log_pattern_tests_SRC app/log_pattern_test.cpp)
 set(console_appender_tests_SRC app/console_appender_test.cpp)
 set(file_appender_tests_SRC app/file_appender_test.cpp)
 set(tcp_appender_tests_SRC app/tcp_appender_test.cpp)
@@ -40,11 +40,15 @@ target_include_directories(test_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/i
 # Place all test executables in build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
-# Copy JSON configs once for all tests
+# Copy JSON configs at configure time into runtime output dir and test binary dir
 if (TEST_CONFIG_FILES)
-    add_custom_target(copy_test_configs ALL
-            COMMAND ${CMAKE_COMMAND} -E copy ${TEST_CONFIG_FILES} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    )
+    file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    file(COPY ${TEST_CONFIG_FILES} DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+    # CTest runs tests with working dir = ${CMAKE_CURRENT_BINARY_DIR} (build/test),
+    # copy configs there so discovery / tests can open "./log4cpp.json"
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+    file(COPY ${TEST_CONFIG_FILES} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 endif ()
 
 foreach (test_name IN LISTS TEST_TARGETS)

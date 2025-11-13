@@ -11,7 +11,7 @@ namespace log4cpp::config {
         return !(console.has_value() || file.has_value() || tcp.has_value() || udp.has_value());
     }
 
-    std::vector<std::string> flag_to_appenders(unsigned char flag) {
+    std::vector<std::string> appender_flag_to_name(unsigned char flag) {
         std::vector<std::string> result;
         for (const auto &entry: APPENDER_TABLE) {
             if (flag & static_cast<unsigned char>(entry.type)) {
@@ -21,7 +21,7 @@ namespace log4cpp::config {
         return result;
     }
 
-    unsigned char appenders_to_flag(const std::vector<std::string> &arr) {
+    unsigned char appender_name_to_flag(const std::vector<std::string> &arr) {
         unsigned char flag = 0;
         for (const auto &s: arr) {
             bool matched = false;
@@ -115,7 +115,7 @@ namespace log4cpp::config {
 
         // validate that each logger references only defined appenders
         for (const auto &lg: config.loggers) {
-            for (const auto &ref: flag_to_appenders(lg.appender_flag)) {
+            for (const auto &ref: appender_flag_to_name(lg.appender_flag)) {
                 bool exists = false;
                 for (const auto &entry: APPENDER_TABLE) {
                     if (ref == entry.name) {
@@ -144,7 +144,7 @@ namespace log4cpp::config {
         }
 
         // validate that root logger also references only defined appenders
-        for (const auto &ref: flag_to_appenders(config.root_logger.appender_flag)) {
+        for (const auto &ref: appender_flag_to_name(config.root_logger.appender_flag)) {
             bool exists = false;
             for (const auto &entry: APPENDER_TABLE) {
                 if (ref == entry.name) {

@@ -41,7 +41,22 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-int udp_appender_client(std::atomic_bool &running, unsigned int log_count, unsigned port) {
+void send_udp_hello(const std::string &host, unsigned short port) {
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) return;
+    struct sockaddr_in srv{};
+    srv.sin_family = AF_INET;
+    srv.sin_port = htons(port);
+    inet_pton(AF_INET, host.c_str(), &srv.sin_addr);
+    const char msg[] = "hello";
+    // best-effort send; ignore errors
+    sendto(fd, msg, sizeof(msg) - 1, 0, (struct sockaddr *)&srv, sizeof(srv));
+    // small pause to let server process hello
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    close(fd);
+}
+
+int udp_appender_client(std::atomic<bool> &running, unsigned int log_count, unsigned port) {
     log4cpp::common::socket_fd fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (log4cpp::common::INVALID_FD == fd) {
         printf("socket creation failed...\n");
@@ -58,6 +73,12 @@ int udp_appender_client(std::atomic_bool &running, unsigned int log_count, unsig
     socklen_t socklen = sizeof(remote_addr);
     sendto(fd, hello, strlen(hello), 0, reinterpret_cast<sockaddr *>(&remote_addr), socklen);
     running.store(true);
+
+    struct timeval tv{};
+    tv.tv_sec = 10; // 2s
+    tv.tv_usec = 0;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
+
     char buffer[1024];
     unsigned int index = 0;
     for (index = 0; index < log_count; ++index) {
@@ -66,7 +87,7 @@ int udp_appender_client(std::atomic_bool &running, unsigned int log_count, unsig
             buffer[len] = 0;
             printf("UDP[%u]: %s", index, buffer);
         }
-        else if (len == -1) {
+        else {
             break;
         }
     }
@@ -88,7 +109,7 @@ TEST(udp_appender_test, udp_appender_test) {
     WSADATA wsa_data{};
     WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
-    std::atomic_bool running(false);
+    std::atomic<bool> running(false);
 
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("udp");
     log4cpp::log_level max_level = log->get_level();

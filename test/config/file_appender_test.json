@@ -1,17 +1,17 @@
 {
-	"logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TN}] [${L}] -- ${W}",
+	"log_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TN}] [${L}] -- ${W}",
 	"appenders": {
-		"console_appender": {
+		"console": {
 			"out_stream": "stdout"
 		},
-		"file_appender": {
+		"file": {
 			"file_path": "log/file_appender_test.log"
 		},
-		"tcp_appender": {
+		"tcp": {
 			"local_addr": "0.0.0.0",
 			"port": 9443
 		},
-		"udp_appender": {
+		"udp": {
 			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
@@ -19,26 +19,26 @@
 	"loggers": [
 		{
 			"name": "aaa",
-			"log_level": "INFO",
+			"level": "INFO",
 			"appenders": [
-				"console_appender",
-				"file_appender"
+				"console",
+				"file"
 			]
 		},
 		{
 			"name": "bbb",
-			"log_level": "WARN",
+			"level": "WARN",
 			"appenders": [
-				"console_appender",
-				"file_appender"
+				"console",
+				"file"
 			]
 		}
 	],
-	"root_logger": {
-		"log_level": "INFO",
+	"root": {
+		"level": "INFO",
 		"appenders": [
-			"console_appender",
-			"file_appender"
+			"console",
+			"file"
 		]
 	}
 }

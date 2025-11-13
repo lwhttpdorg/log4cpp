@@ -52,7 +52,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}"
+  "log_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -86,25 +86,24 @@ _Warning: Some systems cannot set thread names, and only multiple threads can be
 
 #### 3.2.2. Configure Appender
 
-There are four types of appender: Console appender(`console_appender_instance`), File appender(`file_appender_instance`), TCP appender(
-`tcp_appender_instance`), UDP appender(`udp_appender_instance`)
+There are four types of appender: Console appender(`console`), File appender(`file`), TCP appender(`tcp`), UDP appender(`udp`)
 
 A simple configuration file example:
 
 ```json
 {
   "appenders": {
-    "console_appender_instance": {
+    "console": {
       "out_stream": "stdout"
     },
-    "file_appender_instance": {
+    "file": {
       "file_path": "log/log4cpp.log"
     },
-    "tcp_appender_instance": {
+    "tcp": {
       "local_addr": "0.0.0.0",
       "port": 9443
     },
-    "udp_appender_instance": {
+    "udp": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -119,7 +118,7 @@ The function of the console appender is to output logs to STDOUT or STDERR. Typi
 ```json
 {
   "appenders": {
-    "console_appender_instance": {
+    "console": {
       "out_stream": "stdout"
     }
   }
@@ -137,7 +136,7 @@ The function of the file appender is to output logs to a specified file. Typical
 ```json
 {
   "appenders": {
-    "file_appender_instance": {
+    "file": {
       "file_path": "log/log4cpp.log"
     }
   }
@@ -156,7 +155,7 @@ which is used to output logs to remote devices. The typical configuration is as 
 ```json
 {
   "appenders": {
-    "tcp_appender_instance": {
+    "tcp": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -192,7 +191,7 @@ The typical configuration is as follows:
 ```json
 {
   "appenders": {
-    "udp_appender_instance": {
+    "udp": {
       "local_addr": "0.0.0.0",
       "port": 9443
     }
@@ -219,39 +218,38 @@ _Note: The named logger is optional, but the root logger must be present_
 Named loggers are an array, and each logger configuration includes:
 
 - `name`: logger name, used to get loggers, unique, cannot be `root`
-- `log_level`: log level, only logs greater than or equal to this level will be output
-- `appenders`: appender, Must be configured in `appenders` before it can be referenced here. Appender can be
-  `console_appender_instance`, `file_appender_instance`, `tcp_appender_instance`, `udp_appender_instance`
+- `level`: log level, only logs greater than or equal to this level will be output
+- `appenders`: appender, Must be configured in `appenders` before it can be referenced here. Appender can be `console`, `file`, `tcp`, `udp`
 
-Root logger is an object, only `log_level` and `appenders`, no `name`, internal implementation of `name` is `root`
+Root logger is an object, only `level` and `appenders`, no `name`, internal implementation of `name` is `root`
 
 ```json
 {
   "loggers": [
     {
       "name": "console_logger",
-      "log_level": "INFO",
+      "level": "INFO",
       "appenders": [
-        "console_appender_instance",
-        "tcp_appender_instance",
-        "udp_appender_instance"
+        "console",
+        "tcp",
+        "udp"
       ]
     },
     {
       "name": "file_logger",
-      "log_level": "WARN",
+      "level": "WARN",
       "appenders": [
-        "file_appender_instance"
+        "file"
       ]
     }
   ],
-  "root_logger": {
-    "log_level": "INFO",
+  "root": {
+    "level": "INFO",
     "appenders": [
-      "console_appender_instance",
-      "file_appender_instance",
-      "tcp_appender_instance",
-      "udp_appender_instance"
+      "console",
+      "file",
+      "tcp",
+      "udp"
     ]
   }
 }
@@ -308,9 +306,7 @@ The log level `log_level The definition of level` is as follows:
 
 ```c++
 namespace log4cpp {
-  enum class log_level {
-    FATAL = 0, ERROR = 1, WARN = 2, INFO = 3, DEBUG = 4, TRACE = 5
-  };
+    enum class log_level { OFF = 0, FATAL = 1, ERROR = 2, WARN = 3, INFO = 4, DEBUG = 5, TRACE = 6 };
 }
 ```
 

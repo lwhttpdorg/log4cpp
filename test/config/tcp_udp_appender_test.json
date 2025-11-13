@@ -1,14 +1,14 @@
 {
-	"logger_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TN}] [${L}] -- ${W}",
+	"log_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TN}] [${L}] -- ${W}",
 	"appenders": {
-		"console_appender": {
+		"console": {
 			"out_stream": "stdout"
 		},
-		"tcp_appender": {
+		"tcp": {
 			"local_addr": "0.0.0.0",
 			"port": 9443
 		},
-		"udp_appender": {
+		"udp": {
 			"local_addr": "0.0.0.0",
 			"port": 9443
 		}
@@ -16,27 +16,27 @@
 	"loggers": [
 		{
 			"name": "tcp",
-			"log_level": "INFO",
+			"level": "INFO",
 			"appenders": [
-				"console_appender",
-				"tcp_appender"
+				"console",
+				"tcp"
 			]
 		},
 		{
 			"name": "udp",
-			"log_level": "INFO",
+			"level": "INFO",
 			"appenders": [
-				"console_appender",
-				"udp_appender"
+				"console",
+				"udp"
 			]
 		}
 	],
-	"root_logger": {
-		"log_level": "WARN",
+	"root": {
+		"level": "WARN",
 		"appenders": [
-			"console_appender",
-			"tcp_appender",
-			"udp_appender"
+			"console",
+			"tcp",
+			"udp"
 		]
 	}
 }
