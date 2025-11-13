@@ -15,11 +15,8 @@ target_compile_features(${TARGET_NAME} PUBLIC cxx_std_17)
 
 # Includes
 target_include_directories(${TARGET_NAME}
-        PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-        PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include> $<INSTALL_INTERFACE:include>
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 # Platform specifics
