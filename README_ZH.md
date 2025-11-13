@@ -19,6 +19,7 @@ log4cpp是一个C++日志库, 参照log4j实现
 - 支持输出日志到UDP客户端
 - 单例模式
 - 线程安全
+- 配置热加载, 修改配置文件无需重启进程就可生效
 
 ## 2. 要求
 
@@ -47,7 +48,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 ```json
 {
-  "log_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}"
+	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -86,22 +87,22 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 
 ```json
 {
-  "appenders": {
-    "console": {
-      "out_stream": "stdout"
-    },
-    "file": {
-      "file_path": "log/log4cpp.log"
-    },
-    "tcp": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    },
-    "udp": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
-  }
+	"appenders": {
+		"console": {
+			"out_stream": "stdout"
+		},
+		"file": {
+			"file_path": "log/log4cpp.log"
+		},
+		"tcp": {
+			"local_addr": "0.0.0.0",
+			"port": 9443
+		},
+		"udp": {
+			"local_addr": "0.0.0.0",
+			"port": 9443
+		}
+	}
 }
 ```
 
@@ -111,11 +112,11 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 
 ```json
 {
-  "appenders": {
-    "console": {
-      "out_stream": "stdout"
-    }
-  }
+	"appenders": {
+		"console": {
+			"out_stream": "stdout"
+		}
+	}
 }
 ```
 
@@ -129,11 +130,11 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 
 ```json
 {
-  "appenders": {
-    "file": {
-      "file_path": "log/log4cpp.log"
-    }
-  }
+	"appenders": {
+		"file": {
+			"file_path": "log/log4cpp.log"
+		}
+	}
 }
 ```
 
@@ -147,12 +148,12 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 
 ```json
 {
-  "appenders": {
-    "tcp": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
-  }
+	"appenders": {
+		"tcp": {
+			"local_addr": "0.0.0.0",
+			"port": 9443
+		}
+	}
 }
 ```
 
@@ -179,12 +180,12 @@ UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户
 
 ```json
 {
-  "appenders": {
-    "udp": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
-  }
+	"appenders": {
+		"udp": {
+			"local_addr": "0.0.0.0",
+			"port": 9443
+		}
+	}
 }
 ```
 
@@ -210,33 +211,31 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 
 ```json
 {
-  "loggers": [
-    {
-      "name": "console_logger",
-      "level"NFO",
-      "appenders": [
-        "console",
-        "tcp",
-        "udp"
-      ]
-    },
-    {
-      "name": "file_logger",
-      "level"ARN",
-      "appenders": [
-        "file"
-      ]
-    }
-  ],
-  "root": {
-    "level"NFO",
-    "appenders": [
-      "console",
-      "file",
-      "tcp",
-      "udp"
-    ]
-  }
+	"root": {
+		"level": "INFO",
+		"appenders": [
+			"console",
+			"file"
+		]
+	},
+	"loggers": [
+		{
+			"name": "hello",
+			"level": "INFO",
+			"appenders": [
+				"console",
+				"tcp",
+				"udp"
+			]
+		},
+		{
+			"name": "lwhttpd.org",
+			"level": "WARN",
+			"appenders": [
+				"file"
+			]
+		}
+	]
 }
 ```
 
@@ -248,21 +247,47 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 2. 如果配置文件不在当前路径下, 或者文件名不是`log4cpp.json`, 需要手动加载配置文件
 
 ```c++
-log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
+const std::string config_file = "log4cpp_config_1.json";
+log4cpp::logger_manager &log_mgr = log4cpp::supervisor::get_logger_manager();
+log_mgr.load_config(config_file);
 ```
 
-### 3.5. 在代码中使用
+### 3.5. 配置热加载
+
+配置热加载可以实现修改配置文件后，不重启进程就能使配置生效(仅支持Linux系统)
+
+_注: 配置文件路径和名称不能变化，使用启动时的路径和名称加载_
+
+首先需要使能配置热加载:
+
+```c++
+log4cpp::supervisor::enable_config_hot_loading();
+```
+
+修改配置文件后，向你的进程发送`SIGUSR2`信号:
+
+```shell
+kill -SIGUSR2 <PID>
+```
+
+`SIGUSR2`信号会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。先前已经通过
+`log4cpp::logger_manager::get_logger()`获得的`std::shared_ptr<log4cpp::log::logger>`
+并不会立即失效并且可继续使用，直到最后一个使用者离开其作用域(`std::shared_ptr`引用计数归0)。
+
+_注: `log4cpp::logger_manager::get_logger()`返回的`std::shared_ptr`可能不会发生变化，即使其内部代理对象已经改变_
+
+### 3.6. 在代码中使用
 
 首先需要引入头文件:
 
 ```c++
-#include "log4cpp.hpp"
+#include <log4cpp/log4cpp.hpp>
 ```
 
 然后获取logger实例. 通过`name`获取配置logger, 如果不存在指定的logger, 则返回默认的`root_logger`
 
 ```c++
-std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("recordLogger");
+std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("aaa");
 ```
 
 获取logger后, 可以使用下面的方法输出log:
@@ -299,86 +324,78 @@ namespace log4cpp {
 - `DEBUG`: 调试
 - `TRACE`: 跟踪
 
-### 3.6. 完整示例
+### 3.7. 完整示例
 
 ```c++
 #include <thread>
 
-#ifdef __GNUC__
-#include <pthread.h>
-#endif
-
-#include "log4cpp.hpp"
-
-void set_thread_name(const char *name) {
-#ifdef __GNUC__
-	pthread_setname_np(pthread_self(), name);
-#elif __linux__
-	prctl(PR_SET_NAME, reinterpret_cast<unsigned long>("child"));
-#endif
-}
+#include <log4cpp/log4cpp.hpp>
 
 void thread_routine() {
-	set_thread_name("child");
-	std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("recordLayout");
-	log->trace("this is a trace");
-	log->info("this is a info");
-	log->debug("this is a debug");
-	log->warn("this is an warning");
-	log->error("this is an error");
-	log->fatal("this is a fatal");
+    log4cpp::set_thread_name("child");
+    auto log = log4cpp::logger_manager::get_logger("aaa");
+    for (int i = 0; i < 100; ++i) {
+        log->trace("this is a trace");
+        log->info("this is a info");
+        log->debug("this is a debug");
+        log->warn("this is an warning");
+        log->error("this is an error");
+        log->fatal("this is a fatal");
+    }
 }
 
 int main() {
-	std::thread t(thread_routine);
-	set_thread_name("main");
-	std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("console_logger");
-	log->trace("this is a trace");
-	log->info("this is a info");
-	log->debug("this is a debug");
-	log->warn("this is an warning");
-	log->error("this is an error");
-	log->fatal("this is a fatal");
-	t.join();
-	return 0;
+    log4cpp::supervisor::enable_config_hot_loading();
+    std::thread child(thread_routine);
+    log4cpp::set_thread_name("main");
+    auto log = log4cpp::logger_manager::get_logger("hello");
+
+    for (int i = 0; i < 100; ++i) {
+        log->trace("this is a trace");
+        log->info("this is a info");
+        log->debug("this is a debug");
+        log->warn("this is an warning");
+        log->error("this is an error");
+        log->fatal("this is a fatal");
+    }
+    child.join();
+    return 0;
 }
 ```
 
 CMakeLists.txt示例:
 
 ```cmake
+cmake_minimum_required(VERSION 3.11)
+
+project(log4cpp-demo)
+
 set(TARGET_NAME demo)
-add_executable(${TARGET_NAME} demo.cpp)
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-
-file(COPY ./log4cpp.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.0.8)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.1.0)
 
 FetchContent_MakeAvailable(log4cpp)
 
 target_link_libraries(${TARGET_NAME} log4cpp)
-
-if (CMAKE_HOST_UNIX)
-    target_link_libraries(demo pthread)
-endif ()
 ```
 
 输出log示例:
 
 ```shell
-2025-01-02 22:53:04:329 [    main] [INFO ] -- this is a info
-2025-01-02 22:53:04:329 [   child] [ERROR] -- this is an error
-2025-01-02 22:53:04:329 [    main] [WARN ] -- this is an warning
-2025-01-02 22:53:04:329 [   child] [FATAL] -- this is a fatal
-2025-01-02 22:53:04:329 [    main] [ERROR] -- this is an error
-2025-01-02 22:53:04:329 [    main] [FATAL] -- this is a fatal
+root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
+hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
+hello  : 2025-11-13 23:32:02:475 [main    ] [FATAL] -- this is a fatal
+root   : 2025-11-13 23:32:02:475 [child   ] [INFO ] -- this is a info
+hello  : 2025-11-13 23:32:02:475 [main    ] [INFO ] -- this is a info
+root   : 2025-11-13 23:32:02:475 [child   ] [WARN ] -- this is an warning
+hello  : 2025-11-13 23:32:02:475 [main    ] [WARN ] -- this is an warning
+root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
+hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 ```
 
 配置文件实例:

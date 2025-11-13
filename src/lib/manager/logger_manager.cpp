@@ -161,7 +161,13 @@ namespace log4cpp {
         printf("%s:%d, trigger hot reload config\n", __func__, __LINE__);
 #endif
         std::unique_lock writer_lock(rw_lock);
-        load_config(config_file_path);
+        try {
+            load_config(config_file_path);
+        }
+        catch (const std::exception &e) {
+            printf("%s:%d, failed to reload config: %s\n", __func__, __LINE__, e.what());
+            return;
+        }
         set_log_pattern();
         build_appender();
         build_logger();

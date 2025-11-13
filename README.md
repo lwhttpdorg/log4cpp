@@ -8,22 +8,23 @@
 
 ## 1. What is log4cpp?
 
-Log4cpp is library of C++ classes. It is modeled after the Log4j Java library
+log4cpp is a C++ logging library inspired by log4j.
 
 Features:
 
-- Configure through JSON files, and control its behavior without modifying the code
-- Logs can be output to STDOUT, STDERR
-- The log can be output to the specified file
-- Can output logs to TCP client
-- Can output logs to UDP client
-- Singleton mode
-- Thread safety
+- JSON configuration: change behavior without modifying code
+- Output logs to STDOUT and STDERR
+- Output logs to files
+- Output logs to TCP clients
+- Output logs to UDP clients
+- Singleton pattern
+- Thread-safe
+- Hot-reload configuration without restarting the process
 
 ## 2. Requirements
 
-1. C++ compiler that supports C++17 and above
-2. CMake 3.11 and above
+1. C++ compiler supporting C++17 or newer
+2. CMake 3.11 or newer
 3. nlohmann-json >= 3.7
 
 _Warning: Due to a series of bugs in the MSVC compiler, this project no longer supports MSVC. Any errors on the MSVC
@@ -35,28 +36,31 @@ sudo apt install nlohmann-json3-dev
 
 ## 3. Usage
 
-### 3.1. Use in CMake projects
+### 3.1. Use in a CMake project
 
-````cmake
+```cmake
 include(FetchContent)
 FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.0.8)
 
 FetchContent_MakeAvailable(log4cpp)
 
 target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
-````
+```
 
 ### 3.2. Configuration file
 
-#### 3.2.1. Configure logger pattern
+#### 3.2.1. Log output pattern
+
+Example:
 
 ```json
 {
-  "log_pattern": "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} ${NM}: [${8TH}] [${L}] -- ${W}"
+	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
-Description:
+Placeholders:
+
 - `${NM}`: The name of logger
 - `${yy}`: A two digit representation of a year. e.g. 99 or 03
 - `${yyyy}`: A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999,
@@ -80,212 +84,224 @@ Description:
 - `${<n>TH}`: Thread id, e.g. `${8TH}`. `<n>` is the digit width, left padding with 0, default is 8, max width is 8.
   e.g. "T12345"
 - `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-- `${W}`: Log message, e.g. hello world!
+- `${W}`: Log message body, e.g. hello world!
 
-_Warning: Some systems cannot set thread names, and only multiple threads can be distinguished by thread ID_
+_Note: Some systems cannot set thread names; thread ID will be used instead._
 
-#### 3.2.2. Configure Appender
+#### 3.2.2. Appenders
 
-There are four types of appender: Console appender(`console`), File appender(`file`), TCP appender(`tcp`), UDP appender(`udp`)
+There are four types of appenders: Console appender(`console`), File appender(`file`), TCP appender(`tcp`), UDP
+appender(`udp`)
 
-A simple configuration file example:
-
-```json
-{
-  "appenders": {
-    "console": {
-      "out_stream": "stdout"
-    },
-    "file": {
-      "file_path": "log/log4cpp.log"
-    },
-    "tcp": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    },
-    "udp": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
-  }
-}
-```
-
-#### 3.2.3. Console Appender
-
-The function of the console appender is to output logs to STDOUT or STDERR. Typical configuration is as follows:
+Example:
 
 ```json
 {
-  "appenders": {
-    "console": {
-      "out_stream": "stdout"
-    }
-  }
+	"appenders": {
+		"console": {
+			"out_stream": "stdout"
+		},
+		"file": {
+			"file_path": "log/log4cpp.log"
+		},
+		"tcp": {
+			"local_addr": "0.0.0.0",
+			"port": 9443
+		},
+		"udp": {
+			"local_addr": "0.0.0.0",
+			"port": 9443
+		}
+	}
 }
 ```
 
-Description:
+#### 3.2.3. Console appender
 
-- `out_stream`: output stream, can be stdout or stderr
+Outputs logs to STDOUT or STDERR.
 
-#### 3.2.4. File Appender
-
-The function of the file appender is to output logs to a specified file. Typical configuration is as follows:
+Example:
 
 ```json
 {
-  "appenders": {
-    "file": {
-      "file_path": "log/log4cpp.log"
-    }
-  }
+	"appenders": {
+		"console": {
+			"out_stream": "stdout"
+		}
+	}
 }
 ```
 
-Description:
+- `out_stream`: "stdout" or "stderr"
 
-- `file_path`: output file name
+#### 3.2.4. File appender
 
-#### 3.2.5. TCP Appender
+Outputs logs to a specified file.
 
-The TCP appender will start a TCP server inside, accept TCP connections, and output logs to the connected client,
-which is used to output logs to remote devices. The typical configuration is as follows:
+Example:
 
 ```json
 {
-  "appenders": {
-    "tcp": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
-  }
+	"appenders": {
+		"file": {
+			"file_path": "log/log4cpp.log"
+		}
+	}
 }
 ```
 
-Description:
+- `file_path`: output file path
 
-- `local_addr`: Listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
-- `port`: Listening port
+#### 3.2.5. TCP appender
 
-_Note: If there are multiple TCP clients, it will be convenient for all clients to send logs one by one_
-
-_Note: Logs are transmitted in plain text, pay attention to privacy and security issues. Encrypted transmission will not
-be supported in the future. If encryption is required, it is recommended to encrypt the logs before passing them to
-log4cpp_
-
-#### 3.2.6. UDP Appender
-
-A UDP server will be started inside the UDP log appender to export logs to the connected client, which is used to export
-logs to remote devices
-
-Unlike the TCP protocol, UDP is connectionless. Please note:
-
-- UDP is connectionless and cannot guarantee the integrity of the log
-- The client needs to actively send a "hello" message so that the server can obtain the client address and send logs
-- When the client exits, it needs to send a "bye" message so that the server can clean up the client address.
-  Otherwise, the client address will be retained until it is cleaned up due to log sending failure or program exit
-
-The typical configuration is as follows:
+TCP appender starts a TCP server, accepts connections, and sends logs to connected clients. Typical config:
 
 ```json
 {
-  "appenders": {
-    "udp": {
-      "local_addr": "0.0.0.0",
-      "port": 9443
-    }
-  }
+	"appenders": {
+		"tcp": {
+			"local_addr": "0.0.0.0",
+			"port": 9443
+		}
+	}
 }
 ```
 
-Description:
-
-- `local_addr`: listening address. For example, "0.0.0.0", "::", "127.0.0.1", "::1"
+- `local_addr`: listening address (e.g. "0.0.0.0", "::", "127.0.0.1", "::1")
 - `port`: listening port
 
-### 3.3. Configure Loggers
+Notes:
 
-There are two types of Loggers:
+- When multiple TCP clients are connected, logs are iterated and sent to each client.
+- Logs are sent in plaintext; handle encryption externally if required.
 
-- **Named logger**: configuration name `loggers`
-- **Root logger**: configuration name `root_logger`
+#### 3.2.6. UDP appender
 
-If there is no logger with a specified name when `log4cpp::logger_manager::get_logger`, the `root_logger` is returned
+UDP appender starts a UDP server and sends logs to clients.
 
-_Note: The named logger is optional, but the root logger must be present_
+Differences vs TCP:
 
-Named loggers are an array, and each logger configuration includes:
+- UDP is connectionless and cannot guarantee delivery.
+- Clients must send a "hello" message so the server learns the client's address.
+- Clients should send a "bye" message before exit so the server can remove the client address; otherwise the address
+  remains until failure cleanup or program exit.
 
-- `name`: logger name, used to get loggers, unique, cannot be `root`
-- `level`: log level, only logs greater than or equal to this level will be output
-- `appenders`: appender, Must be configured in `appenders` before it can be referenced here. Appender can be `console`, `file`, `tcp`, `udp`
-
-Root logger is an object, only `level` and `appenders`, no `name`, internal implementation of `name` is `root`
+Example:
 
 ```json
 {
-  "loggers": [
-    {
-      "name": "console_logger",
-      "level": "INFO",
-      "appenders": [
-        "console",
-        "tcp",
-        "udp"
-      ]
-    },
-    {
-      "name": "file_logger",
-      "level": "WARN",
-      "appenders": [
-        "file"
-      ]
-    }
-  ],
-  "root": {
-    "level": "INFO",
-    "appenders": [
-      "console",
-      "file",
-      "tcp",
-      "udp"
-    ]
-  }
+	"appenders": {
+		"udp": {
+			"local_addr": "0.0.0.0",
+			"port": 9443
+		}
+	}
 }
 ```
 
-### 3.4. Loading configuration file
+- `local_addr`: listening address
+- `port`: listening port
 
-There are two ways to load configuration file:
+### 3.3. Configure loggers
 
-1. If `log4cpp.json` exists in the current path, this configuration file will be automatically loaded
-2. If the configuration file is not in the current path, or the file name is not `log4cpp.json`, Need to load the
-   configuration file manually
+There are named loggers (`loggers`) and the root logger (`root`).
 
-```c++
-log4cpp::logger_manager::load_config("/config_path/log4cpp.json");
+- Named loggers are optional; the root logger must be present.
+- If a requested logger name does not exist, `log4cpp::logger_manager::get_logger` returns the root logger.
+
+Named logger fields:
+
+- `name`: unique logger name (cannot be "root")
+- `level`: minimum log level — only logs with level >= this will be output
+- `appenders`: list of appender names (must match keys defined in `appenders`), options: "console", "file", "tcp", "udp"
+
+Root logger is an object with `level` and `appenders`; internally its name is "root".
+
+Example structure:
+
+```json
+{
+	"root": {
+		"level": "INFO",
+		"appenders": [
+			"console",
+			"file"
+		]
+	},
+	"loggers": [
+		{
+			"name": "hello",
+			"level": "INFO",
+			"appenders": [
+				"console",
+				"tcp",
+				"udp"
+			]
+		},
+		{
+			"name": "lwhttpd.org",
+			"level": "WARN",
+			"appenders": [
+				"file"
+			]
+		}
+	]
+}
 ```
 
-### 3.5. Coding
+### 3.4. Loading configuration
 
-First, you need to import the header file:
+Two ways to load configuration:
 
-```c++
-#include "log4cpp.hpp"
-```
-
-Then, get the logger instance
-
-Get the logger by `name`. If the specified logger does not exist, return `root_logger`
+1. If `log4cpp.json` exists in the current working directory, it is loaded automatically.
+2. Otherwise, load manually:
 
 ```c++
-std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("logger_name");
+const std::string config_file = "log4cpp_config_1.json";
+log4cpp::logger_manager &log_mgr = log4cpp::supervisor::get_logger_manager();
+log_mgr.load_config(config_file);
 ```
 
-Write log message
+### 3.5. Hot-reload configuration
 
-After getting the logger, you can use the following method to output the log:
+Hot-reload allows applying configuration changes without restarting (Linux only).
+
+_Note: The config file path and name must not change; the original path/name used at startup is reloaded._
+
+Enable hot-reload:
+
+```c++
+log4cpp::supervisor::enable_config_hot_loading();
+```
+
+After modifying the config file, send `SIGUSR2` to your process:
+
+```shell
+kill -SIGUSR2 <PID>
+```
+
+`SIGUSR2` triggers log4cpp to reload the cached file path and recreate internal objects. Existing
+`std::shared_ptr<log4cpp::log::logger>` instances returned earlier remain valid until their reference count reaches
+zero.
+
+_Note: `log4cpp::logger_manager::get_logger()` may return the same shared_ptr even if the underlying proxy object
+changed._
+
+### 3.6. Usage in code
+
+Include header:
+
+```c++
+#include <log4cpp/log4cpp.hpp>
+```
+
+Get a logger:
+
+```c++
+std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("aaa");
+```
+
+Logging methods:
 
 ```c++
 void trace(const char *__restrict fmt, ...);
@@ -296,13 +312,13 @@ void error(const char *__restrict fmt, ...);
 void fatal(const char *__restrict fmt, ...);
 ```
 
-The above method calls the following method internally, or you can call the following method directly:
+Or use the generic API:
 
 ```c++
 void log(log_level level, const char *fmt, ...);
 ```
 
-The log level `log_level The definition of level` is as follows:
+Log level enum:
 
 ```c++
 namespace log4cpp {
@@ -310,7 +326,7 @@ namespace log4cpp {
 }
 ```
 
-Description:
+Notes:
 
 - `FATAL`: fatal error
 - `ERROR`: error
@@ -319,136 +335,115 @@ Description:
 - `DEBUG`: debugging
 - `TRACE`: tracing
 
-### 3.6. Full example
+### 3.7. Full example
 
 ```c++
 #include <thread>
 
-#ifdef __GNUC__
-#include <pthread.h>
-#endif
-
-#include "log4cpp.hpp"
-
-void set_thread_name(const char *name) {
-#ifdef __GNUC__
-	pthread_setname_np(pthread_self(), name);
-#elif __linux__
-	prctl(PR_SET_NAME, reinterpret_cast<unsigned long>("child"));
-#endif
-}
+#include <log4cpp/log4cpp.hpp>
 
 void thread_routine() {
-	set_thread_name("child");
-	std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("recordLayout");
-	log->trace("this is a trace");
-	log->info("this is a info");
-	log->debug("this is a debug");
-	log->warn("this is an warning");
-	log->error("this is an error");
-	log->fatal("this is a fatal");
+    log4cpp::set_thread_name("child");
+    auto log = log4cpp::logger_manager::get_logger("aaa");
+    for (int i = 0; i < 100; ++i) {
+        log->trace("this is a trace");
+        log->info("this is a info");
+        log->debug("this is a debug");
+        log->warn("this is an warning");
+        log->error("this is an error");
+        log->fatal("this is a fatal");
+    }
 }
 
 int main() {
-	std::thread t(thread_routine);
-	set_thread_name("main");
-	std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("console_logger");
-	log->trace("this is a trace");
-	log->info("this is a info");
-	log->debug("this is a debug");
-	log->warn("this is an warning");
-	log->error("this is an error");
-	log->fatal("this is a fatal");
-	t.join();
-	return 0;
+    log4cpp::supervisor::enable_config_hot_loading();
+    std::thread child(thread_routine);
+    log4cpp::set_thread_name("main");
+    auto log = log4cpp::logger_manager::get_logger("hello");
+
+    for (int i = 0; i < 100; ++i) {
+        log->trace("this is a trace");
+        log->info("this is a info");
+        log->debug("this is a debug");
+        log->warn("this is an warning");
+        log->error("this is an error");
+        log->fatal("this is a fatal");
+    }
+    child.join();
+    return 0;
 }
 ```
 
 CMakeLists.txt example:
 
 ```cmake
+cmake_minimum_required(VERSION 3.11)
+
+project(log4cpp-demo)
+
 set(TARGET_NAME demo)
-add_executable(${TARGET_NAME} demo.cpp)
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-
-file(COPY ./log4cpp.json DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.0.8)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.1.0)
 
 FetchContent_MakeAvailable(log4cpp)
 
 target_link_libraries(${TARGET_NAME} log4cpp)
-
-if (CMAKE_HOST_UNIX)
-    target_link_libraries(demo pthread)
-endif ()
 ```
 
-Output log example:
+Sample log output:
 
 ```shell
-2025-01-02 22:53:04:329 [    main] [INFO ] -- this is a info
-2025-01-02 22:53:04:329 [   child] [ERROR] -- this is an error
-2025-01-02 22:53:04:329 [    main] [WARN ] -- this is an warning
-2025-01-02 22:53:04:329 [   child] [FATAL] -- this is a fatal
-2025-01-02 22:53:04:329 [    main] [ERROR] -- this is an error
-2025-01-02 22:53:04:329 [    main] [FATAL] -- this is a fatal
+root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
+hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
+hello  : 2025-11-13 23:32:02:475 [main    ] [FATAL] -- this is a fatal
+root   : 2025-11-13 23:32:02:475 [child   ] [INFO ] -- this is a info
+hello  : 2025-11-13 23:32:02:475 [main    ] [INFO ] -- this is a info
+root   : 2025-11-13 23:32:02:475 [child   ] [WARN ] -- this is an warning
+hello  : 2025-11-13 23:32:02:475 [main    ] [WARN ] -- this is an warning
+root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
+hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 ```
 
-Configuration file:
-
-[A sample configuration file is here](demo/log4cpp.json)
+Reference config: [demo/log4cpp.json](demo/log4cpp.json)
 
 ## 4. Building
 
-Welcome to submit PR. There are some things to know before submitting PR:
+Contributions welcome. Before submitting a PR, note the following.
 
-### 4.1. CMake compile options
+### 4.1. CMake build options
 
 ```shell
 cmake -S . -B build -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON
 ```
 
 ```shell
-cmake --build build --config=Debug
+cmake --build build --config=Debug -j $(nproc)
 ```
 
 ```shell
 ctest --test-dir build
 ```
 
-Option description:
+Options:
 
-- `-DBUILD_LOG4CPP_DEMO=ON`: compile demo, not compiled by default
-- `-DBUILD_LOG4CPP_TEST=ON`: compile test, not enabled by default
-- `-DENABLE_ASAN=ON`: enable address detection, not enabled by default
+- `-DBUILD_LOG4CPP_DEMO=ON` build demo (off by default)
+- `-DBUILD_LOG4CPP_TEST=ON` build tests (off by default)
+- `-DENABLE_ASAN=ON` enable AddressSanitizer (off by default)
 
-### 4.2. Test
+### 4.2. Tests
 
-This project uses Google Test for unit testing. The test code is in the [test](test) directory. You are welcome to
-add test cases
-
-If your code modifies existing functions, Please make sure that the test cases cover your changes
+This project uses Google Test; tests are under the `test` directory. Add tests as needed. Ensure changes are covered by
+tests.
 
 ### 4.3. ASAN
 
-If your code modifies existing functions, please make sure that the ASAN test passes. Code that does not pass the ASAN
-test will not be merged
-
-**clang_rt.asan_dynamic-x86_64.dll is missing?**
-
-If `"ENABLE_ASAN=ON"` is set, and you are using the MSVC compiler, you may have this problem. The solution is:
-
-Copy
-`"D:\Program Files\Microsoft Visual Studio\<Visual Studio Version>\Professional\VC\Tools\MSVC\<MSVC Version>\bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll"`
-to the `cmake-build-debug/bin/`
+Ensure ASAN passes for changes; PRs that fail ASAN will not be merged.
 
 ## 5. License
 
-This project uses the [LGPLv3](LICENSE) license
+This project is licensed under LGPLv3 (see LICENSE).

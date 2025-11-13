@@ -1,5 +1,4 @@
 #include <thread>
-#include <unistd.h>
 
 #include <log4cpp/log4cpp.hpp>
 
@@ -13,7 +12,6 @@ void thread_routine() {
         log->warn("this is an warning");
         log->error("this is an error");
         log->fatal("this is a fatal");
-        sleep(1);
     }
 }
 
@@ -30,7 +28,6 @@ int main() {
         log->warn("this is an warning");
         log->error("this is an error");
         log->fatal("this is a fatal");
-        sleep(1);
     }
     child.join();
     return 0;

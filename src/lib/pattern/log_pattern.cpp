@@ -8,7 +8,7 @@
 #include "pattern/log_pattern.hpp"
 
 namespace log4cpp::pattern {
-    const char *DEFAULT_LOG_PATTERN = "${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} ${NM}: [${8TH}] [${L}] -- ${W}";
+    const char *DEFAULT_LOG_PATTERN = "${NM}: ${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}";
 
     constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
     constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
@@ -211,6 +211,13 @@ namespace log4cpp::pattern {
 
         format_daytime(buf, len, _pattern, now_tm, ms);
 
+        // replace ${NM} with logger name
+        if (_pattern.find(LOGGER_NAME) != std::string::npos) {
+            char logger_name[8];
+            common::log4c_scnprintf(logger_name, sizeof(logger_name), "%-7s", name);
+            common::log4c_replace(buf, len, LOGGER_NAME, logger_name);
+        }
+
         if (std::smatch match; std::regex_search(_pattern, match, THREAD_NAME_REGEX)) {
             size_t width = THREAD_NAME_MAX_LEN;
             if (match[1].matched) {
@@ -250,12 +257,6 @@ namespace log4cpp::pattern {
             common::log4c_scnprintf(thread_id, sizeof(thread_id), "T%0*lu", width, tid);
             const std::string full_match_str = match[0];
             common::log4c_replace(buf, len, full_match_str.c_str(), thread_id);
-        }
-        // replace ${NM} with logger name
-        if (_pattern.find(LOGGER_NAME) != std::string::npos) {
-            char logger_name[8];
-            common::log4c_scnprintf(logger_name, sizeof(logger_name), "%-7s", name);
-            common::log4c_replace(buf, len, LOGGER_NAME, logger_name);
         }
         // replace ${L} with log level, log level fixed length is 5, align left, fill with space
         if (_pattern.find(LOG_LEVEL) != std::string::npos) {
