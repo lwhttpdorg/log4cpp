@@ -80,11 +80,11 @@ write_basic_package_version_file(
 		COMPATIBILITY SameMajorVersion
 )
 
-configure_package_config_file(
-		"${CMAKE_SOURCE_DIR}/cmake/log4cppConfig.cmake.in"
-		"${CMAKE_CURRENT_BINARY_DIR}/log4cppConfig.cmake"
-		INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/log4cpp
-)
+#configure_package_config_file(
+#		"${CMAKE_SOURCE_DIR}/cmake/log4cppConfig.cmake.in"
+#		"${CMAKE_CURRENT_BINARY_DIR}/log4cppConfig.cmake"
+#		INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/log4cpp
+#)
 
 #install(FILES
 #		"${CMAKE_CURRENT_BINARY_DIR}/log4cppConfig.cmake"
