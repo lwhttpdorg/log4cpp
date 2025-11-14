@@ -21,6 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install nlohmann-json dependency
+        run: |
+          sudo apt update
+          sudo apt install -y nlohmann-json3-dev
+
       - name: Configure CMake
         run: >
           cmake -B build
