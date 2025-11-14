@@ -305,8 +305,8 @@ Logging methods:
 
 ```c++
 void trace(const char *__restrict fmt, ...);
-void info(const char *__restrict fmt, ...);
 void debug(const char *__restrict fmt, ...);
+void info(const char *__restrict fmt, ...);
 void warn(const char *__restrict fmt, ...);
 void error(const char *__restrict fmt, ...);
 void fatal(const char *__restrict fmt, ...);
