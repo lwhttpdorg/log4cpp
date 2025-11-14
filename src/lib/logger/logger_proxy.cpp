@@ -17,7 +17,7 @@ namespace log4cpp::log {
     [[nodiscard]] std::string logger_proxy::get_name() const {
         std::shared_lock lock(mtx);
         if (!real_logger) {
-            throw std::runtime_error("logger_proxy: real_logger (delegated logger) is null");
+            return {};
         }
         return real_logger->get_name();
     }
@@ -25,74 +25,102 @@ namespace log4cpp::log {
     [[nodiscard]] log_level logger_proxy::get_level() const {
         std::shared_lock lock(mtx);
         if (!real_logger) {
-            throw std::runtime_error("logger_proxy: real_logger (delegated logger) is null");
+            return {};
         }
         return real_logger->get_level();
     }
 
     void logger_proxy::log(log_level _level, const char *__restrict fmt, va_list args) const {
-        std::shared_lock lock(mtx);
-        if (real_logger) {
-            real_logger->log(_level, fmt, args);
+        std::shared_ptr<logger> logger_ptr;
+        {
+            std::shared_lock lock(mtx);
+            logger_ptr = real_logger;
+        }
+        if (logger_ptr) {
+            logger_ptr->log(_level, fmt, args);
         }
     }
 
     void logger_proxy::fatal(const char *__restrict fmt, ...) const {
-        std::shared_lock<std::shared_mutex> lock(mtx);
-        if (real_logger) {
+        std::shared_ptr<logger> logger_ptr;
+        {
+            std::shared_lock lock(mtx);
+            logger_ptr = real_logger;
+        }
+        if (logger_ptr) {
             va_list args;
             va_start(args, fmt);
-            real_logger->log(log_level::FATAL, fmt, args);
+            logger_ptr->log(log_level::FATAL, fmt, args);
             va_end(args);
         }
     }
 
     void logger_proxy::error(const char *__restrict fmt, ...) const {
-        std::shared_lock<std::shared_mutex> lock(mtx);
-        if (real_logger) {
+        std::shared_ptr<logger> logger_ptr;
+        {
+            std::shared_lock lock(mtx);
+            logger_ptr = real_logger;
+        }
+        if (logger_ptr) {
             va_list args;
             va_start(args, fmt);
-            real_logger->log(log_level::ERROR, fmt, args);
+            logger_ptr->log(log_level::ERROR, fmt, args);
             va_end(args);
         }
     }
 
     void logger_proxy::warn(const char *__restrict fmt, ...) const {
-        std::shared_lock<std::shared_mutex> lock(mtx);
-        if (real_logger) {
+        std::shared_ptr<logger> logger_ptr;
+        {
+            std::shared_lock lock(mtx);
+            logger_ptr = real_logger;
+        }
+        if (logger_ptr) {
             va_list args;
             va_start(args, fmt);
-            real_logger->log(log_level::WARN, fmt, args);
+            logger_ptr->log(log_level::WARN, fmt, args);
             va_end(args);
         }
     }
 
     void logger_proxy::info(const char *__restrict fmt, ...) const {
-        std::shared_lock lock(mtx);
-        if (real_logger) {
+        std::shared_ptr<logger> logger_ptr;
+        {
+            std::shared_lock lock(mtx);
+            logger_ptr = real_logger;
+        }
+        if (logger_ptr) {
             va_list args;
             va_start(args, fmt);
-            real_logger->log(log_level::INFO, fmt, args);
+            logger_ptr->log(log_level::INFO, fmt, args);
             va_end(args);
         }
     }
 
     void logger_proxy::debug(const char *__restrict fmt, ...) const {
-        std::shared_lock lock(mtx);
-        if (real_logger) {
+        std::shared_ptr<logger> logger_ptr;
+        {
+            std::shared_lock lock(mtx);
+            logger_ptr = real_logger;
+        }
+        if (logger_ptr) {
             va_list args;
             va_start(args, fmt);
-            real_logger->log(log_level::DEBUG, fmt, args);
+            logger_ptr->log(log_level::DEBUG, fmt, args);
             va_end(args);
         }
     }
 
     void logger_proxy::trace(const char *__restrict fmt, ...) const {
-        std::shared_lock lock(mtx);
-        if (real_logger) {
+        std::shared_ptr<logger> logger_ptr;
+        {
+            std::shared_lock lock(mtx);
+            logger_ptr = real_logger;
+        }
+        if (logger_ptr) {
             va_list args;
             va_start(args, fmt);
-            real_logger->log(log_level::TRACE, fmt, args);
+            logger_ptr->log(log_level::TRACE, fmt, args);
             va_end(args);
         }
     }

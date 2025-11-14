@@ -25,7 +25,7 @@ namespace log4cpp::appender {
     const char *UDP_OUTPUT_GOODBYE = "bye";
 
     /* UDP server accept thread running flag */
-    static std::atomic<bool> running;
+    static std::atomic<bool> running{true};
     common::socket_fd create_udp_socket(const common::sock_addr &saddr) {
         common::socket_fd fd;
         if (saddr.addr.family == common::net_family::NET_IPv4) {
@@ -136,11 +136,12 @@ namespace log4cpp::appender {
             throw std::runtime_error("Can not create tcp socket");
         }
         this->fd = server_fd;
+        running.store(true);
         this->accept_thread = std::thread(accept_worker, server_fd, std::ref(this->lock), std::ref(this->clients));
     }
 
     udp_appender::~udp_appender() {
-        running = false;
+        running.store(false);
         this->accept_thread.join();
         if (this->fd != common::INVALID_FD) {
             common::close_socket(this->fd);

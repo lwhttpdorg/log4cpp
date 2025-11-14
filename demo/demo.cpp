@@ -7,8 +7,8 @@ void thread_routine() {
     auto log = log4cpp::logger_manager::get_logger("aaa");
     for (int i = 0; i < 100; ++i) {
         log->trace("this is a trace");
-        log->info("this is a info");
         log->debug("this is a debug");
+        log->info("this is a info");
         log->warn("this is an warning");
         log->error("this is an error");
         log->fatal("this is a fatal");
@@ -23,8 +23,8 @@ int main() {
 
     for (int i = 0; i < 100; ++i) {
         log->trace("this is a trace");
-        log->info("this is a info");
         log->debug("this is a debug");
+        log->info("this is a info");
         log->warn("this is an warning");
         log->error("this is an error");
         log->fatal("this is a fatal");

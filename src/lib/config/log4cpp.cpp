@@ -1,5 +1,5 @@
-#include "config/appender.hpp"
 #include "config/log4cpp.hpp"
+#include "config/appender.hpp"
 #include "exception/invalid_config_exception.hpp"
 
 namespace log4cpp::config {

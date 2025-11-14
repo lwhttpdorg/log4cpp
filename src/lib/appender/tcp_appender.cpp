@@ -153,6 +153,7 @@ namespace log4cpp::appender {
             throw std::runtime_error("Can not create tcp socket");
         }
         this->fd = server_fd;
+        running.store(true);
         this->accept_thread = std::thread(accept_worker, server_fd, std::ref(this->lock), std::ref(this->clients));
     }
 

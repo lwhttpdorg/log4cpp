@@ -23,7 +23,7 @@ namespace log4cpp {
     /**
      * The log level.
      */
-    enum class log_level { OFF = 0, FATAL = 1, ERROR = 2, WARN = 3, INFO = 4, DEBUG = 5, TRACE = 6 };
+    enum class log_level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
 
     /**
      * Convert log level to string.
@@ -177,7 +177,7 @@ namespace log4cpp {
 
         std::shared_ptr<log::logger> find_logger(const std::string &name);
 
-        std::shared_mutex rw_lock;
+        mutable std::shared_mutex rw_lock;
         int evt_fd;
         std::atomic<bool> evt_loop_run{false};
         std::thread evt_loop_thread;
@@ -185,10 +185,13 @@ namespace log4cpp {
         static logger_manager instance;
         std::string config_file_path;
         std::unique_ptr<config::log4cpp> config;
+        mutable std::shared_mutex appender_mtx;
         std::shared_ptr<appender::log_appender> console_appender_ptr;
         std::shared_ptr<appender::log_appender> file_appender_ptr;
         std::shared_ptr<appender::log_appender> tcp_appender_ptr;
         std::shared_ptr<appender::log_appender> udp_appender_ptr;
+
+        mutable std::shared_mutex logger_map_mtx;
         std::unordered_map<std::string, std::shared_ptr<log::logger_proxy>> loggers;
         std::shared_ptr<log::logger_proxy> root_logger;
     };

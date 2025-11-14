@@ -46,8 +46,7 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-int tcp_appender_client(std::atomic<bool> &running, std::atomic<bool> &finished, unsigned int log_count,
-                        unsigned port) {
+int tcp_appender_client(std::atomic<bool> &running, unsigned int log_count, unsigned port) {
     log4cpp::common::socket_fd fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (log4cpp::common::INVALID_FD == fd) {
         printf("[log4cpp] socket creation failed...\n");
@@ -75,11 +74,11 @@ int tcp_appender_client(std::atomic<bool> &running, std::atomic<bool> &finished,
     running.store(true);
     char buffer[1024];
     unsigned int index = 0;
-    while (!finished) {
+    for (index = 0; index < log_count; ++index) {
         ssize_t len = recv(fd, buffer, sizeof(buffer) - 1, 0);
         if (len > 0) {
             buffer[len] = 0;
-            printf("TCP[%u]: %s", index++, buffer);
+            printf("TCP[%u]: %s", index, buffer);
         }
         else if (len == -1) {
             break;
@@ -108,26 +107,22 @@ TEST(tcp_appender_test, tcp_appender_test) {
     WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
     std::atomic<bool> running(false);
-    std::atomic<bool> finished(false);
 
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("tcp");
     log4cpp::log_level max_level = log->get_level();
     unsigned int log_count = static_cast<int>(max_level);
 
-    std::thread tcp_appender_thread =
-        std::thread(&tcp_appender_client, std::ref(running), std::ref(finished), log_count, port);
+    std::thread tcp_appender_thread = std::thread(&tcp_appender_client, std::ref(running), log_count, port);
 
     while (!running) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     log->trace("this is a trace");
-    log->info("this is a info");
     log->debug("this is a debug");
-    log->warn("this is a warning");
+    log->info("this is a info");
+    log->warn("this is an warning");
     log->error("this is an error");
     log->fatal("this is a fatal");
-
-    finished.store(true);
 
     tcp_appender_thread.join();
 #ifdef _WIN32

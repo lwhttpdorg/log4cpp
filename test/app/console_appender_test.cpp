@@ -27,8 +27,9 @@ int main(int argc, char **argv) {
 void console_appender_logger() {
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("hello");
     log->trace("this is a trace");
-    log->info("this is a info");
     log->debug("this is a debug");
+    log->info("this is a info");
+    log->warn("this is an warning");
     log->error("this is an error");
     log->fatal("this is a fatal");
 }

@@ -322,7 +322,7 @@ Log level enum:
 
 ```c++
 namespace log4cpp {
-    enum class log_level { OFF = 0, FATAL = 1, ERROR = 2, WARN = 3, INFO = 4, DEBUG = 5, TRACE = 6 };
+    enum class log_level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
 }
 ```
 
@@ -347,8 +347,8 @@ void thread_routine() {
     auto log = log4cpp::logger_manager::get_logger("aaa");
     for (int i = 0; i < 100; ++i) {
         log->trace("this is a trace");
-        log->info("this is a info");
         log->debug("this is a debug");
+        log->info("this is a info");
         log->warn("this is an warning");
         log->error("this is an error");
         log->fatal("this is a fatal");
@@ -363,8 +363,8 @@ int main() {
 
     for (int i = 0; i < 100; ++i) {
         log->trace("this is a trace");
-        log->info("this is a info");
         log->debug("this is a debug");
+        log->info("this is a info");
         log->warn("this is an warning");
         log->error("this is an error");
         log->fatal("this is a fatal");
@@ -426,7 +426,7 @@ cmake --build build --config=Debug -j $(nproc)
 ```
 
 ```shell
-ctest --test-dir build
+ctest --test-dir build --verbose
 ```
 
 Options:

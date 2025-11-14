@@ -4,7 +4,6 @@
 #include <cstring>
 #include <ctime>
 
-
 #ifdef _MSC_VER
 #include <processthreadsapi.h>
 #elif defined(__GNUC__)
