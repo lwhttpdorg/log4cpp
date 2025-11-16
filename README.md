@@ -426,7 +426,7 @@ cmake --build build --config=Debug -j $(nproc)
 ```
 
 ```shell
-ctest --test-dir build --verbose
+ctest --test-dir build --output-on-failure
 ```
 
 Options:
