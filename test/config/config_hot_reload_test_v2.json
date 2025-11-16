@@ -1,11 +1,11 @@
 {
-	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"log_pattern": "${NM}: ${yy}-${MMM}-${dd} ${h}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
 		"console": {
 			"out_stream": "stdout"
 		},
 		"file": {
-			"file_path": "log/log4cpp.log"
+			"file_path": "log_v2.log"
 		},
 		"tcp": {
 			"local_addr": "0.0.0.0",
@@ -17,7 +17,7 @@
 		}
 	},
 	"root": {
-		"level": "INFO",
+		"level": "WARN",
 		"appenders": [
 			"console",
 			"file"
@@ -25,16 +25,16 @@
 	},
 	"loggers": [
 		{
-			"name": "hello",
-			"level": "INFO",
+			"name": "aaa",
+			"level": "ERROR",
 			"appenders": [
 				"console",
 				"file"
 			]
 		},
 		{
-			"name": "world",
-			"level": "WARN",
+			"name": "ccc",
+			"level": "TRACE",
 			"appenders": [
 				"console",
 				"file"

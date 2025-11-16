@@ -49,6 +49,9 @@ TEST(console_appender_test, stderr_test) {
 }
 
 TEST(console_appender_test, multithread_test) {
+    const std::string config_file = "console_appender_stdout.json";
+    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
+    log_mgr.load_config(config_file);
     std::thread info_logger_thread(console_appender_logger);
     std::thread warn_logger_thread(console_appender_logger);
     info_logger_thread.join();

@@ -52,6 +52,10 @@ namespace log4cpp {
         return logger_manager::instance;
     }
 
+    std::string supervisor::serialize(const config::log4cpp &cfg) {
+        return config::log4cpp::serialize(cfg);
+    }
+
     // ========================================
     // logger manager
     // ========================================

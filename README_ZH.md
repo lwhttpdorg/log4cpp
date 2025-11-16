@@ -400,7 +400,7 @@ root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 
 配置文件实例:
 
-[参考配置文件示例](demo/log4cpp.json)
+[参考配置文件demo/demo.json](demo/demo.json)
 
 ## 4. 构建
 

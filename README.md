@@ -409,7 +409,7 @@ hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
 root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 ```
 
-Reference config: [demo/log4cpp.json](demo/log4cpp.json)
+Reference config: [demo/demo.json](demo/demo.json)
 
 ## 4. Building
 

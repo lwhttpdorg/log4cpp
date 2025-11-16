@@ -119,6 +119,7 @@ namespace log4cpp {
         static void sigusr2_handle(int sig_num);
         static bool enable_config_hot_loading();
         static logger_manager &get_logger_manager();
+        static std::string serialize(const config::log4cpp &cfg);
     };
 
     namespace log {

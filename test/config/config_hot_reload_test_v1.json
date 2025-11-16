@@ -5,7 +5,7 @@
 			"out_stream": "stdout"
 		},
 		"file": {
-			"file_path": "log/log4cpp.log"
+			"file_path": "log_v1.log"
 		},
 		"tcp": {
 			"local_addr": "0.0.0.0",
@@ -18,22 +18,25 @@
 	},
 	"root": {
 		"level": "INFO",
-		"appenders": ["console", "file"]
+		"appenders": [
+			"console",
+			"file"
+		]
 	},
 	"loggers": [
 		{
-			"name": "hello",
+			"name": "aaa",
 			"level": "INFO",
 			"appenders": [
 				"console",
-				"tcp",
-				"udp"
+				"file"
 			]
 		},
 		{
-			"name": "lwhttpd.org",
+			"name": "bbb",
 			"level": "WARN",
 			"appenders": [
+				"console",
 				"file"
 			]
 		}

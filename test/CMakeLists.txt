@@ -19,6 +19,7 @@ set(TEST_TARGETS
         tcp_appender_tests
         udp_appender_tests
         serialize_test
+        config_hot_reload_tests
 )
 
 # Map each test target to its source file
@@ -29,6 +30,7 @@ set(file_appender_tests_SRC app/file_appender_test.cpp)
 set(tcp_appender_tests_SRC app/tcp_appender_test.cpp)
 set(udp_appender_tests_SRC app/udp_appender_test.cpp)
 set(serialize_test_SRC app/serialize_test.cpp)
+set(config_hot_reload_tests_SRC app/config_hot_reload_test.cpp)
 
 # Collect JSON config files from test/config/
 file(GLOB TEST_CONFIG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/config/*.json")
