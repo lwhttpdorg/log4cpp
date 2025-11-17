@@ -7,6 +7,12 @@
 #include <log4cpp/log4cpp.hpp>
 
 namespace log4cpp::pattern {
+    constexpr unsigned int LOGGER_NAME_DEFAULT_LEN = 6;
+    constexpr unsigned int LOGGER_NAME_MAX_LEN = 16;
+    constexpr unsigned int THREAD_NAME_DEFAULT_LEN = 8;
+    constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
+    constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
+
     constexpr std::array<const char *, 12> MONTH_ABBR_NAME = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                                               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 

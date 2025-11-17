@@ -54,9 +54,15 @@ namespace log4cpp {
         SetThreadDescription(GetCurrentThread(), wchar_str.c_str());
 #endif
 #ifdef __GNUC__
-        pthread_setname_np(pthread_self(), name);
+        char buf[16]; // 15 chars + '\0'
+        strncpy(buf, name, sizeof(buf) - 1);
+        buf[sizeof(buf) - 1] = '\0';
+        pthread_setname_np(pthread_self(), buf);
 #elif __linux__
-        prctl(PR_SET_NAME, reinterpret_cast<unsigned long>("child"));
+        char buf[16];
+        strncpy(buf, name, sizeof(buf) - 1);
+        buf[sizeof(buf) - 1] = '\0';
+        prctl(PR_SET_NAME, buf);
 #endif
     }
 }

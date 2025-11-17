@@ -35,13 +35,13 @@ int main(int argc, char **argv) {
 }
 
 TEST(log_pattern_tests, full_format_test) {
-    const std::string pattern = "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}";
+    const std::string pattern = "${5NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}";
     log4cpp::pattern::log_pattern::set_pattern(pattern);
     char actual[1024];
     tm now_tm{};
     unsigned short ms;
     log4cpp::log_level level = log4cpp::log_level::INFO;
-    const char *LOGGER_NAME = "TEST";
+    const char *LOGGER_NAME = "log_pattern_tests";
     log4cpp::common::get_time_now(now_tm, ms);
     log4cpp::pattern::log_pattern::format(actual, sizeof(actual), LOGGER_NAME, level, "hello");
     char expected[1024];
@@ -50,7 +50,7 @@ TEST(log_pattern_tests, full_format_test) {
     unsigned long tid = log4cpp::get_thread_name_id(th_name, sizeof(th_name));
     log4cpp::common::log4c_scnprintf(thread_name, sizeof(thread_name), "%08lu", tid);
     log4cpp::common::log4c_scnprintf(
-        expected, sizeof(expected), "%-7s: %04d-%02d-%02d %02d:%02d:%02d:%03d [T%08s] [%-5s] -- %s\n", LOGGER_NAME,
+        expected, sizeof(expected), "%-5.5s: %04d-%02d-%02d %02d:%02d:%02d:%03d [T%08s] [%-5s] -- %s\n", LOGGER_NAME,
         now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms,
         thread_name, log4cpp::level_to_string(level).c_str(), "hello");
     // The length of "2025-01-06 " is 11
@@ -431,7 +431,7 @@ TEST(log_pattern_tests, thread_id_format_test) {
         len += log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [T%08lu]", tid);
     }
     else {
-        len += log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-8s]", th_name);
+        len += log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-8.8s]", th_name);
     }
     log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-5s] -- %s\n",
                                      log4cpp::level_to_string(level).c_str(), "hello");

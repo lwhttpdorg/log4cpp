@@ -10,16 +10,14 @@
 namespace log4cpp::pattern {
     const char *DEFAULT_LOG_PATTERN = "${NM}: ${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}";
 
-    constexpr unsigned int THREAD_NAME_MAX_LEN = 16;
-    constexpr unsigned int THREAD_ID_WIDTH_MAX = 8;
-
     std::string log_pattern::_pattern = DEFAULT_LOG_PATTERN;
 
     void log_pattern::set_pattern(const std::string &pattern) {
         _pattern = pattern;
     }
 
-    const char *LOGGER_NAME = "${NM}";
+    /* The regular expression to match the logger name pattern, e.g. ${8NM}. default width is 8, max width is 16. */
+    const std::regex LOGGER_NAME_REGEX(R"(\$\{(\d{1,2})?NM\})");
     /* A two digit representation of a year. e.g. 99 or 03 */
     const char *SHORT_YEAR = "${yy}";
     /* A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999, 2003,
@@ -55,10 +53,11 @@ namespace log4cpp::pattern {
     const char *FULL_SECOND = "${ss}";
     /* Milliseconds with leading zeros. 001 to 999 */
     const char *MILLISECOND = "${ms}";
-    /* The regular expression to match the thread name pattern, e.g. ${8TN}. max width is 16. e.g. "main". If the name
-     * is empty, use thread id instead */
+    /* The regular expression to match the thread name pattern, e.g. ${8TN}. default width is 8, max width is 16. e.g.
+     * "main". If the name is empty, use thread id instead */
     const std::regex THREAD_NAME_REGEX(R"(\$\{(\d{1,2})?TN\})");
-    /* The regular expression to match the thread id pattern, e.g. ${8TH}. max width is 8. e.g. T12345 */
+    /* The regular expression to match the thread id pattern, e.g. ${8TH}. default width is 8, max width is 8. e.g.
+     * T12345 */
     const std::regex THREAD_ID_REGEX(R"(\$\{(\d{1,2})?TH\})");
     /* Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE */
     const char *LOG_LEVEL = "${L}";
@@ -211,15 +210,25 @@ namespace log4cpp::pattern {
 
         format_daytime(buf, len, _pattern, now_tm, ms);
 
-        // replace ${NM} with logger name
-        if (_pattern.find(LOGGER_NAME) != std::string::npos) {
-            char logger_name[8];
-            common::log4c_scnprintf(logger_name, sizeof(logger_name), "%-7s", name);
-            common::log4c_replace(buf, len, LOGGER_NAME, logger_name);
+        // replace ${\d+NM} with logger name
+        if (std::smatch match; std::regex_search(_pattern, match, LOGGER_NAME_REGEX)) {
+            size_t width = LOGGER_NAME_DEFAULT_LEN;
+            if (match[1].matched) {
+                const std::string width_str = match[1].str();
+                width = std::stoul(width_str);
+            }
+            if (LOGGER_NAME_MAX_LEN < width) {
+                width = LOGGER_NAME_MAX_LEN;
+            }
+            char logger_name[LOGGER_NAME_MAX_LEN];
+            common::log4c_scnprintf(logger_name, sizeof(logger_name), "%-*.*s", width, width, name);
+
+            const std::string full_match_str = match[0];
+            common::log4c_replace(buf, len, full_match_str.c_str(), logger_name);
         }
 
         if (std::smatch match; std::regex_search(_pattern, match, THREAD_NAME_REGEX)) {
-            size_t width = THREAD_NAME_MAX_LEN;
+            size_t width = THREAD_NAME_DEFAULT_LEN;
             if (match[1].matched) {
                 const std::string width_str = match[1].str();
                 width = std::stoul(width_str);
@@ -231,7 +240,7 @@ namespace log4cpp::pattern {
             const unsigned long tid = get_thread_name_id(_name, sizeof(_name));
             char thread_name[THREAD_NAME_MAX_LEN];
             if (_name[0] != '\0') {
-                common::log4c_scnprintf(thread_name, sizeof(thread_name), "%-*s", width, _name);
+                common::log4c_scnprintf(thread_name, sizeof(thread_name), "%-*.*s", width, width, _name);
             }
             else {
                 common::log4c_scnprintf(thread_name, sizeof(thread_name), "T%0*lu", width, tid);

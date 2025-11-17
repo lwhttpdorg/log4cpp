@@ -35,7 +35,7 @@ protected:
     }
 
     void TearDown() override {
-        //std::remove(HOT_RELOAD_CONFIG);
+        std::remove(HOT_RELOAD_CONFIG);
     }
 };
 
@@ -97,6 +97,16 @@ void worker_thread_logging_routine_type2(int id) {
     }
 }
 
+void worker_thread_logging_routine_type3(int id) {
+    log4cpp::set_thread_name(("worker_type3_" + std::to_string(id)).c_str());
+    while (!finished.load()) {
+        auto logger = log4cpp::logger_manager::get_logger("aaa");
+        logger->error("Type 1 Thread %d: This is an ERROR log message.", id);
+        logger->fatal("Type 1 Thread %d: This is a FATAL log message.", id);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
 // --- GTest Test Case ---
 
 TEST_F(log4cpp_config_hot_reload_test, multi_thread_signal_hotloading) {
@@ -109,14 +119,17 @@ TEST_F(log4cpp_config_hot_reload_test, multi_thread_signal_hotloading) {
     log4cpp::supervisor::enable_config_hot_loading();
 
     std::vector<std::thread> worker_threads;
-    // 启动3个线程, 循环输出log
-    for (int i = 0; i < 3; ++i) {
+
+    for (int i = 0; i < 2; ++i) {
         worker_threads.emplace_back(worker_thread_logging_routine_type1, i);
     }
 
-    // 再启动3个线程, 循环输出log
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 2; ++i) {
         worker_threads.emplace_back(worker_thread_logging_routine_type2, i);
+    }
+
+    for (int i = 0; i < 2; ++i) {
+        worker_threads.emplace_back(worker_thread_logging_routine_type3, i);
     }
 
     // Main thread logging (V1 Phase)

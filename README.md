@@ -61,7 +61,7 @@ Example:
 
 Placeholders:
 
-- `${NM}`: The name of logger
+- `${<n>NM}`: The name of logger, e.g. `${4NM}`. `<n>` is the name length, align left, default is 6, max width is 16
 - `${yy}`: A two digit representation of a year. e.g. 99 or 03
 - `${yyyy}`: A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999,
   2003, 10191
@@ -344,7 +344,7 @@ Notes:
 
 void thread_routine() {
     log4cpp::set_thread_name("child");
-    auto log = log4cpp::logger_manager::get_logger("aaa");
+    const auto log = log4cpp::logger_manager::get_logger("aaa");
     for (int i = 0; i < 100; ++i) {
         log->trace("this is a trace");
         log->debug("this is a debug");
@@ -357,9 +357,12 @@ void thread_routine() {
 
 int main() {
     log4cpp::supervisor::enable_config_hot_loading();
+    const std::string config_file = "demo.json";
+    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
+    log_mgr.load_config(config_file);
     std::thread child(thread_routine);
     log4cpp::set_thread_name("main");
-    auto log = log4cpp::logger_manager::get_logger("hello");
+    const auto log = log4cpp::logger_manager::get_logger("hello");
 
     for (int i = 0; i < 100; ++i) {
         log->trace("this is a trace");
@@ -386,7 +389,7 @@ set(TARGET_NAME demo)
 add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.1.0)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.1.1)
 
 FetchContent_MakeAvailable(log4cpp)
 

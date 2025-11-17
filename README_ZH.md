@@ -54,7 +54,7 @@ target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
 
 说明:
 
-- `${NM}`: logger名称
+- `${<n>NM}`: logger名称, 如`${8NM}`. `<n>`为logger名长度, 左对齐, 默认是6, 最大为16
 - `${yy}`: 2位数表示的年份. 如99, 03
 - `${yyyy}`: 完整的年份, 至少4位数, 用'-'表示公元前. 如-0055, 0787, 1999, 2003, 10191
 - `${M}`: 数字表示的月份, 无补0. 从1到12
@@ -333,7 +333,7 @@ namespace log4cpp {
 
 void thread_routine() {
     log4cpp::set_thread_name("child");
-    auto log = log4cpp::logger_manager::get_logger("aaa");
+    const auto log = log4cpp::logger_manager::get_logger("aaa");
     for (int i = 0; i < 100; ++i) {
         log->trace("this is a trace");
         log->debug("this is a debug");
@@ -346,9 +346,12 @@ void thread_routine() {
 
 int main() {
     log4cpp::supervisor::enable_config_hot_loading();
+    const std::string config_file = "demo.json";
+    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
+    log_mgr.load_config(config_file);
     std::thread child(thread_routine);
     log4cpp::set_thread_name("main");
-    auto log = log4cpp::logger_manager::get_logger("hello");
+    const auto log = log4cpp::logger_manager::get_logger("hello");
 
     for (int i = 0; i < 100; ++i) {
         log->trace("this is a trace");
@@ -375,7 +378,7 @@ set(TARGET_NAME demo)
 add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.1.0)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.1.1)
 
 FetchContent_MakeAvailable(log4cpp)
 
