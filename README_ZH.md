@@ -378,7 +378,7 @@ set(TARGET_NAME demo)
 add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.1.1)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.2.0)
 
 FetchContent_MakeAvailable(log4cpp)
 
