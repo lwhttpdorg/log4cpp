@@ -171,6 +171,8 @@ void configuration_check(const nlohmann::json &expected_json, const log4cpp::con
 TEST(load_config_test, auto_load_config) {
     // Just to load the configuration file
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
+    // Calling get_logger() causes automatic loading
+    const auto logger = log4cpp::logger_manager::get_logger("root");
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     ASSERT_NE(nullptr, config);
 

@@ -20,6 +20,7 @@
 
 namespace log4cpp {
     constexpr unsigned short LOG_LINE_MAX = 512;
+    constexpr const char *DEFAULT_LOG_PATTERN = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}] -- ${W}";
     /**
      * The log level.
      */
@@ -168,7 +169,7 @@ namespace log4cpp {
 
         void auto_load_config();
 
-        void set_log_pattern();
+        void set_log_pattern() const;
 
         void build_appender();
 

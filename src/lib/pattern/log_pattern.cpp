@@ -8,8 +8,6 @@
 #include "pattern/log_pattern.hpp"
 
 namespace log4cpp::pattern {
-    const char *DEFAULT_LOG_PATTERN = "${NM}: ${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss} [${8TH}] [${L}] -- ${W}";
-
     std::string log_pattern::_pattern = DEFAULT_LOG_PATTERN;
 
     void log_pattern::set_pattern(const std::string &pattern) {
