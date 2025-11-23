@@ -34,13 +34,13 @@ namespace log4cpp {
         logger_mgr.notify_config_hot_reload();
     }
 
-    bool supervisor::enable_config_hot_loading() {
+    bool supervisor::enable_config_hot_loading(int sig) {
         struct sigaction sa{};
 
         sa.sa_handler = sigusr2_handle;
         sigemptyset(&sa.sa_mask);
         sa.sa_flags = 0;
-        if (sigaction(SIGUSR2, &sa, nullptr) == -1) {
+        if (sigaction(sig, &sa, nullptr) == -1) {
             return false;
         }
         logger_manager &logger_mgr = get_logger_manager();

@@ -271,16 +271,16 @@ _Note: The config file path and name must not change; the original path/name use
 Enable hot-reload:
 
 ```c++
-log4cpp::supervisor::enable_config_hot_loading();
+log4cpp::supervisor::enable_config_hot_loading(int sig = SIGHUP);
 ```
 
-After modifying the config file, send `SIGUSR2` to your process:
+After modifying the configuration file, send a signal (default is `SIGHUP`) to your process:
 
 ```shell
-kill -SIGUSR2 <PID>
+kill -SIGHUP <PID>
 ```
 
-`SIGUSR2` triggers log4cpp to reload the cached file path and recreate internal objects. Existing
+`SIGHUP` triggers log4cpp to reload the cached file path and recreate internal objects. Existing
 `std::shared_ptr<log4cpp::log::logger>` instances returned earlier remain valid until their reference count reaches
 zero.
 

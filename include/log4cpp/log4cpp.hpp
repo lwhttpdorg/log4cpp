@@ -6,6 +6,7 @@
 #include <memory>
 
 #include <atomic>
+#include <csignal>
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
@@ -118,7 +119,7 @@ namespace log4cpp {
     class supervisor {
     public:
         static void sigusr2_handle(int sig_num);
-        static bool enable_config_hot_loading();
+        static bool enable_config_hot_loading(int sig = SIGHUP);
         static logger_manager &get_logger_manager();
         static std::string serialize(const config::log4cpp &cfg);
     };

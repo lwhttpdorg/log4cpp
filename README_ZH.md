@@ -261,16 +261,16 @@ _注: 配置文件路径和名称不能变化，使用启动时的路径和名�
 首先需要使能配置热加载:
 
 ```c++
-log4cpp::supervisor::enable_config_hot_loading();
+log4cpp::supervisor::enable_config_hot_loading(int sig = SIGHUP);
 ```
 
-修改配置文件后，向你的进程发送`SIGUSR2`信号:
+修改配置文件后，向你的进程发送信号(默认是`SIGHUP`):
 
 ```shell
-kill -SIGUSR2 <PID>
+kill -SIGHUP <PID>
 ```
 
-`SIGUSR2`信号会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。先前已经通过
+`SIGHUP`信号会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。先前已经通过
 `log4cpp::logger_manager::get_logger()`获得的`std::shared_ptr<log4cpp::log::logger>`
 并不会立即失效并且可继续使用，直到最后一个使用者离开其作用域(`std::shared_ptr`引用计数归0)。
 
