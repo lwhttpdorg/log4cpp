@@ -7,13 +7,11 @@
 		"file": {
 			"file_path": "log/log4cpp_config_1.log"
 		},
-		"tcp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		},
-		"udp": {
-			"local_addr": "::",
-			"port": 9443
+		"socket": {
+			"host": "0.0.0.0",
+			"port": 9443,
+			"protocol": "udp",
+			"prefer-stack": "auto"
 		}
 	},
 	"root": {
@@ -29,8 +27,7 @@
 			"level": "INFO",
 			"appenders": [
 				"console",
-				"tcp",
-				"udp"
+				"socket"
 			]
 		},
 		{
@@ -39,8 +36,7 @@
 			"appenders": [
 				"console",
 				"file",
-				"tcp",
-				"udp"
+				"socket"
 			]
 		}
 	]

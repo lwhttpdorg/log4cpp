@@ -16,8 +16,7 @@ set(TEST_TARGETS
         log_pattern_tests
         console_appender_tests
         file_appender_tests
-        tcp_appender_tests
-        udp_appender_tests
+        socket_appender_tests
         serialize_test
         config_hot_reload_tests
 )
@@ -27,8 +26,7 @@ set(load_config_tests_SRC app/load_config_test.cpp)
 set(log_pattern_tests_SRC app/log_pattern_test.cpp)
 set(console_appender_tests_SRC app/console_appender_test.cpp)
 set(file_appender_tests_SRC app/file_appender_test.cpp)
-set(tcp_appender_tests_SRC app/tcp_appender_test.cpp)
-set(udp_appender_tests_SRC app/udp_appender_test.cpp)
+set(socket_appender_tests_SRC app/socket_appender_test.cpp)
 set(serialize_test_SRC app/serialize_test.cpp)
 set(config_hot_reload_tests_SRC app/config_hot_reload_test.cpp)
 

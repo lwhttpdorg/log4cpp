@@ -9,6 +9,9 @@
 
 #ifdef __linux
 
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #endif
@@ -55,6 +58,13 @@ namespace log4cpp::common {
 #endif
 
     enum class net_family { NET_IPv4, NET_IPv6 };
+    enum class prefer_stack { IPv4, IPv6, AUTO };
+
+    class host_resolve_exception: public std::runtime_error {
+    public:
+        explicit host_resolve_exception(const std::string &msg) : std::runtime_error(msg) {
+        }
+    };
 
     class net_addr {
     public:
@@ -78,9 +88,7 @@ namespace log4cpp::common {
 
         [[nodiscard]] std::string to_string() const;
 
-        friend void to_json(nlohmann::json &j, const net_addr &addr);
-
-        friend void from_json(const nlohmann::json &j, net_addr &addr);
+        static net_addr resolve(const std::string &host, prefer_stack prefer = prefer_stack::AUTO);
     };
 
     void to_json(nlohmann::json &j, const net_addr &addr);

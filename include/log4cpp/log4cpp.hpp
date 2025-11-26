@@ -191,8 +191,7 @@ namespace log4cpp {
         mutable std::shared_mutex appender_mtx;
         std::shared_ptr<appender::log_appender> console_appender_ptr;
         std::shared_ptr<appender::log_appender> file_appender_ptr;
-        std::shared_ptr<appender::log_appender> tcp_appender_ptr;
-        std::shared_ptr<appender::log_appender> udp_appender_ptr;
+        std::shared_ptr<appender::log_appender> socket_appender_ptr;
 
         mutable std::shared_mutex logger_map_mtx;
         std::unordered_map<std::string, std::shared_ptr<log::logger_proxy>> loggers;

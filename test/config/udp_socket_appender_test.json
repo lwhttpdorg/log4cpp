@@ -4,33 +4,28 @@
 		"console": {
 			"out_stream": "stdout"
 		},
-		"file": {
-			"file_path": "log/file_appender_test.log"
+		"socket": {
+			"host": "0.0.0.0",
+			"port": 9443,
+			"protocol": "udp",
+			"prefer-stack": "auto"
 		}
 	},
 	"loggers": [
 		{
-			"name": "aaa",
+			"name": "test",
 			"level": "INFO",
 			"appenders": [
 				"console",
-				"file"
-			]
-		},
-		{
-			"name": "bbb",
-			"level": "WARN",
-			"appenders": [
-				"console",
-				"file"
+				"socket"
 			]
 		}
 	],
 	"root": {
-		"level": "INFO",
+		"level": "WARN",
 		"appenders": [
 			"console",
-			"file"
+			"socket"
 		]
 	}
 }

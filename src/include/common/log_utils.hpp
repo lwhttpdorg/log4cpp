@@ -51,4 +51,18 @@ namespace log4cpp::common {
      * @param ms: milliseconds of current time
      */
     void get_time_now(tm &now_tm, unsigned short &ms);
+
+    /**
+     * std::string convert to lowercase
+     * @param s: input string
+     * @return lowercase string
+     */
+    std::string to_lower(const std::string &s);
+
+    /**
+     * std::string convert to uppercase
+     * @param s: input string
+     * @return uppercase string
+     */
+    std::string to_upper(const std::string &s);
 }

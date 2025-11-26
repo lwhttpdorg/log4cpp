@@ -8,7 +8,7 @@ namespace log4cpp::config {
     // =========================================================
 
     bool log_appender::empty() const {
-        return !(console.has_value() || file.has_value() || tcp.has_value() || udp.has_value());
+        return !(console.has_value() || file.has_value() || socket.has_value());
     }
 
     std::vector<std::string> appender_flag_to_name(unsigned char flag) {
@@ -49,11 +49,10 @@ namespace log4cpp::config {
                 case APPENDER_TYPE::FILE:
                     if (config.file) j[entry.name] = *config.file;
                     break;
-                case APPENDER_TYPE::TCP:
-                    if (config.tcp) j[entry.name] = *config.tcp;
+                case APPENDER_TYPE::SOCKET:
+                    if (config.socket) j[entry.name] = *config.socket;
                     break;
-                case APPENDER_TYPE::UDP:
-                    if (config.udp) j[entry.name] = *config.udp;
+                default:
                     break;
             }
         }
@@ -69,11 +68,10 @@ namespace log4cpp::config {
                 case APPENDER_TYPE::FILE:
                     config.file = j.at(entry.name).get<file_appender>();
                     break;
-                case APPENDER_TYPE::TCP:
-                    config.tcp = j.at(entry.name).get<tcp_appender>();
+                case APPENDER_TYPE::SOCKET:
+                    config.socket = j.at(entry.name).get<socket_appender>();
                     break;
-                case APPENDER_TYPE::UDP:
-                    config.udp = j.at(entry.name).get<udp_appender>();
+                default:
                     break;
             }
         }
@@ -126,11 +124,10 @@ namespace log4cpp::config {
                             case APPENDER_TYPE::FILE:
                                 exists = config.appenders.file.has_value();
                                 break;
-                            case APPENDER_TYPE::TCP:
-                                exists = config.appenders.tcp.has_value();
+                            case APPENDER_TYPE::SOCKET:
+                                exists = config.appenders.socket.has_value();
                                 break;
-                            case APPENDER_TYPE::UDP:
-                                exists = config.appenders.udp.has_value();
+                            default:
                                 break;
                         }
                         break;
@@ -155,11 +152,10 @@ namespace log4cpp::config {
                         case APPENDER_TYPE::FILE:
                             exists = config.appenders.file.has_value();
                             break;
-                        case APPENDER_TYPE::TCP:
-                            exists = config.appenders.tcp.has_value();
+                        case APPENDER_TYPE::SOCKET:
+                            exists = config.appenders.socket.has_value();
                             break;
-                        case APPENDER_TYPE::UDP:
-                            exists = config.appenders.udp.has_value();
+                        default:
                             break;
                     }
                     break;

@@ -5,6 +5,7 @@
 #include <windows.h>
 #endif
 
+#include <common/log_utils.hpp>
 #include <filesystem>
 #include <fstream>
 
@@ -49,18 +50,38 @@ void file_appender_check(const nlohmann::json &file_appender, const log4cpp::con
     EXPECT_EQ(cfg.file_path, expected);
 }
 
-void tcp_appender_check(const nlohmann::json &tcp_appender, const log4cpp::config::tcp_appender &cfg) {
-    const log4cpp::common::net_addr expected_addr = log4cpp::common::net_addr(tcp_appender.at("local_addr"));
-    EXPECT_EQ(cfg.local_addr, expected_addr);
+void socket_appender_check(const nlohmann::json &tcp_appender, const log4cpp::config::socket_appender &cfg) {
+    const std::string expected_host = tcp_appender.at("host");
+    EXPECT_EQ(cfg.host, expected_host);
+
     unsigned short expected_port = tcp_appender.at("port");
     EXPECT_EQ(cfg.port, expected_port);
-}
 
-void udp_appender_check(const nlohmann::json &udp_appender, const log4cpp::config::udp_appender &cfg) {
-    const log4cpp::common::net_addr expected_addr = log4cpp::common::net_addr(udp_appender.at("local_addr"));
-    EXPECT_EQ(cfg.local_addr, expected_addr);
-    unsigned short expected_port = udp_appender.at("port");
-    EXPECT_EQ(cfg.port, expected_port);
+    std::string expected_proto_str = tcp_appender.at("protocol");
+    std::string proto_str;
+    if (cfg.proto == log4cpp::config::socket_appender::protocol::TCP) {
+        proto_str = "tcp";
+    }
+    else if (cfg.proto == log4cpp::config::socket_appender::protocol::UDP) {
+        proto_str = "udp";
+    }
+    proto_str = log4cpp::common::to_upper(proto_str);
+    expected_proto_str = log4cpp::common::to_upper(expected_proto_str);
+    EXPECT_EQ(proto_str, expected_proto_str);
+
+    std::string expected_prefer_stack = tcp_appender.at("prefer-stack");
+    expected_prefer_stack = log4cpp::common::to_lower(expected_prefer_stack);
+    std::string actual_prefer_stack;
+    if (cfg.prefer == log4cpp::common::prefer_stack::IPv4) {
+        actual_prefer_stack = "ipv4";
+    }
+    else if (cfg.prefer == log4cpp::common::prefer_stack::IPv6) {
+        actual_prefer_stack = "ipv6";
+    }
+    else if (cfg.prefer == log4cpp::common::prefer_stack::AUTO) {
+        actual_prefer_stack = "auto";
+    }
+    EXPECT_EQ(actual_prefer_stack, expected_prefer_stack);
 }
 
 void appenders_check(const nlohmann::json &appenders_json, const log4cpp::config::log_appender &appenders_cfg) {
@@ -77,17 +98,11 @@ void appenders_check(const nlohmann::json &appenders_json, const log4cpp::config
     const nlohmann::json &file_appender = appenders.at("file");
     file_appender_check(file_appender, file_appender_cfg);
 
-    // TCP Appender
-    ASSERT_EQ(true == appenders.contains("tcp"), appenders_cfg.tcp.has_value());
-    const log4cpp::config::tcp_appender &tcp_appender_cfg = appenders_cfg.tcp.value();
-    const nlohmann::json &tcp_appender = appenders.at("tcp");
-    tcp_appender_check(tcp_appender, tcp_appender_cfg);
-
-    // UDP Appender
-    ASSERT_EQ(true == appenders.contains("udp"), appenders_cfg.udp.has_value());
-    const log4cpp::config::udp_appender &udp_appender_cfg = appenders_cfg.udp.value();
-    const nlohmann::json &udp_appender = appenders.at("udp");
-    udp_appender_check(udp_appender, udp_appender_cfg);
+    // Socket Appender
+    ASSERT_EQ(true == appenders.contains("socket"), appenders_cfg.socket.has_value());
+    const log4cpp::config::socket_appender &socket_appender_cfg = appenders_cfg.socket.value();
+    const nlohmann::json &socket_appender = appenders.at("socket");
+    socket_appender_check(socket_appender, socket_appender_cfg);
 }
 
 namespace log4cpp {

@@ -7,13 +7,11 @@
 		"file": {
 			"file_path": "log_v1.log"
 		},
-		"tcp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		},
-		"udp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
+		"socket": {
+			"host": "0.0.0.0",
+			"port": 9443,
+			"protocol": "udp",
+			"prefer-stack": "auto"
 		}
 	},
 	"root": {

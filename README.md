@@ -15,11 +15,10 @@ Features:
 - JSON configuration: change behavior without modifying code
 - Output logs to STDOUT and STDERR
 - Output logs to files
-- Output logs to TCP clients
-- Output logs to UDP clients
+- Output logs to log servers (TCP/UDP)
 - Singleton pattern
 - Thread-safe
-- Hot-reload configuration without restarting the process
+- Hot-reload configuration without restarting the process(Linux only)
 
 ## 2. Requirements
 
@@ -30,22 +29,13 @@ Features:
 _Warning: Due to a series of bugs in the MSVC compiler, this project no longer supports MSVC. Any errors on the MSVC
 platform will no longer be fixed. It is recommended to use MingW64_
 
+To install nlohmann-json on Ubuntu/Debian:
+
 ```shell
 sudo apt install nlohmann-json3-dev
 ```
 
 ## 3. Usage
-
-### 3.1. Use in a CMake project
-
-```cmake
-include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.0.8)
-
-FetchContent_MakeAvailable(log4cpp)
-
-target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
-```
 
 ### 3.2. Configuration file
 
@@ -90,8 +80,7 @@ _Note: Some systems cannot set thread names; thread ID will be used instead._
 
 #### 3.2.2. Appenders
 
-There are four types of appenders: Console appender(`console`), File appender(`file`), TCP appender(`tcp`), UDP
-appender(`udp`)
+There are four types of appenders: Console appender(`console`), File appender(`file`), Socket appender(`socket`)
 
 Example:
 
@@ -104,13 +93,11 @@ Example:
 		"file": {
 			"file_path": "log/log4cpp.log"
 		},
-		"tcp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		},
-		"udp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
+		"socket": {
+			"host": "10.0.0.1",
+			"port": 9443,
+			"protocol": "tcp",
+			"prefer-stack": "auto"
 		}
 	}
 }
@@ -152,55 +139,31 @@ Example:
 
 - `file_path`: output file path
 
-#### 3.2.5. TCP appender
+#### 3.2.5. Socket appender
 
-TCP appender starts a TCP server, accepts connections, and sends logs to connected clients. Typical config:
+Socket appender is used to send logs to remote logging servers via TCP or UDP. The protocol is specified by the
+`protocol` field; if not set, TCP is used by default.
 
 ```json
 {
 	"appenders": {
-		"tcp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
+		"socket": {
+			"host": "10.0.0.1",
+			"port": 9443,
+			"protocol": "tcp",
+			"prefer-stack": "auto"
 		}
 	}
 }
 ```
 
-- `local_addr`: listening address (e.g. "0.0.0.0", "::", "127.0.0.1", "::1")
-- `port`: listening port
+- `addr`: The address of remote logging server
+- `port`: The port number of remote logging server
+- `protocol`: "tcp" or "udp", default is "tcp"
+- `prefer-stack`: "IPv4", "IPv6", or "auto", default is "auto"
 
-Notes:
-
-- When multiple TCP clients are connected, logs are iterated and sent to each client.
-- Logs are sent in plaintext; handle encryption externally if required.
-
-#### 3.2.6. UDP appender
-
-UDP appender starts a UDP server and sends logs to clients.
-
-Differences vs TCP:
-
-- UDP is connectionless and cannot guarantee delivery.
-- Clients must send a "hello" message so the server learns the client's address.
-- Clients should send a "bye" message before exit so the server can remove the client address; otherwise the address
-  remains until failure cleanup or program exit.
-
-Example:
-
-```json
-{
-	"appenders": {
-		"udp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		}
-	}
-}
-```
-
-- `local_addr`: listening address
-- `port`: listening port
+_Notes: For TCP-type socket appender, if the connection to the remote logging server fails, an exponential backoff
+strategy will be used for reconnection._
 
 ### 3.3. Configure loggers
 
@@ -213,7 +176,7 @@ Named logger fields:
 
 - `name`: unique logger name (cannot be "root")
 - `level`: minimum log level — only logs with level >= this will be output
-- `appenders`: list of appender names (must match keys defined in `appenders`), options: "console", "file", "tcp", "udp"
+- `appenders`: list of appender names (must match keys defined in `appenders`), options: "console", "file", "socket"
 
 Root logger is an object with `level` and `appenders`; internally its name is "root".
 
@@ -234,12 +197,11 @@ Example structure:
 			"level": "INFO",
 			"appenders": [
 				"console",
-				"tcp",
-				"udp"
+				"socket"
 			]
 		},
 		{
-			"name": "lwhttpd.org",
+			"name": "aaa",
 			"level": "WARN",
 			"appenders": [
 				"file"

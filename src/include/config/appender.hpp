@@ -33,30 +33,18 @@ namespace log4cpp::config {
     void from_json(const nlohmann::json &j, file_appender &config);
 
     // =========================================================
-    // tcp appender
+    // socket appender
     // =========================================================
 
-    class tcp_appender {
+    class socket_appender {
     public:
-        common::net_addr local_addr{};
+        enum class protocol { TCP, UDP };
+        std::string host{};
         unsigned short port{0};
+        protocol proto{protocol::TCP};
+        common::prefer_stack prefer{common::prefer_stack::AUTO};
     };
 
-    void to_json(nlohmann::json &j, const tcp_appender &config);
-
-    void from_json(const nlohmann::json &j, tcp_appender &config);
-
-    // =========================================================
-    // udp appender
-    // =========================================================
-
-    class udp_appender {
-    public:
-        common::net_addr local_addr{};
-        unsigned short port{0};
-    };
-
-    void to_json(nlohmann::json &j, const udp_appender &config);
-
-    void from_json(const nlohmann::json &j, udp_appender &config);
+    void to_json(nlohmann::json &j, const socket_appender &config);
+    void from_json(const nlohmann::json &j, socket_appender &config);
 }

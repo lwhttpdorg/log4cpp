@@ -1,5 +1,7 @@
 #include "config/appender.hpp"
 
+#include <common/log_utils.hpp>
+
 namespace log4cpp::config {
     // =========================================================
     // console appender
@@ -26,28 +28,50 @@ namespace log4cpp::config {
     }
 
     // =========================================================
-    // tcp appender
+    // socket appender
     // =========================================================
 
-    void to_json(nlohmann::json &j, const tcp_appender &config) {
-        j = nlohmann::json{{"local_addr", config.local_addr.to_string()}, {"port", config.port}};
+    void to_json(nlohmann::json &j, const socket_appender &config) {
+        j = nlohmann::json{
+            {"host", config.host},
+            {"port", config.port},
+            {"protocol", config.proto == socket_appender::protocol::TCP ? "TCP" : "UDP"},
+            {"prefer-stack", config.prefer == common::prefer_stack::IPv4 ?
+                                 "IPv4" :
+                                 (config.prefer == common::prefer_stack::IPv6 ? "IPv6" : "AUTO")},
+        };
     }
 
-    void from_json(const nlohmann::json &j, tcp_appender &config) {
-        j.at("local_addr").get_to(config.local_addr);
+    void from_json(const nlohmann::json &j, socket_appender &config) {
+        j.at("host").get_to(config.host);
         j.at("port").get_to(config.port);
-    }
-
-    // =========================================================
-    // udp appender
-    // =========================================================
-
-    void to_json(nlohmann::json &j, const udp_appender &config) {
-        j = nlohmann::json{{"local_addr", config.local_addr.to_string()}, {"port", config.port}};
-    }
-
-    void from_json(const nlohmann::json &j, udp_appender &config) {
-        j.at("local_addr").get_to(config.local_addr);
-        j.at("port").get_to(config.port);
+        std::string proto_str;
+        j.at("protocol").get_to(proto_str);
+        proto_str = common::to_upper(proto_str);
+        if (proto_str == "TCP") {
+            config.proto = socket_appender::protocol::TCP;
+        }
+        else if (proto_str == "UDP") {
+            config.proto = socket_appender::protocol::UDP;
+        }
+        else {
+            throw std::invalid_argument("Invalid protocol string: " + proto_str);
+        }
+        std::string prefer_str;
+        j.at("prefer-stack").get_to(prefer_str);
+        // Convert to lowercase for comparison
+        prefer_str = common::to_lower(prefer_str);
+        if (prefer_str == "ipv4") {
+            config.prefer = common::prefer_stack::IPv4;
+        }
+        else if (prefer_str == "ipv6") {
+            config.prefer = common::prefer_stack::IPv6;
+        }
+        else if (prefer_str == "auto") {
+            config.prefer = common::prefer_stack::AUTO;
+        }
+        else {
+            throw std::invalid_argument("Invalid prefer stack string: " + prefer_str);
+        }
     }
 }

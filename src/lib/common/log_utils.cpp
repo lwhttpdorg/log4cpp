@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <cstdarg>
 #include <cstdio>
@@ -150,5 +151,17 @@ namespace log4cpp::common {
         localtime_r(&now_time_t, &now_tm);
 #endif
         ms = static_cast<unsigned short>(now_ms.count());
+    }
+
+    std::string to_lower(const std::string &s) {
+        std::string result = s;
+        std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
+        return result;
+    }
+
+    std::string to_upper(const std::string &s) {
+        std::string result = s;
+        std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::toupper(c); });
+        return result;
     }
 }

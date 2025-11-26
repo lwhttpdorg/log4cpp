@@ -9,7 +9,7 @@ namespace log4cpp::config {
     // =========================================================
     // appender enum + table
     // =========================================================
-    enum class APPENDER_TYPE : unsigned char { CONSOLE = 1 << 0, FILE = 1 << 1, TCP = 1 << 2, UDP = 1 << 3 };
+    enum class APPENDER_TYPE : unsigned char { CONSOLE = 1 << 0, FILE = 1 << 1, SOCKET = 1 << 2 };
 
     class appender_attr {
     public:
@@ -17,10 +17,9 @@ namespace log4cpp::config {
         APPENDER_TYPE type;
     };
 
-    constexpr std::array<appender_attr, 4> APPENDER_TABLE{{{"console", APPENDER_TYPE::CONSOLE},
+    constexpr std::array<appender_attr, 3> APPENDER_TABLE{{{"console", APPENDER_TYPE::CONSOLE},
                                                            {"file", APPENDER_TYPE::FILE},
-                                                           {"tcp", APPENDER_TYPE::TCP},
-                                                           {"udp", APPENDER_TYPE::UDP}}};
+                                                           {"socket", APPENDER_TYPE::SOCKET}}};
 
     std::vector<std::string> appender_flag_to_name(unsigned char flag);
 
@@ -30,8 +29,7 @@ namespace log4cpp::config {
     public:
         std::optional<console_appender> console;
         std::optional<file_appender> file;
-        std::optional<tcp_appender> tcp;
-        std::optional<udp_appender> udp;
+        std::optional<socket_appender> socket;
 
         [[nodiscard]] bool empty() const;
     };

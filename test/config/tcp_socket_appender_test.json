@@ -4,30 +4,20 @@
 		"console": {
 			"out_stream": "stdout"
 		},
-		"tcp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		},
-		"udp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
+		"socket": {
+			"host": "0.0.0.0",
+			"port": 9443,
+			"protocol": "tcp",
+			"prefer-stack": "auto"
 		}
 	},
 	"loggers": [
 		{
-			"name": "tcp",
+			"name": "test",
 			"level": "INFO",
 			"appenders": [
 				"console",
-				"tcp"
-			]
-		},
-		{
-			"name": "udp",
-			"level": "INFO",
-			"appenders": [
-				"console",
-				"udp"
+				"socket"
 			]
 		}
 	],
@@ -35,8 +25,7 @@
 		"level": "WARN",
 		"appenders": [
 			"console",
-			"tcp",
-			"udp"
+			"socket"
 		]
 	}
 }

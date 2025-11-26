@@ -15,8 +15,7 @@ log4cpp是一个C++日志库, 参照log4j实现
 - 通过JSON文件配置, 无需修改代码即可改变其行为
 - 支持输出日志到STDOUT和STDERR
 - 支持输出日志到指定文件
-- 支持输出日志到TCP客户端
-- 支持输出日志到UDP客户端
+- 支持输出日志到日志服务器(TCP/UDP)
 - 单例模式
 - 线程安全
 - 配置热加载, 修改配置文件无需重启进程就可生效
@@ -30,17 +29,6 @@ log4cpp是一个C++日志库, 参照log4j实现
 _警告: 由于MSVC编译器的一些列bug, 本项目不再支持MSVC. 任何MSVC平台的错误都不再解决, 建议使用MingW64_
 
 ## 3. 使用
-
-### 3.1. 在CMake项目中使用
-
-````cmake
-include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.0.8)
-
-FetchContent_MakeAvailable(log4cpp)
-
-target_link_libraries(${YOUR_TARGET_NAME} log4cpp)
-````
 
 ### 3.2. 配置文件
 
@@ -81,7 +69,7 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 
 #### 3.2.2. 配置输出器
 
-配置输出器有四种类型: 控制台输出器(`console`), 文件输出器(`file`), TCP输出器(`tcp`), UDP输出器(`udp`)
+配置输出器有四种类型: 控制台输出器(`console`), 文件输出器(`file`), Socket输出器(`socket`, 默认是TCP)
 
 一个简单的配置文件示例:
 
@@ -94,13 +82,11 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 		"file": {
 			"file_path": "log/log4cpp.log"
 		},
-		"tcp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		},
-		"udp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
+		"socket": {
+			"host": "10.0.0.1",
+			"port": 9443,
+			"protocol": "tcp",
+			"prefer-stack": "auto"
 		}
 	}
 }
@@ -142,16 +128,18 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 
 - `file_path`: 输出文件名
 
-#### 3.2.5. TCP输出器
+#### 3.2.5. Socket输出器
 
-TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出到连接的客户端, 用于输出日志到远程设备. 典型配置如下:
+Socket输出器支持TCP和UDP两种协议, 通过`protocol`字段区分, 如果不配置`protocol`, 则默认是TCP
 
 ```json
 {
 	"appenders": {
-		"tcp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
+		"socket": {
+			"host": "10.0.0.1",
+			"port": 9443,
+			"protocol": "tcp",
+			"prefer-stack": "auto"
 		}
 	}
 }
@@ -159,40 +147,12 @@ TCP输出器内部会启动一个TCP服务器, 接受TCP连接, 将日志输出�
 
 说明:
 
-- `local_addr`: 监听地址. 如`0.0.0.0`, `::`, `127.0.0.1`, `::1`
-- `port`: 监听端口
+- `addr`: 远端日志服务器地址
+- `port`: 远端日志服务器端口
+- `protocol`: 协议, 可以是`tcp`或`udp`, 默认是`tcp`
+- `prefer-stack`: 优选地址栈, 可以是`IPv4`, `IPv6`, 或者`auto`, 默认是`auto`
 
-_注意: 如果有多个TCP客户端, 会便利所有客户端逐个发送日志_
-
-_注意: 日志为明文传输, 注意隐私和安全问题. 后续不会支持加密传输, 如果需要加密建议先将日志加密后再传递个log4cpp_
-
-#### 3.2.6. UDP输出器
-
-UDP输出器内部会启动一个UDP服务器, 将日志输出到连接的客户端, 用于输出日志到远程设备
-
-与TCP输出器不同, UDP是无连接的, 需要注意:
-
-- UDP是无连接的, 无法保证日志的完整性
-- 需要客户端主动发送"hello"消息, 以便服务器获取客户端地址, 以便发送日志
-- 客户端退出时需要发送"bye"消息, 以便服务器清理客户端地址, 否则客户端地址会一直保留直到因为日志发送失败而清理或程序退出
-
-典型配置如下:
-
-```json
-{
-	"appenders": {
-		"udp": {
-			"local_addr": "0.0.0.0",
-			"port": 9443
-		}
-	}
-}
-```
-
-说明:
-
-- `local_addr`: 监听地址. 如`0.0.0.0`, `::`, `127.0.0.1`, `::1`
-- `port`: 监听端口
+_注意: TCP日志服务器如果连接失败, 会采取指数退避重试连接, 直到连接成功_
 
 ### 3.3. 配置logger
 
@@ -205,7 +165,7 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 
 - `name`: logger名称, 用于获取logger, 不能重复, 不能是`root`
 - `level`: log级别, 只有大于等于此级别的log才会输出
-- `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console`, `file`, `tcp`, `udp`
+- `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console`, `file`, `socket`
 
 默认logger是一个对象, 只有`level`和`appenders`, 没有`name`, 内部实现`name`为`root`
 
@@ -224,12 +184,11 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 			"level": "INFO",
 			"appenders": [
 				"console",
-				"tcp",
-				"udp"
+				"socket"
 			]
 		},
 		{
-			"name": "lwhttpd.org",
+			"name": "aaa",
 			"level": "WARN",
 			"appenders": [
 				"file"
