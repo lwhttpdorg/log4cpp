@@ -73,7 +73,7 @@ namespace log4cpp {
         if (evt_loop_thread.joinable()) {
             evt_loop_run.store(false);
             constexpr uint64_t val = EVT_SHUTDOWN;
-            write(evt_fd, &val, sizeof(uint64_t));
+            (void)write(evt_fd, &val, sizeof(uint64_t));
             evt_loop_thread.join();
         }
         if (evt_fd != -1) {
@@ -155,7 +155,7 @@ namespace log4cpp {
 
     void logger_manager::notify_config_hot_reload() const {
         constexpr uint64_t val = EVT_HOT_RELOAD;
-        write(evt_fd, &val, sizeof(uint64_t));
+        (void)write(evt_fd, &val, sizeof(uint64_t));
     }
 
     void logger_manager::start_hot_reload_thread() {

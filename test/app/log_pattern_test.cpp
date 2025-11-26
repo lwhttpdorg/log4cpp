@@ -437,6 +437,8 @@ TEST(log_pattern_tests, thread_id_format_test) {
                                      log4cpp::level_to_string(level).c_str(), "hello");
     // The length of "[T00008580] [FATAL] -- hello\n" is 30
     size_t offset = strlen(actual) - 30;
+    printf("actual  : %s\n", actual);
+    printf("expected: %s\n", expected);
     LOG4C_EXPECT_STRN_EQ(actual + offset, expected + offset, 30);
     // Set thread name
     log4cpp::set_thread_name("test");
