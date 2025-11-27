@@ -53,8 +53,6 @@ TEST(log_pattern_tests, full_format_test) {
         expected, sizeof(expected), "%-5.5s: %04d-%02d-%02d %02d:%02d:%02d:%03d [T%08s] [%-5s] -- %s\n", LOGGER_NAME,
         now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms,
         thread_name, log4cpp::level_to_string(level).c_str(), "hello");
-    printf("%s\n", actual);
-    printf("%s\n", expected);
     // The length of "2025-11-27 19:07:24:401" is 23
     size_t datetime_str_len = 23;
     // Verify the datetime part
