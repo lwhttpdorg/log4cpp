@@ -440,8 +440,8 @@ TEST(log_pattern_tests, thread_id_format_test) {
     }
     log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-5s] -- %s\n",
                                      log4cpp::level_to_string(level).c_str(), "hello");
-    // The length of "2025-11-27 19:02:47:307" is 20 (without milliseconds)
-    size_t offset = 20;
+    // The length of "2025-11-27 19:02:47:307" is 23
+    size_t offset = 23;
     LOG4C_EXPECT_STR_EQ(actual + offset, expected + offset, "Thread id format mismatch");
     // Set thread name
     log4cpp::set_thread_name("test");
