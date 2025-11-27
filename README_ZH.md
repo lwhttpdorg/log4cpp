@@ -36,7 +36,7 @@ _警告: 由于MSVC编译器的一些列bug, 本项目不再支持MSVC. 任何MS
 
 ```json
 {
-	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -77,10 +77,10 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 {
 	"appenders": {
 		"console": {
-			"out_stream": "stdout"
+			"out-stream": "stdout"
 		},
 		"file": {
-			"file_path": "log/log4cpp.log"
+			"file-path": "log/log4cpp.log"
 		},
 		"socket": {
 			"host": "10.0.0.1",
@@ -100,7 +100,7 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 {
 	"appenders": {
 		"console": {
-			"out_stream": "stdout"
+			"out-stream": "stdout"
 		}
 	}
 }
@@ -118,7 +118,7 @@ _注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
 {
 	"appenders": {
 		"file": {
-			"file_path": "log/log4cpp.log"
+			"file-path": "log/log4cpp.log"
 		}
 	}
 }
@@ -163,22 +163,24 @@ _注意: 命名logger可以没有, 但是默认logger必须有_
 
 命名logger是一个数组, 每个logger配置包括:
 
-- `name`: logger名称, 用于获取logger, 不能重复, 不能是`root`
-- `level`: log级别, 只有大于等于此级别的log才会输出
-- `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console`, `file`, `socket`
+- `name`: logger名称, 用于获取logger, 不能重复. `root`为默认logger
+- `level`: log级别, 只有大于等于此级别的log才会输出, 非`root`可以省略(自动继承`root`)
+- `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console`, `file`, `socket`. 非`root`可以省略(自动继承
+  `root`)
 
-默认logger是一个对象, 只有`level`和`appenders`, 没有`name`, 内部实现`name`为`root`
+__必须定义`name`为`root`默认logger__
 
 ```json
 {
-	"root": {
-		"level": "INFO",
-		"appenders": [
-			"console",
-			"file"
-		]
-	},
 	"loggers": [
+		{
+			"name": "root",
+			"level": "INFO",
+			"appenders": [
+				"console",
+				"file"
+			]
+		},
 		{
 			"name": "hello",
 			"level": "INFO",

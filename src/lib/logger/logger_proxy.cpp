@@ -22,12 +22,28 @@ namespace log4cpp::log {
         return real_logger->get_name();
     }
 
+    void logger_proxy::set_name(const std::string &name) {
+        std::unique_lock lock(mtx);
+        if (!real_logger) {
+            return;
+        }
+        real_logger->set_name(name);
+    }
+
     [[nodiscard]] log_level logger_proxy::get_level() const {
         std::shared_lock lock(mtx);
         if (!real_logger) {
             return {};
         }
         return real_logger->get_level();
+    }
+
+    void logger_proxy::set_level(log_level level) {
+        std::unique_lock lock(mtx);
+        if (!real_logger) {
+            return;
+        }
+        real_logger->set_level(level);
     }
 
     void logger_proxy::log(log_level _level, const char *__restrict fmt, va_list args) const {

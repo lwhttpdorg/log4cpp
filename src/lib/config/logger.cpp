@@ -10,36 +10,42 @@ namespace log4cpp::config {
     void to_json(nlohmann::json &j, const logger &config) {
         std::vector<std::string> appenders;
         for (const auto &entry: APPENDER_TABLE) {
-            if (config.appender_flag & static_cast<unsigned char>(entry.type)) {
+            if (config.appender & static_cast<unsigned char>(entry.type)) {
                 appenders.emplace_back(entry.name);
             }
         }
-        j = nlohmann::json{{"level", level_to_string(config.level)}, {"appenders", appenders}};
-        // {"name", config.name}
-        if (config.name != DEFAULT_LOGGER_NAME) {
-            j["name"] = config.name;
+        j = nlohmann::json{{"name", config.name}, {"appenders", appenders}};
+        if (config.level.has_value()) {
+            j["level"] = level_to_string(config.level.value());
         }
     }
 
     void from_json(const nlohmann::json &j, logger &config) {
+        // Name is mandatory
         if (!j.contains("name")) {
-            config.name = DEFAULT_LOGGER_NAME;
+            throw invalid_config_exception("Logger name is missing");
+        }
+        j.at("name").get_to(config.name);
+
+        // Level is optional
+        if (j.contains("level")) {
+            std::string level_str;
+            j.at("level").get_to(level_str);
+            config.level = level_from_string(level_str);
         }
         else {
-            j.at("name").get_to(config.name);
+            config.level = std::nullopt;
         }
-        if (!j.contains("level"))
-            throw invalid_config_exception("logger '" + j.value("name", "") + "' missing required field 'level'");
-        if (!j.contains("appenders"))
-            throw invalid_config_exception("logger '" + j.value("name", "") + "' missing required field 'appenders'");
 
-        std::string level_str;
-        j.at("level").get_to(level_str);
-        config.level = level_from_string(level_str);
+        // Appender is optional
+        if (j.contains("appenders")) {
+            std::vector<std::string> appenders;
+            j.at("appenders").get_to(appenders);
 
-        std::vector<std::string> appenders;
-        j.at("appenders").get_to(appenders);
-
-        config.appender_flag = appender_name_to_flag(appenders);
+            config.appender = appender_name_to_flag(appenders);
+        }
+        else {
+            config.appender = 0;
+        }
     }
 }

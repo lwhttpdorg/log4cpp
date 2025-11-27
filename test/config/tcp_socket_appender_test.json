@@ -1,8 +1,8 @@
 {
-	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
 		"console": {
-			"out_stream": "stdout"
+			"out-stream": "stdout"
 		},
 		"socket": {
 			"host": "0.0.0.0",
@@ -19,13 +19,14 @@
 				"console",
 				"socket"
 			]
+		},
+		{
+			"name": "root",
+			"level": "WARN",
+			"appenders": [
+				"console",
+				"socket"
+			]
 		}
-	],
-	"root": {
-		"level": "WARN",
-		"appenders": [
-			"console",
-			"socket"
-		]
-	}
+	]
 }

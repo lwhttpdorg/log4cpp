@@ -26,11 +26,19 @@ namespace log4cpp::log {
         core_logger &operator=(core_logger &&other) noexcept;
 
         [[nodiscard]] std::string get_name() const override {
-            return name;
+            return name_;
+        }
+
+        void set_name(const std::string &name) override {
+            this->name_ = name;
         }
 
         [[nodiscard]] log_level get_level() const override {
-            return level;
+            return level_;
+        }
+
+        void set_level(log_level level) override {
+            this->level_ = level;
         }
 
         void add_appender(const std::shared_ptr<appender::log_appender> &appender);
@@ -57,9 +65,9 @@ namespace log4cpp::log {
 
     private:
         /* The logger name. */
-        std::string name;
+        std::string name_;
         /* The log level. */
-        log_level level;
+        log_level level_;
         mutable std::shared_mutex appenders_mtx;
         /* The log appenders. */
         std::set<std::shared_ptr<appender::log_appender>> appenders{};

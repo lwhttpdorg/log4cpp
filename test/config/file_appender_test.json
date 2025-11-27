@@ -1,11 +1,11 @@
 {
-	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"log-pattern": "${12NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
 		"console": {
-			"out_stream": "stdout"
+			"out-stream": "stdout"
 		},
 		"file": {
-			"file_path": "log/file_appender_test.log"
+			"file-path": "log/file_appender_test.log"
 		}
 	},
 	"loggers": [
@@ -24,13 +24,14 @@
 				"console",
 				"file"
 			]
+		},
+		{
+			"name": "root",
+			"level": "INFO",
+			"appenders": [
+				"console",
+				"file"
+			]
 		}
-	],
-	"root": {
-		"level": "INFO",
-		"appenders": [
-			"console",
-			"file"
-		]
-	}
+	]
 }

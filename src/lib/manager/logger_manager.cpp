@@ -98,9 +98,10 @@ namespace log4cpp {
         this->config = std::make_unique<config::log4cpp>();
         this->config->log_pattern = DEFAULT_LOG_PATTERN;
         this->config->appenders.console = config::console_appender{.out_stream = "stdout"};
-        this->config->root_logger.appender_flag = static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE);
-        this->config->root_logger.name = "root";
-        this->config->root_logger.level = log_level::ERROR;
+        const config::logger default_logger{.name = "root",
+                                         .level = log_level::WARN,
+                                         .appender = static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)};
+        this->config->loggers.push_back(default_logger);
     }
 
     void logger_manager::load_config(const std::string &file_path) {
@@ -179,7 +180,6 @@ namespace log4cpp {
         set_log_pattern();
         build_appender();
         build_logger();
-        build_root_logger();
         for (auto it = loggers.begin(); it != loggers.end();) {
             auto &proxy = it->second;
             if (proxy->hot_reload_flag_is_set()) {
@@ -206,7 +206,6 @@ namespace log4cpp {
             instance.set_log_pattern();
             instance.build_appender();
             instance.build_logger();
-            instance.build_root_logger();
         });
         return instance.find_logger(name);
     }
@@ -216,15 +215,65 @@ namespace log4cpp {
     }
 
     std::shared_ptr<log::logger> logger_manager::find_logger(const std::string &name) {
-        std::shared_lock reader_lock(rw_lock);
-        if (loggers.find(name) == loggers.end()) {
-            return root_logger;
+        // Acquire a shared lock (read lock) for the fast path.
+        {
+            std::shared_lock reader_lock(rw_lock);
+            auto it = loggers.find(name);
+            // First check: If the logger exists, return it immediately.
+            if (it != loggers.end()) {
+                return it->second;
+            }
+        } // reader_lock is automatically released here.
+
+        // Acquire an exclusive lock (write lock) for the slow path (creation).
+        std::unique_lock writer_lock(rw_lock);
+
+        // Second check: Must check again to prevent a race condition
+        // where another thread created the logger while this thread was waiting for the lock.
+        auto it = loggers.find(name);
+        if (it != loggers.end()) {
+            return it->second;
         }
-        return loggers.at(name);
+
+        // --- Logger Creation ---
+
+        // Get the root logger's target instance (used as a blueprint).
+        const auto lg = root_logger->get_target();
+
+        // Safely downcast the base pointer to core_logger.
+        const std::shared_ptr<log::core_logger> core_logger_ptr = std::dynamic_pointer_cast<log::core_logger>(lg);
+
+        // Essential check: Ensure the downcast succeeded before dereferencing.
+        // NOTE: Under the current configuration contract, this failure should never happen.
+        // This check serves as a defensive measure against misconfiguration or design violation.
+        if (!core_logger_ptr) {
+            throw std::runtime_error("Root logger target is invalid or not a core_logger instance.");
+        }
+
+        // Use the copy constructor to create a new core_logger instance on the heap,
+        // inheriting settings from the root target.
+        auto new_logger = std::make_shared<log::core_logger>(*core_logger_ptr);
+
+        // Set the unique name for the new logger.
+        new_logger->set_name(name);
+
+        // Wrap the new logger in a proxy object.
+        const auto proxy = std::make_shared<log::logger_proxy>(new_logger);
+
+        // Insert the proxy into the map under the protection of the unique lock.
+        loggers[name] = proxy;
+
+        // Return the newly created proxy.
+        return proxy;
     }
 
     void logger_manager::set_log_pattern() const {
-        pattern::log_pattern::set_pattern(config->log_pattern);
+        if (config->log_pattern.has_value()) {
+            pattern::log_pattern::set_pattern(config->log_pattern.value());
+        }
+        else {
+            pattern::log_pattern::set_pattern(DEFAULT_LOG_PATTERN);
+        }
     }
 
     void logger_manager::build_appender() {
@@ -256,55 +305,64 @@ namespace log4cpp {
             temp_appenders[1] = this->file_appender_ptr;
             temp_appenders[2] = this->socket_appender_ptr;
         }
-        std::unique_lock logger_lock(this->logger_map_mtx);
-        for (auto &lg: config->loggers) {
-            std::shared_ptr<log::core_logger> new_logger = std::make_shared<log::core_logger>(lg.name, lg.level);
-            if (lg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) {
+        // "root" logger is the first one
+        const config::logger &root_lg_cfg = this->config->loggers.front();
+        const log_level root_log_level = root_lg_cfg.level.value();
+        const unsigned char root_appender = root_lg_cfg.appender;
+
+        {
+            std::unique_lock logger_lock(this->logger_map_mtx);
+            std::shared_ptr<log::core_logger> new_logger =
+                std::make_shared<log::core_logger>(root_lg_cfg.name, root_lg_cfg.level.value());
+            if (root_lg_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) {
                 new_logger->add_appender(temp_appenders[0]);
             }
-            if (lg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::FILE)) {
+            if (root_lg_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::FILE)) {
                 new_logger->add_appender(temp_appenders[1]);
             }
-            if (lg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::SOCKET)) {
+            if (root_lg_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::SOCKET)) {
                 new_logger->add_appender(temp_appenders[2]);
             }
-            std::shared_ptr<log::logger_proxy> proxy = this->loggers[lg.name];
-            if (proxy == nullptr) {
-                this->loggers[lg.name] = std::make_shared<log::logger_proxy>(new_logger);
+
+            if (nullptr == this->root_logger) {
+                this->root_logger = std::make_shared<log::logger_proxy>(new_logger);
             }
             else {
-                proxy->set_hot_reload_flag();
-                proxy->set_target(new_logger);
+                this->root_logger->set_target(new_logger);
             }
         }
-    }
-
-    void logger_manager::build_root_logger() {
-        std::shared_ptr<appender::log_appender> temp_appenders[3];
         {
-            std::shared_lock appender_lock(this->appender_mtx);
-            temp_appenders[0] = this->console_appender_ptr;
-            temp_appenders[1] = this->file_appender_ptr;
-            temp_appenders[2] = this->socket_appender_ptr;
-        }
-        std::unique_lock logger_lock(this->logger_map_mtx);
-        const config::logger &cfg = this->config->root_logger;
-        std::shared_ptr<log::core_logger> new_logger = std::make_shared<log::core_logger>(cfg.name, cfg.level);
-        if (cfg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) {
-            new_logger->add_appender(temp_appenders[0]);
-        }
-        if (cfg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::FILE)) {
-            new_logger->add_appender(temp_appenders[1]);
-        }
-        if (cfg.appender_flag & static_cast<unsigned char>(config::APPENDER_TYPE::SOCKET)) {
-            new_logger->add_appender(temp_appenders[2]);
-        }
+            std::unique_lock logger_lock(this->logger_map_mtx);
 
-        if (nullptr == this->root_logger) {
-            this->root_logger = std::make_shared<log::logger_proxy>(new_logger);
-        }
-        else {
-            this->root_logger->set_target(new_logger);
+            for (size_t i = 1; i < config->loggers.size(); ++i) {
+                const auto &lg_cfg = config->loggers[i];
+                log_level level = root_log_level;
+                if (lg_cfg.level.has_value()) {
+                    level = lg_cfg.level.value();
+                }
+                std::shared_ptr<log::core_logger> new_logger = std::make_shared<log::core_logger>(lg_cfg.name, level);
+                unsigned char appender = root_appender;
+                if (0 != lg_cfg.appender) {
+                    appender = lg_cfg.appender;
+                }
+                if (appender & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) {
+                    new_logger->add_appender(temp_appenders[0]);
+                }
+                if (appender & static_cast<unsigned char>(config::APPENDER_TYPE::FILE)) {
+                    new_logger->add_appender(temp_appenders[1]);
+                }
+                if (appender & static_cast<unsigned char>(config::APPENDER_TYPE::SOCKET)) {
+                    new_logger->add_appender(temp_appenders[2]);
+                }
+                std::shared_ptr<log::logger_proxy> proxy = this->loggers[lg_cfg.name];
+                if (proxy == nullptr) {
+                    this->loggers[lg_cfg.name] = std::make_shared<log::logger_proxy>(new_logger);
+                }
+                else {
+                    proxy->set_hot_reload_flag();
+                    proxy->set_target(new_logger);
+                }
+            }
         }
     }
 }

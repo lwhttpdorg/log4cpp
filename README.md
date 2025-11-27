@@ -45,7 +45,7 @@ Example:
 
 ```json
 {
-	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
 }
 ```
 
@@ -88,10 +88,10 @@ Example:
 {
 	"appenders": {
 		"console": {
-			"out_stream": "stdout"
+			"out-stream": "stdout"
 		},
 		"file": {
-			"file_path": "log/log4cpp.log"
+			"file-path": "log/log4cpp.log"
 		},
 		"socket": {
 			"host": "10.0.0.1",
@@ -113,7 +113,7 @@ Example:
 {
 	"appenders": {
 		"console": {
-			"out_stream": "stdout"
+			"out-stream": "stdout"
 		}
 	}
 }
@@ -131,7 +131,7 @@ Example:
 {
 	"appenders": {
 		"file": {
-			"file_path": "log/log4cpp.log"
+			"file-path": "log/log4cpp.log"
 		}
 	}
 }
@@ -174,24 +174,28 @@ There are named loggers (`loggers`) and the root logger (`root`).
 
 Named logger fields:
 
-- `name`: unique logger name (cannot be "root")
-- `level`: minimum log level — only logs with level >= this will be output
-- `appenders`: list of appender names (must match keys defined in `appenders`), options: "console", "file", "socket"
+- `name`: The logger's unique name, used for retrieval. The name `root` is reserved for the default logger.
+- `level`: The logging level. Only logs with a level greater than or equal to this configured level will be output. This
+  field can be omitted for non-`root` loggers (it automatically inherits the `root` logger's level).
+- `appenders`: The list of appenders (outputs). Only the configured appenders will be used for output. Appenders can
+  include `console`, `file`, and `socket`. This field can be omitted for non-`root` loggers (it automatically inherits
+  the `root` logger's appenders).
 
-Root logger is an object with `level` and `appenders`; internally its name is "root".
+__The default logger must be explicitly defined with the name `root`.__
 
 Example structure:
 
 ```json
 {
-	"root": {
-		"level": "INFO",
-		"appenders": [
-			"console",
-			"file"
-		]
-	},
 	"loggers": [
+		{
+			"name": "root",
+			"level": "INFO",
+			"appenders": [
+				"console",
+				"file"
+			]
+		},
 		{
 			"name": "hello",
 			"level": "INFO",

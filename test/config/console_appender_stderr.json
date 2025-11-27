@@ -1,11 +1,18 @@
 {
-	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
 		"console": {
-			"out_stream": "stderr"
+			"out-stream": "stderr"
 		}
 	},
 	"loggers": [
+		{
+			"name": "root",
+			"level": "INFO",
+			"appenders": [
+				"console"
+			]
+		},
 		{
 			"name": "aaa",
 			"level": "INFO",
@@ -13,11 +20,5 @@
 				"console"
 			]
 		}
-	],
-	"root": {
-		"level": "INFO",
-		"appenders": [
-			"console"
-		]
-	}
+	]
 }

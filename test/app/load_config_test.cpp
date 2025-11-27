@@ -36,17 +36,17 @@ int main(int argc, char **argv) {
 }
 
 void log_pattern_check(const nlohmann::json &expected_json, const std::string &log_pattern) {
-    const std::string expected = expected_json.at("log_pattern");
+    const std::string expected = expected_json.at("log-pattern");
     EXPECT_EQ(log_pattern, expected);
 }
 
 void console_appender_check(const nlohmann::json &console_appender, const log4cpp::config::console_appender &cfg) {
-    const std::string expected = console_appender.at("out_stream");
+    const std::string expected = console_appender.at("out-stream");
     EXPECT_EQ(cfg.out_stream, expected);
 }
 
 void file_appender_check(const nlohmann::json &file_appender, const log4cpp::config::file_appender &cfg) {
-    const std::string expected = file_appender.at("file_path");
+    const std::string expected = file_appender.at("file-path");
     EXPECT_EQ(cfg.file_path, expected);
 }
 
@@ -112,12 +112,12 @@ namespace log4cpp {
         obj.level = level_from_string(json.at("level"));
         std::vector<std::string> appenders = json.at("appenders");
         unsigned char appenders_flag = log4cpp::config::appender_name_to_flag(appenders);
-        obj.appender_flag = appenders_flag;
+        obj.appender = appenders_flag;
     }
 
     void to_json(nlohmann::json &json, const log4cpp::config::logger &obj) {
         printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! to_json !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-        std::vector<std::string> appenders = log4cpp::config::appender_flag_to_name(obj.appender_flag);
+        std::vector<std::string> appenders = log4cpp::config::appender_flag_to_name(obj.appender);
         json = nlohmann::json{{"name", obj.name}, {"level", obj.level}, {"appenders", appenders}};
     }
 }
@@ -125,11 +125,11 @@ namespace log4cpp {
 bool logger_less(const log4cpp::config::logger &a, const log4cpp::config::logger &b) {
     if (a.name != b.name) return a.name < b.name;
     if (a.level != b.level) return a.level < b.level;
-    return a.appender_flag < b.appender_flag;
+    return a.appender < b.appender;
 }
 
 bool logger_equal(const log4cpp::config::logger &a, const log4cpp::config::logger &b) {
-    return a.name == b.name && a.level == b.level && a.appender_flag == b.appender_flag;
+    return a.name == b.name && a.level == b.level && a.appender == b.appender;
 }
 
 void logger_check(const nlohmann::json &expected_json, std::vector<log4cpp::config::logger> &actual_loggers) {
@@ -145,20 +145,6 @@ void logger_check(const nlohmann::json &expected_json, std::vector<log4cpp::conf
     EXPECT_EQ(is_equal, true);
 }
 
-void root_logger_check(const nlohmann::json &expected_json, const log4cpp::config::logger &root_logger) {
-    const nlohmann::json &expected_root_logger = expected_json.at("root");
-    // name
-    EXPECT_EQ(root_logger.name, "root");
-
-    log4cpp::log_level expected_level = log4cpp::level_from_string(expected_root_logger.at("level"));
-    EXPECT_EQ(root_logger.level, expected_level);
-
-    unsigned char actual_flag = root_logger.appender_flag;
-    const std::vector<std::string> expected_appenders = expected_root_logger.at("appenders");
-    unsigned char expected_flag = log4cpp::config::appender_name_to_flag(expected_appenders);
-    EXPECT_EQ(actual_flag, expected_flag);
-}
-
 void parse_json(const std::string &file, nlohmann::json &out) {
     std::ifstream ifs(file);
     ASSERT_TRUE(ifs.is_open()) << "cannot open " << file;
@@ -168,7 +154,7 @@ void parse_json(const std::string &file, nlohmann::json &out) {
 
 void configuration_check(const nlohmann::json &expected_json, const log4cpp::config::log4cpp *config) {
     // Logger pattern
-    const std::string &log_pattern = config->log_pattern;
+    const std::string &log_pattern = config->log_pattern.value();
     log_pattern_check(expected_json, log_pattern);
     // Appenders
     appenders_check(expected_json, config->appenders);
@@ -177,10 +163,6 @@ void configuration_check(const nlohmann::json &expected_json, const log4cpp::con
     std::vector<log4cpp::config::logger> loggers_cfg = config->loggers;
     std::sort(loggers_cfg.begin(), loggers_cfg.end(), logger_less);
     logger_check(expected_json, loggers_cfg);
-
-    // Root logger
-    const log4cpp::config::logger &root_logger_cfg = config->root_logger;
-    root_logger_check(expected_json, root_logger_cfg);
 }
 
 TEST(load_config_test, auto_load_config) {

@@ -40,10 +40,9 @@ namespace log4cpp::config {
 
     class log4cpp {
     public:
-        std::string log_pattern; // log_pattern
+        std::optional<std::string> log_pattern; // log_pattern
         log_appender appenders{}; // appenders
         std::vector<logger> loggers; // loggers
-        logger root_logger; // Root logger
         static std::string serialize(const log4cpp &cfg);
         static log4cpp deserialize(const std::string &json);
     };

@@ -59,8 +59,10 @@ namespace log4cpp {
             virtual ~logger() = default;
 
             [[nodiscard]] virtual std::string get_name() const = 0;
+            virtual void set_name(const std::string &name) = 0;
 
             [[nodiscard]] virtual log_level get_level() const = 0;
+            virtual void set_level(log_level level) = 0;
 
             /**
              * write log message to output.
@@ -175,8 +177,6 @@ namespace log4cpp {
         void build_appender();
 
         void build_logger();
-
-        void build_root_logger();
 
         std::shared_ptr<log::logger> find_logger(const std::string &name);
 

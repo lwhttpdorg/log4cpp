@@ -8,11 +8,11 @@ namespace log4cpp::config {
     // =========================================================
 
     void to_json(nlohmann::json &j, const console_appender &config) {
-        j = nlohmann::json{{"out_stream", config.out_stream}};
+        j = nlohmann::json{{"out-stream", config.out_stream}};
     }
 
     void from_json(const nlohmann::json &j, console_appender &config) {
-        j.at("out_stream").get_to(config.out_stream);
+        j.at("out-stream").get_to(config.out_stream);
     }
 
     // =========================================================
@@ -20,11 +20,11 @@ namespace log4cpp::config {
     // =========================================================
 
     void to_json(nlohmann::json &j, const file_appender &config) {
-        j = nlohmann::json{{"file_path", config.file_path}};
+        j = nlohmann::json{{"file-path", config.file_path}};
     }
 
     void from_json(const nlohmann::json &j, file_appender &config) {
-        j.at("file_path").get_to(config.file_path);
+        j.at("file-path").get_to(config.file_path);
     }
 
     // =========================================================

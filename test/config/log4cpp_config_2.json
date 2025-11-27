@@ -1,11 +1,11 @@
 {
-	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${h}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${h}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"appenders": {
 		"console": {
-			"out_stream": "stdout"
+			"out-stream": "stdout"
 		},
 		"file": {
-			"file_path": "log/log4cpp_config_2.log"
+			"file-path": "log/log4cpp_config_2.log"
 		},
 		"socket": {
 			"host": "::1",
@@ -14,12 +14,15 @@
 			"prefer-stack": "auto"
 		}
 	},
-	"root": {
-		"level": "INFO",
-		"appenders": [
-			"console",
-			"file",
-			"socket"
-		]
-	}
+	"loggers": [
+		{
+			"name": "root",
+			"level": "INFO",
+			"appenders": [
+				"console",
+				"file",
+				"socket"
+			]
+		}
+	]
 }

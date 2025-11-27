@@ -12,9 +12,9 @@ namespace log4cpp::config {
         /* Logger name */
         std::string name;
         /* Logger level */
-        log_level level;
+        std::optional<log_level> level;
         /* appender flag */
-        unsigned char appender_flag{};
+        unsigned char appender{};
     };
 
     void to_json(nlohmann::json &j, const logger &config);

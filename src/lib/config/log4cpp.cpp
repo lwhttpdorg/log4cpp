@@ -82,38 +82,71 @@ namespace log4cpp::config {
     // =========================================================
 
     void to_json(nlohmann::json &j, const log4cpp &config) {
-        j = nlohmann::json{
-            {"log_pattern", config.log_pattern}, {"appenders", config.appenders}, {"root", config.root_logger}};
-        if (!config.loggers.empty()) {
-            j["loggers"] = config.loggers;
+        j = nlohmann::json{{"appenders", config.appenders}, {"loggers", config.loggers}};
+        if (config.log_pattern.has_value()) {
+            j["log-pattern"] = config.log_pattern.value();
         }
     }
 
     void from_json(const nlohmann::json &j, log4cpp &config) {
-        // check required fields
-        if (!j.contains("log_pattern")) throw invalid_config_exception("missing required field 'log_pattern'");
+        /* Validate required fields */
+        /* "log-pattern" is optional */
+        /* "appenders" is mandatory */
         if (!j.contains("appenders")) throw invalid_config_exception("missing required field 'appenders'");
-        if (!j.contains("root")) throw invalid_config_exception("missing required field 'root'");
+        /* "loggers" is mandatory */
+        if (!j.contains("loggers")) throw invalid_config_exception("missing required field 'loggers'");
 
         // parse required fields
-        j.at("log_pattern").get_to(config.log_pattern);
+        if (j.contains("log-pattern")) {
+            std::string pattern;
+            j.at("log-pattern").get_to(pattern);
+            config.log_pattern = pattern;
+        }
+        else {
+            config.log_pattern = std::nullopt;
+        }
         j.at("appenders").get_to(config.appenders);
-        j.at("root").get_to(config.root_logger);
 
-        // validate appenders
+        // "appenders" must define at least one appender
         if (config.appenders.empty()) throw invalid_config_exception("no appenders defined");
 
         // parse optional loggers
-        if (j.contains("loggers")) {
-            j.at("loggers").get_to(config.loggers);
+        j.at("loggers").get_to(config.loggers);
+
+        // "root" logger must be defined in "loggers"
+        bool root_found = false;
+        std::vector<logger>::iterator root_it;
+        logger root_logger;
+        for (auto it = config.loggers.begin(); it != config.loggers.end(); ++it) {
+            if (it->name == "root") {
+                root_logger = *it;
+                root_it = it;
+                root_found = true;
+                break;
+            }
         }
-        else {
-            config.loggers.clear();
+        if (!root_found) {
+            throw invalid_config_exception("root logger is not defined in 'loggers'");
         }
+
+        // root logger must define level and appenders
+        if (!root_logger.level.has_value()) {
+            throw invalid_config_exception("root logger must define log level");
+        }
+        if (root_logger.appender == 0) {
+            throw invalid_config_exception("root logger must define at least one appender");
+        }
+
+        // move root logger to first position in loggers
+        std::rotate(config.loggers.begin(), root_it, config.loggers.end());
 
         // validate that each logger references only defined appenders
         for (const auto &lg: config.loggers) {
-            for (const auto &ref: appender_flag_to_name(lg.appender_flag)) {
+            // Skip the undefined appender
+            if (0 == lg.appender) {
+                continue;
+            }
+            for (const auto &ref: appender_flag_to_name(lg.appender)) {
                 bool exists = false;
                 for (const auto &entry: APPENDER_TABLE) {
                     if (ref == entry.name) {
@@ -137,32 +170,6 @@ namespace log4cpp::config {
                     throw invalid_config_exception("logger '" + lg.name + "' references undefined appender '" + ref
                                                    + "'");
                 }
-            }
-        }
-
-        // validate that root logger also references only defined appenders
-        for (const auto &ref: appender_flag_to_name(config.root_logger.appender_flag)) {
-            bool exists = false;
-            for (const auto &entry: APPENDER_TABLE) {
-                if (ref == entry.name) {
-                    switch (entry.type) {
-                        case APPENDER_TYPE::CONSOLE:
-                            exists = config.appenders.console.has_value();
-                            break;
-                        case APPENDER_TYPE::FILE:
-                            exists = config.appenders.file.has_value();
-                            break;
-                        case APPENDER_TYPE::SOCKET:
-                            exists = config.appenders.socket.has_value();
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                }
-            }
-            if (!exists) {
-                throw invalid_config_exception("root logger references undefined appender '" + ref + "'");
             }
         }
     }

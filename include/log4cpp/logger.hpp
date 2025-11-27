@@ -6,8 +6,10 @@ namespace log4cpp::log {
         explicit logger_proxy(std::shared_ptr<logger> target_logger);
 
         [[nodiscard]] std::string get_name() const override;
+        void set_name(const std::string &name) override;
 
         [[nodiscard]] log_level get_level() const override;
+        void set_level(log_level level) override;
 
         void log(log_level _level, const char *__restrict fmt, va_list args) const override;
 

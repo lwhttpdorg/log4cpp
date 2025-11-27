@@ -1,10 +1,10 @@
 {
 	"appenders": {
 		"console": {
-			"out_stream": "stdout"
+			"out-stream": "stdout"
 		},
 		"file": {
-			"file_path": "log/log4cpp.log"
+			"file-path": "log/log4cpp.log"
 		},
 		"socket": {
 			"host": "0.0.0.0",
@@ -13,30 +13,31 @@
 			"protocol": "UDP"
 		}
 	},
-	"log_pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
+	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}",
 	"loggers": [
 		{
+			"name": "root",
+			"level": "INFO",
 			"appenders": [
 				"console",
 				"file"
-			],
-			"level": "INFO",
-			"name": "hello"
+			]
 		},
 		{
+			"name": "hello",
+			"level": "INFO",
 			"appenders": [
 				"console",
 				"file"
-			],
+			]
+		},
+		{
+			"name": "world",
 			"level": "WARN",
-			"name": "world"
+			"appenders": [
+				"console",
+				"file"
+			]
 		}
-	],
-	"root": {
-		"appenders": [
-			"console",
-			"file"
-		],
-		"level": "INFO"
-	}
+	]
 }
