@@ -7,9 +7,9 @@
 			"file-path": "log/log4cpp.log"
 		},
 		"socket": {
-			"host": "0.0.0.0",
+			"host": "localhost",
 			"port": 9443,
-			"prefer-stack": "AUTO",
+			"prefer-stack": "IPv6",
 			"protocol": "UDP"
 		}
 	},

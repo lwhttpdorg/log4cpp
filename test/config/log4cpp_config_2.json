@@ -11,7 +11,7 @@
 			"host": "::1",
 			"port": 9443,
 			"protocol": "udp",
-			"prefer-stack": "auto"
+			"prefer-stack": "IPv6"
 		}
 	},
 	"loggers": [

@@ -8,10 +8,10 @@
 			"file-path": "log/log4cpp.log"
 		},
 		"socket": {
-			"host": "0.0.0.0",
+			"host": "localhost",
 			"port": 9443,
 			"protocol": "tcp",
-			"prefer-stack": "auto"
+			"prefer-stack": "IPv6"
 		}
 	},
 	"loggers": [

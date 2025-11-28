@@ -16,7 +16,9 @@ void thread_routine() {
 }
 
 int main() {
+#ifndef _WIN32
     log4cpp::supervisor::enable_config_hot_loading();
+#endif
     const std::string config_file = "demo.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     log_mgr.load_config(config_file);

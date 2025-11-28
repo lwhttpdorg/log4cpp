@@ -18,8 +18,11 @@ set(TEST_TARGETS
         file_appender_tests
         socket_appender_tests
         serialize_test
-        config_hot_reload_tests
 )
+
+if (NOT WIN32)
+    list(APPEND TEST_TARGETS config_hot_reload_tests)
+endif ()
 
 # Map each test target to its source file
 set(load_config_tests_SRC app/load_config_test.cpp)

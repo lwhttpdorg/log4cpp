@@ -49,8 +49,9 @@ int main(int argc, char **argv) {
 void set_socket_recv_timeout(log4cpp::common::socket_fd sockfd) {
 #ifdef _WIN32
     unsigned int milliseconds = 1000;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&milliseconds, sizeof(milliseconds))
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&milliseconds), sizeof(milliseconds))
         == SOCKET_ERROR) {
+        printf("Set socket receive timeout failed: %u\n", WSAGetLastError());
     }
 #else
     timeval timeout{};
@@ -64,7 +65,8 @@ void set_socket_recv_timeout(log4cpp::common::socket_fd sockfd) {
 
 void tcp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer_stack prefer, unsigned short port,
                               unsigned int expected_log_count) {
-    log4cpp::common::socket_fd server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    log4cpp::common::socket_fd server_fd =
+        socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (log4cpp::common::INVALID_FD == server_fd) {
         printf("[log4cpp] socket creation failed...\n");
         return;

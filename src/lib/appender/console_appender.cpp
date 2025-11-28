@@ -6,6 +6,8 @@
 
 #endif
 
+#include "appender/console_appender.hpp"
+
 #ifdef _WIN32
 
 #include <io.h>
@@ -17,8 +19,6 @@
 #define STDOUT_FILENO _fileno(stdout)
 #define STDERR_FILENO _fileno(stderr)
 #endif
-
-#include "appender/console_appender.hpp"
 
 namespace log4cpp::appender {
     int stream_name_to_file_no(const std::string &out_stream) {

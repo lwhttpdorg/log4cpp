@@ -164,6 +164,7 @@ namespace log4cpp::appender {
             common::sock_addr saddr;
             saddr.addr = addr.value();
             saddr.port = this->port;
+            auto addr_str = saddr.to_string();
             common::socket_fd fd = connect_to_server(saddr);
             if (common::INVALID_FD != fd) {
                 this->sock_fd = fd;

@@ -1,11 +1,11 @@
-#include <appender/file_appender.hpp>
-#include <appender/socket_appender.hpp>
-#include <csignal>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+
+#ifndef _WIN32
 #include <sys/eventfd.h>
 #include <unordered_set>
+#endif
 
 #include <nlohmann/json.hpp>
 
@@ -17,6 +17,13 @@
 #include "config/log4cpp.hpp"
 #include "pattern/log_pattern.hpp"
 
+#ifdef _WIN32
+#include <io.h>
+#endif
+
+#include <appender/file_appender.hpp>
+#include <appender/socket_appender.hpp>
+
 constexpr const char *DEFAULT_CONFIG_FILE_PATH = "./log4cpp.json";
 
 namespace log4cpp {
@@ -26,6 +33,7 @@ namespace log4cpp {
     std::once_flag logger_manager::init_flag;
     logger_manager logger_manager::instance;
 
+#ifndef _WIN32
     void supervisor::sigusr2_handle([[maybe_unused]] int sig_num) {
 #ifdef _DEBUG
         printf("%s:%d, log4pp received hot reload trigger event\n", __func__, __LINE__);
@@ -47,6 +55,7 @@ namespace log4cpp {
         logger_mgr.start_hot_reload_thread();
         return true;
     }
+#endif
 
     logger_manager &supervisor::get_logger_manager() {
         return logger_manager::instance;
@@ -61,8 +70,10 @@ namespace log4cpp {
     // ========================================
 
     logger_manager::logger_manager() {
+#ifndef _WIN32
         evt_fd = -1;
         evt_loop_run.store(false);
+#endif
         config_file_path = DEFAULT_CONFIG_FILE_PATH;
         console_appender_ptr = nullptr;
         file_appender_ptr = nullptr;
@@ -70,6 +81,7 @@ namespace log4cpp {
     }
 
     logger_manager::~logger_manager() {
+#ifndef _WIN32
         if (evt_loop_thread.joinable()) {
             evt_loop_run.store(false);
             constexpr uint64_t val = EVT_SHUTDOWN;
@@ -79,6 +91,7 @@ namespace log4cpp {
         if (evt_fd != -1) {
             close(evt_fd);
         }
+#endif
     }
 
     void logger_manager::auto_load_config() {
@@ -122,7 +135,7 @@ namespace log4cpp {
                                                     std::make_error_code(std::io_errc::stream));
         }
     }
-
+#ifndef _WIN32
     void logger_manager::event_loop() {
         set_thread_name("event_loop");
         uint64_t event;
@@ -268,7 +281,7 @@ namespace log4cpp {
             }
         }
     }
-
+#endif
     std::shared_ptr<log::logger> logger_manager::get_logger(const std::string &name) {
         std::call_once(init_flag, [] {
             if (nullptr == instance.config) {

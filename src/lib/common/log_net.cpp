@@ -74,27 +74,12 @@ namespace log4cpp::common {
         std::string s;
         if (this->family == net_family::NET_IPv4) {
             char buf[INET_ADDRSTRLEN];
-            const unsigned char a = this->ip.addr4 >> 24 & 0xff;
-            const unsigned char b = this->ip.addr4 >> 16 & 0xff;
-            const unsigned char c = this->ip.addr4 >> 8 & 0xff;
-            const unsigned char d = this->ip.addr4 & 0xff;
-            snprintf(buf, sizeof(buf), "%u.%u.%u.%u", a, b, c, d);
+            inet_ntop(AF_INET, &this->ip.addr4, buf, sizeof(buf));
             s = std::string{buf};
         }
         else if (this->family == net_family::NET_IPv6) {
             char buf[INET6_ADDRSTRLEN];
-            int len = 0;
-            for (const auto x: this->ip.addr6) {
-                const unsigned short a = x >> 16;
-                const unsigned short b = x & 0xffff;
-                if (const int l = snprintf(buf + len, sizeof(buf) - len, "%x%x:", a, b); l > 0) {
-                    len += l;
-                }
-                else {
-                    break;
-                }
-            }
-            buf[len - 1] = '\0';
+            inet_ntop(AF_INET6, &this->ip.addr6, buf, sizeof(buf));
             s = std::string{buf};
         }
         else {

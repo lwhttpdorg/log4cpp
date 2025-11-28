@@ -1,16 +1,19 @@
 #pragma once
 
-#include <atomic>
-#include <csignal> // for SIGHUP
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
 #include <thread>
 #include <unordered_map>
-#include <vector>
 
-#if defined(_WIN32)
+#ifndef _WIN32
+#include <atomic>
+#include <csignal> // for SIGHUP
+#include <vector>
+#endif
+
+#ifdef _WIN32
 
 #if defined(ERROR)
 #undef ERROR
@@ -120,8 +123,10 @@ namespace log4cpp {
 
     class supervisor {
     public:
+#ifndef _WIN32
         static void sigusr2_handle(int sig_num);
         static bool enable_config_hot_loading(int sig = SIGHUP);
+#endif
         static logger_manager &get_logger_manager();
         static std::string serialize(const config::log4cpp &cfg);
     };
@@ -163,16 +168,14 @@ namespace log4cpp {
         logger_manager();
 
         ~logger_manager();
-
+#ifndef _WIN32
         void notify_config_hot_reload() const;
         void hot_reload_config();
         void start_hot_reload_thread();
-
         void event_loop();
-
-        void auto_load_config();
-
         void update_logger(const std::vector<config::logger> &old_log_cfg, bool appender_chg) const;
+#endif
+        void auto_load_config();
 
         void set_log_pattern() const;
 
@@ -181,10 +184,11 @@ namespace log4cpp {
         std::shared_ptr<log::logger> build_logger(const config::logger &log_cfg) const;
 
         std::shared_ptr<log::logger_proxy> get_or_create_logger(const std::string &name);
-
+#ifndef _WIN32
         int evt_fd;
         std::atomic<bool> evt_loop_run{false};
         std::thread evt_loop_thread;
+#endif
         static std::once_flag init_flag;
         static logger_manager instance;
         std::string config_file_path;

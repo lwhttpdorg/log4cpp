@@ -8,10 +8,10 @@
 			"file-path": "log_v1.log"
 		},
 		"socket": {
-			"host": "0.0.0.0",
+			"host": "localhost",
 			"port": 9443,
 			"protocol": "udp",
-			"prefer-stack": "auto"
+			"prefer-stack": "IPv6"
 		}
 	},
 	"loggers": [
