@@ -17,9 +17,8 @@ namespace log4cpp::config {
         APPENDER_TYPE type;
     };
 
-    constexpr std::array<appender_attr, 3> APPENDER_TABLE{{{"console", APPENDER_TYPE::CONSOLE},
-                                                           {"file", APPENDER_TYPE::FILE},
-                                                           {"socket", APPENDER_TYPE::SOCKET}}};
+    constexpr std::array<appender_attr, 3> APPENDER_TABLE{
+        {{"console", APPENDER_TYPE::CONSOLE}, {"file", APPENDER_TYPE::FILE}, {"socket", APPENDER_TYPE::SOCKET}}};
 
     std::vector<std::string> appender_flag_to_name(unsigned char flag);
 
@@ -32,6 +31,14 @@ namespace log4cpp::config {
         std::optional<socket_appender> socket;
 
         [[nodiscard]] bool empty() const;
+
+        bool operator==(const log_appender &other) const noexcept {
+            return console == other.console && file == other.file && socket == other.socket;
+        }
+
+        bool operator!=(const log_appender &other) const noexcept {
+            return !(*this == other);
+        }
     };
 
     void to_json(nlohmann::json &j, const log_appender &config);
@@ -43,6 +50,15 @@ namespace log4cpp::config {
         std::optional<std::string> log_pattern; // log_pattern
         log_appender appenders{}; // appenders
         std::vector<logger> loggers; // loggers
+
+        bool operator==(const log4cpp &other) const noexcept {
+            return log_pattern == other.log_pattern && appenders == other.appenders && loggers == other.loggers;
+        }
+
+        bool operator!=(const log4cpp &other) const noexcept {
+            return !(*this == other);
+        }
+
         static std::string serialize(const log4cpp &cfg);
         static log4cpp deserialize(const std::string &json);
     };

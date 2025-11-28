@@ -51,7 +51,7 @@ Example:
 
 Placeholders:
 
-- `${<n>NM}`: The name of logger, e.g. `${4NM}`. `<n>` is the name length, align left, default is 6, max width is 16
+- `${<n>NM}`: The name of logger, e.g. `${4NM}`. `<n>` is the name length, align left, default is 6, max width is 64
 - `${yy}`: A two digit representation of a year. e.g. 99 or 03
 - `${yyyy}`: A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999,
   2003, 10191
@@ -355,7 +355,7 @@ set(TARGET_NAME demo)
 add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.2.1)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.0)
 
 FetchContent_MakeAvailable(log4cpp)
 
@@ -387,11 +387,11 @@ Contributions welcome. Before submitting a PR, note the following.
 ### 4.1. CMake build options
 
 ```shell
-cmake -S . -B build -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON
+cmake -S . -B build -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON -DCMAKE_BUILD_TYPE=Release
 ```
 
 ```shell
-cmake --build build --config=Debug -j $(nproc)
+cmake --build build -j $(nproc)
 ```
 
 ```shell

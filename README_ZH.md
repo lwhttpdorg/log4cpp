@@ -42,7 +42,7 @@ _警告: 由于MSVC编译器的一些列bug, 本项目不再支持MSVC. 任何MS
 
 说明:
 
-- `${<n>NM}`: logger名称, 如`${8NM}`. `<n>`为logger名长度, 左对齐, 默认是6, 最大为16
+- `${<n>NM}`: logger名称, 如`${8NM}`. `<n>`为logger名长度, 左对齐, 默认是6, 最大为64
 - `${yy}`: 2位数表示的年份. 如99, 03
 - `${yyyy}`: 完整的年份, 至少4位数, 用'-'表示公元前. 如-0055, 0787, 1999, 2003, 10191
 - `${M}`: 数字表示的月份, 无补0. 从1到12
@@ -339,7 +339,7 @@ set(TARGET_NAME demo)
 add_executable(${TARGET_NAME} main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v3.2.1)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.0)
 
 FetchContent_MakeAvailable(log4cpp)
 
@@ -373,11 +373,11 @@ root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 ### 4.1. CMake编译选项
 
 ```shell
-cmake -S . -B build -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON
+cmake -S . -B build -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON -DCMAKE_BUILD_TYPE=Release
 ```
 
 ```shell
-cmake --build build --config=Debug -j $(nproc)
+cmake --build build -j $(nproc)
 ```
 
 ```shell

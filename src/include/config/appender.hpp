@@ -13,6 +13,14 @@ namespace log4cpp::config {
     public:
         /* The out stream, "stdout" or "stderr" */
         std::string out_stream{};
+
+        bool operator==(const console_appender &other) const noexcept {
+            return out_stream == other.out_stream;
+        }
+
+        bool operator!=(const console_appender &other) const noexcept {
+            return !(*this == other);
+        }
     };
 
     void to_json(nlohmann::json &j, const console_appender &config);
@@ -26,6 +34,14 @@ namespace log4cpp::config {
     class file_appender {
     public:
         std::string file_path;
+
+        bool operator==(const file_appender &other) const noexcept {
+            return file_path == other.file_path;
+        }
+
+        bool operator!=(const file_appender &other) const noexcept {
+            return !(*this == other);
+        }
     };
 
     void to_json(nlohmann::json &j, const file_appender &config);
@@ -43,6 +59,14 @@ namespace log4cpp::config {
         unsigned short port{0};
         protocol proto{protocol::TCP};
         common::prefer_stack prefer{common::prefer_stack::AUTO};
+
+        bool operator==(const socket_appender &other) const noexcept {
+            return host == other.host && port == other.port && proto == other.proto && prefer == other.prefer;
+        }
+
+        bool operator!=(const socket_appender &other) const noexcept {
+            return !(*this == other);
+        }
     };
 
     void to_json(nlohmann::json &j, const socket_appender &config);

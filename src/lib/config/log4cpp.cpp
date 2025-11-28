@@ -129,9 +129,8 @@ namespace log4cpp::config {
             throw invalid_config_exception("root logger is not defined in 'loggers'");
         }
 
-        // root logger must define level and appenders
-        if (!root_logger.level.has_value()) {
-            throw invalid_config_exception("root logger must define log level");
+        if (root_logger.level.has_value()) {
+            root_logger.level = log_level::WARN;
         }
         if (root_logger.appender == 0) {
             throw invalid_config_exception("root logger must define at least one appender");

@@ -1,15 +1,14 @@
 #pragma once
 
-#include <string>
-#include <unordered_map>
-
-#include <memory>
-
 #include <atomic>
-#include <csignal>
+#include <csignal> // for SIGHUP
+#include <memory>
 #include <mutex>
 #include <shared_mutex>
+#include <string>
 #include <thread>
+#include <unordered_map>
+#include <vector>
 
 #if defined(_WIN32)
 
@@ -46,6 +45,7 @@ namespace log4cpp {
     void set_thread_name(const char *name);
 
     namespace config {
+        class logger;
         class log4cpp;
     }
 
@@ -146,7 +146,7 @@ namespace log4cpp {
          * @param name: The logger name.
          * @return If the logger exists, return the logger, otherwise return root_logger.
          */
-        static std::shared_ptr<log::logger> get_logger(const std::string &name);
+        static std::shared_ptr<log::logger> get_logger(const std::string &name = "root");
 
         const config::log4cpp *get_config() const;
 
@@ -172,29 +172,32 @@ namespace log4cpp {
 
         void auto_load_config();
 
+        void update_logger(const std::vector<config::logger> &old_log_cfg, bool appender_chg) const;
+
         void set_log_pattern() const;
 
         void build_appender();
 
-        void build_logger();
+        std::shared_ptr<log::logger> build_logger(const config::logger &log_cfg) const;
 
-        std::shared_ptr<log::logger> find_logger(const std::string &name);
+        std::shared_ptr<log::logger_proxy> get_or_create_logger(const std::string &name);
 
-        mutable std::shared_mutex rw_lock;
         int evt_fd;
         std::atomic<bool> evt_loop_run{false};
         std::thread evt_loop_thread;
         static std::once_flag init_flag;
         static logger_manager instance;
         std::string config_file_path;
+
+        mutable std::shared_mutex config_rw_lock;
         std::unique_ptr<config::log4cpp> config;
-        mutable std::shared_mutex appender_mtx;
+        mutable std::shared_mutex appender_rw_lock;
+
         std::shared_ptr<appender::log_appender> console_appender_ptr;
         std::shared_ptr<appender::log_appender> file_appender_ptr;
         std::shared_ptr<appender::log_appender> socket_appender_ptr;
 
-        mutable std::shared_mutex logger_map_mtx;
+        mutable std::shared_mutex logger_rw_lock;
         std::unordered_map<std::string, std::shared_ptr<log::logger_proxy>> loggers;
-        std::shared_ptr<log::logger_proxy> root_logger;
     };
 }

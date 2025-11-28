@@ -46,8 +46,24 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-void tcp_log_server_work_loop(const std::atomic<bool> &running, log4cpp::common::prefer_stack prefer,
-                              unsigned short port) {
+void set_socket_recv_timeout(log4cpp::common::socket_fd sockfd) {
+#ifdef _WIN32
+    unsigned int milliseconds = 1000;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&milliseconds, sizeof(milliseconds))
+        == SOCKET_ERROR) {
+    }
+#else
+    timeval timeout{};
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+        perror("Error setting receive timeout");
+    }
+#endif
+}
+
+void tcp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer_stack prefer, unsigned short port,
+                              unsigned int expected_log_count) {
     log4cpp::common::socket_fd server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (log4cpp::common::INVALID_FD == server_fd) {
         printf("[log4cpp] socket creation failed...\n");
@@ -114,13 +130,23 @@ void tcp_log_server_work_loop(const std::atomic<bool> &running, log4cpp::common:
         return;
     }
     char buffer[1024];
-    while (running.load()) {
+    unsigned int actual_log_count = 0;
+    set_socket_recv_timeout(client_fd);
+    srv_running.store(true);
+    while (srv_running.load()) {
         ssize_t len = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
         if (len > 0) {
             buffer[len] = 0;
-            printf("Log server received: %s", buffer);
+            ++actual_log_count;
+            printf("TCP [%u]: %s", actual_log_count, buffer);
         }
         else if (len == -1) {
+            if (errno != EINTR) {
+                break;
+            }
+        }
+        else {
+            // Connection closed by peer
             break;
         }
     }
@@ -131,10 +157,11 @@ void tcp_log_server_work_loop(const std::atomic<bool> &running, log4cpp::common:
 #endif
     log4cpp::common::close_socket(client_fd);
     log4cpp::common::close_socket(server_fd);
+    ASSERT_GE(expected_log_count, actual_log_count);
 }
 
-void udp_log_server_work_loop(const std::atomic<bool> &running, log4cpp::common::prefer_stack prefer,
-                              unsigned short port) {
+void udp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer_stack prefer, unsigned short port,
+                              unsigned int expected_log_count) {
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (log4cpp::common::INVALID_FD == server_fd) {
@@ -173,16 +200,24 @@ void udp_log_server_work_loop(const std::atomic<bool> &running, log4cpp::common:
         return;
     }
 
+    set_socket_recv_timeout(server_fd);
     char buffer[1024];
-    while (running.load()) {
+    unsigned int actual_log_count = 0;
+    srv_running.store(true);
+    while (srv_running.load()) {
         ssize_t len = recvfrom(server_fd, buffer, sizeof(buffer) - 1, 0, nullptr, nullptr);
         if (len > 0) {
             buffer[len] = 0;
-            printf("Log server received: %s", buffer);
+            ++actual_log_count;
+            printf("UDP [%u]: %s", actual_log_count, buffer);
         }
         else if (len == -1) {
-            break;
+            if (errno != EINTR) {
+                break;
+            }
         }
+        // Since UDP is connectionless, a recvfrom return value of 0 signifies the successful receipt of a zero-length
+        // datagram, and the program should continue its loop
     }
 #ifdef _WIN32
     shutdown(server_fd, SD_BOTH);
@@ -190,6 +225,7 @@ void udp_log_server_work_loop(const std::atomic<bool> &running, log4cpp::common:
     shutdown(server_fd, SHUT_RDWR);
 #endif
     log4cpp::common::close_socket(server_fd);
+    ASSERT_GE(expected_log_count, actual_log_count);
 }
 
 TEST(socket_appender_test, tcp_socket_appender_test) {
@@ -207,13 +243,16 @@ TEST(socket_appender_test, tcp_socket_appender_test) {
 #endif
     std::atomic<bool> running(false);
 
-    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("test");
+    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
     log4cpp::log_level max_level = log->get_level();
-    unsigned int log_count = static_cast<int>(max_level);
+    unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
-    std::thread log_server_thread = std::thread(&tcp_log_server_work_loop, std::cref(running), prefer, port);
+    std::thread log_server_thread =
+        std::thread(&tcp_log_server_work_loop, std::ref(running), prefer, port, expected_log_count);
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    while (!running.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 
     log->trace("this is a trace");
     log->debug("this is a debug");
@@ -243,12 +282,15 @@ TEST(socket_appender_test, udp_socket_appender_test) {
     WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
     std::atomic<bool> running(false);
-    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("test");
+    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
     log4cpp::log_level max_level = log->get_level();
-    unsigned int log_count = static_cast<int>(max_level);
+    unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
-    std::thread log_server_thread = std::thread(&udp_log_server_work_loop, std::cref(running), prefer, port);
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::thread log_server_thread =
+        std::thread(&udp_log_server_work_loop, std::ref(running), prefer, port, expected_log_count);
+    while (!running.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
     log->trace("this is a trace");
     log->debug("this is a debug");
     log->info("this is a info");

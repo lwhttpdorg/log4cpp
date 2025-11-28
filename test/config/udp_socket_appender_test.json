@@ -13,16 +13,8 @@
 	},
 	"loggers": [
 		{
-			"name": "test",
-			"level": "INFO",
-			"appenders": [
-				"console",
-				"socket"
-			]
-		},
-		{
 			"name": "root",
-			"level": "WARN",
+			"level": "TRACE",
 			"appenders": [
 				"console",
 				"socket"
