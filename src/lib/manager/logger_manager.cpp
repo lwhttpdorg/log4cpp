@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <utility>
 
 #ifndef _WIN32
 #include <sys/eventfd.h>
@@ -30,7 +31,7 @@ namespace log4cpp {
 
     enum EVENT_TYPE { EVT_HOT_RELOAD = 1, EVT_SHUTDOWN = 2 };
 
-    std::once_flag logger_manager::init_flag;
+    std::once_flag logger_manager::init_flag{};
     logger_manager logger_manager::instance;
 
 #ifndef _WIN32
@@ -65,6 +66,20 @@ namespace log4cpp {
         return config::log4cpp::serialize(cfg);
     }
 
+    class logger_deleter {
+    public:
+        explicit logger_deleter(std::string name) : logger_name(std::move(name)) {
+        }
+
+        void operator()(const log::logger_proxy *logger_ptr) const {
+            auto &log_mgr = supervisor::get_logger_manager();
+            log_mgr.release_logger(this->logger_name);
+            delete logger_ptr;
+        }
+
+    private:
+        std::string logger_name;
+    };
     // ========================================
     // logger manager
     // ========================================
@@ -104,22 +119,30 @@ namespace log4cpp {
                 return;
             }
             catch (const std::exception &e) {
-                printf("Failed to load the configuration file automatically, using default configuration. [%s]\n",
-                       e.what());
+                fprintf(stderr,
+                        "Failed to load the configuration file automatically, using default configuration. [%s]\n",
+                        e.what());
+                fflush(stderr);
             }
         }
 
         this->config = std::make_unique<config::log4cpp>();
         this->config->log_pattern = DEFAULT_LOG_PATTERN;
+#if __cplusplus >= 202002L
         this->config->appenders.console = config::console_appender{.out_stream = "stdout"};
         const config::logger default_logger{.name = "root",
                                             .level = log_level::WARN,
                                             .appender = static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)};
+#else
+        this->config->appenders.console = config::console_appender{"stdout"};
+        const config::logger default_logger{"root", log_level::WARN,
+                                            static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)};
+#endif
         this->config->loggers.push_back(default_logger);
     }
 
     void logger_manager::load_config(const std::string &file_path) {
-        if (-1 != access(file_path.c_str(), F_OK)) {
+        if (std::filesystem::exists(file_path)) {
             std::ifstream ifs(file_path);
             if (!ifs.is_open()) {
                 throw std::runtime_error("cannot open config file: " + file_path);
@@ -151,7 +174,8 @@ namespace log4cpp {
                         break;
                     default:
 #ifdef _DEBUG
-                        printf("%s:%d, received unknown event %lu\n", __func__, __LINE__, event);
+                        fprintf(stderr, "%s:%d, received unknown event %lu\n", __func__, __LINE__, event);
+                        fflush(stderr);
 #endif
                         break;
                 }
@@ -161,7 +185,8 @@ namespace log4cpp {
                     continue;
                 }
                 if (errno != EBADF) {
-                    printf("%s: event fd read error! break event loop!\n", __func__);
+                    fprintf(stderr, "%s: event fd read error! break event loop!\n", __func__);
+                    fflush(stderr);
                 }
                 break;
             }
@@ -181,7 +206,7 @@ namespace log4cpp {
 
     void logger_manager::hot_reload_config() {
 #ifdef _DEBUG
-        printf("%s:%d, trigger hot reload config\n", __func__, __LINE__);
+        printf("[logger_manager] hot_reload_config\n");
 #endif
         config::log4cpp old_cfg;
         bool appenders_changed = false;
@@ -192,7 +217,8 @@ namespace log4cpp {
                 load_config(config_file_path);
             }
             catch (const std::exception &e) {
-                printf("%s:%d, failed to reload config: %s\n", __func__, __LINE__, e.what());
+                fprintf(stderr, "[%s:%d] failed to reload config: %s\n", __func__, __LINE__, e.what());
+                fflush(stderr);
                 return;
             }
             if (old_cfg == *this->config) {
@@ -207,7 +233,7 @@ namespace log4cpp {
         update_logger(old_cfg.loggers, appenders_changed);
     }
 
-    void logger_manager::update_logger(const std::vector<config::logger> &old_log_cfg, bool appender_chg) const {
+    void logger_manager::update_logger(const std::vector<config::logger> &old_log_cfg, bool appender_chg) {
         // Build hashmaps for efficient O(1) lookups
         std::unordered_map<std::string, config::logger> new_log_cfg_hash, old_log_cfg_hash;
         for (const auto &log_cfg: this->config->loggers) {
@@ -261,23 +287,30 @@ namespace log4cpp {
          * If 'appender_chg' is true, a rebuild is mandatory, regardless of local config status.
          */
         std::unique_lock writer_lock(logger_rw_lock);
-        for (auto &logger: loggers) {
-            const auto logger_name = logger.first;
-            auto proxy = logger.second;
-            bool log_changed = false;
-            if (changed.find(logger_name) != changed.end() || added.find(logger_name) != added.end()
-                || removed.find(logger_name) != removed.end()) {
-                log_changed = true;
+        for (auto it = loggers.begin(); it != loggers.end();) {
+            const auto logger_name = it->first;
+            auto proxy_weak_ptr = it->second;
+            auto proxy = proxy_weak_ptr.lock();
+            if (nullptr == proxy) {
+                it = loggers.erase(it);
             }
-            if (appender_chg || log_changed) {
-                std::shared_ptr<log::logger> new_logger = nullptr;
-                if (new_log_cfg_hash.find(logger_name) != new_log_cfg_hash.end()) {
-                    new_logger = build_logger(new_log_cfg_hash[logger_name]);
+            else {
+                bool log_changed = false;
+                if (changed.find(logger_name) != changed.end() || added.find(logger_name) != added.end()
+                    || removed.find(logger_name) != removed.end()) {
+                    log_changed = true;
                 }
-                else {
-                    new_logger = build_logger(root_log_cfg);
+                if (appender_chg || log_changed) {
+                    std::shared_ptr<log::logger> new_logger = nullptr;
+                    if (new_log_cfg_hash.find(logger_name) != new_log_cfg_hash.end()) {
+                        new_logger = build_logger(new_log_cfg_hash[logger_name]);
+                    }
+                    else {
+                        new_logger = build_logger(root_log_cfg);
+                    }
+                    proxy->set_target(new_logger);
                 }
-                proxy->set_target(new_logger);
+                ++it;
             }
         }
     }
@@ -305,7 +338,10 @@ namespace log4cpp {
             auto it = loggers.find(name);
             // First check: If the logger exists, return it immediately.
             if (it != loggers.end()) {
-                return it->second;
+                auto log_ptr = it->second.lock();
+                if (log_ptr != nullptr) {
+                    return log_ptr;
+                }
             }
         } // reader_lock is automatically released here.
 
@@ -316,7 +352,11 @@ namespace log4cpp {
         // where another thread created the logger while this thread was waiting for the lock.
         auto it = loggers.find(name);
         if (it != loggers.end()) {
-            return it->second;
+            auto log_ptr = it->second.lock();
+            if (log_ptr != nullptr) {
+                return log_ptr;
+            }
+            loggers.erase(it);
         }
 
         // --- Logger Creation ---
@@ -349,14 +389,19 @@ namespace log4cpp {
         // Set the unique name for the new logger.
         new_logger->set_name(name);
 
-        // Wrap the new logger in a proxy object.
-        const auto proxy = std::make_shared<log::logger_proxy>(new_logger);
+        // Wrap the new logger in a proxy object
+        const auto proxy = std::shared_ptr<log::logger_proxy>(new log::logger_proxy(new_logger), logger_deleter{name});
 
         // Insert the proxy into the map under the protection of the unique lock.
         loggers[name] = proxy;
 
         // Return the newly created proxy.
         return proxy;
+    }
+
+    void logger_manager::release_logger(const std::string &name) {
+        std::unique_lock lock(logger_rw_lock);
+        loggers.erase(name);
     }
 
     void logger_manager::set_log_pattern() const {

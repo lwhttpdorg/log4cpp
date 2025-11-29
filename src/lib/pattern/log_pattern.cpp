@@ -60,7 +60,7 @@ namespace log4cpp::pattern {
     /* Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE */
     const char *LOG_LEVEL = "${L}";
     /* Log message, e.g.: hello world! */
-    const char *LOG_MESSAGE = "${W}";
+    const char *LOG_MESSAGE = "${msg}";
 
     enum class HOUR_BASE { HOUR_NONE, HOUR_12, HOUR_24 };
 

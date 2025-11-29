@@ -1,7 +1,3 @@
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include <filesystem>
 
 #ifdef __GNUC__
@@ -15,27 +11,14 @@
 
 #include "../include/log4cpp_test.h"
 
-class TestEnvironment: public testing::Environment {
-public:
-    explicit TestEnvironment(const std::string &cur_path) {
-        size_t end = cur_path.find_last_of('\\');
-        if (end == std::string::npos) {
-            end = cur_path.find_last_of('/');
-        }
-        const std::string work_dir = cur_path.substr(0, end);
-        std::filesystem::current_path(work_dir);
-    }
-};
-
 int main(int argc, char **argv) {
     const std::string cur_path = argv[0];
     testing::InitGoogleTest(&argc, argv);
-    AddGlobalTestEnvironment(new TestEnvironment(cur_path));
     return RUN_ALL_TESTS();
 }
 
 TEST(log_pattern_tests, full_format_test) {
-    const std::string pattern = "${5NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}";
+    const std::string pattern = "${5NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}";
     log4cpp::pattern::log_pattern::set_pattern(pattern);
     char actual[1024];
     tm now_tm{};
@@ -415,7 +398,7 @@ TEST(log_pattern_tests, time_milliseconds_format_test) {
 }
 
 TEST(log_pattern_tests, thread_id_format_test) {
-    const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
+    const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${msg}";
     log4cpp::pattern::log_pattern::set_pattern(pattern);
     char actual[1024];
     tm now_tm{};
@@ -464,7 +447,7 @@ TEST(log_pattern_tests, thread_id_format_test) {
 }
 
 TEST(log_pattern_tests, log_level_format_test) {
-    const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${W}";
+    const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${msg}";
     log4cpp::pattern::log_pattern::set_pattern(pattern);
     char actual[1024];
     const char *message = "hello world!";

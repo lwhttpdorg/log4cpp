@@ -3,11 +3,11 @@
 #include <csignal>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <memory>
 #include <regex>
 #include <string>
-#include <sys/types.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
@@ -29,6 +29,12 @@ const char *CONFIG_FILE_v1 = "config_hot_reload_test_v1.json";
 const char *CONFIG_FILE_v2 = "config_hot_reload_test_v2.json";
 const char *LOG_V1_FILE = "log_v1.log";
 const char *LOG_V2_FILE = "log_v2.log";
+
+int main(int argc, char **argv) {
+    const std::string cur_path = argv[0];
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
 
 class log4cpp_config_hot_reload_test: public ::testing::Test {
 protected:
@@ -124,7 +130,7 @@ TEST_F(log4cpp_config_hot_reload_test, multi_thread_signal_hotloading) {
 
     // Load initial config and enable hot-loading
     auto &manager = log4cpp::supervisor::get_logger_manager();
-    manager.load_config(HOT_RELOAD_CONFIG);
+    ASSERT_NO_THROW(manager.load_config(HOT_RELOAD_CONFIG));
     log4cpp::supervisor::enable_config_hot_loading(SIGHUP);
 
     std::vector<std::thread> worker_threads;
@@ -191,12 +197,12 @@ TEST_F(log4cpp_config_hot_reload_test, multi_thread_signal_hotloading) {
     log_file.clear();
     log_file.seekg(0, std::ios::beg);
     while (std::getline(log_file, line)) {
-        // start with "aaa"
-        #if __cplusplus >= 202002L
+// start with "aaa"
+#if __cplusplus >= 202002L
         if (line.starts_with("aaa")) {
-        #else
+#else
         if (line.substr(0, 3) == "aaa") {
-        #endif
+#endif
             // regex_search for log level \\[(FATAL|ERROR|WARN|INFO|DEBUG|TRACE)\\s*\\]
             std::smatch match;
             std::regex level_pattern(R"(\[(FATAL|ERROR|WARN|INFO|DEBUG|TRACE)\s*\])");

@@ -1,5 +1,5 @@
 {
-	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}",
+	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}",
 	"appenders": {
 		"console": {
 			"out-stream": "stdout"

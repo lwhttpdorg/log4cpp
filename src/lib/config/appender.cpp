@@ -32,13 +32,13 @@ namespace log4cpp::config {
     // =========================================================
 
     void to_json(nlohmann::json &j, const socket_appender &config) {
+        std::string prefer_str;
+        to_string(config.prefer, prefer_str);
         j = nlohmann::json{
             {"host", config.host},
             {"port", config.port},
             {"protocol", config.proto == socket_appender::protocol::TCP ? "TCP" : "UDP"},
-            {"prefer-stack", config.prefer == common::prefer_stack::IPv4 ?
-                                 "IPv4" :
-                                 (config.prefer == common::prefer_stack::IPv6 ? "IPv6" : "AUTO")},
+            {"prefer-stack", prefer_str},
         };
     }
 
@@ -60,18 +60,6 @@ namespace log4cpp::config {
         std::string prefer_str;
         j.at("prefer-stack").get_to(prefer_str);
         // Convert to lowercase for comparison
-        prefer_str = common::to_lower(prefer_str);
-        if (prefer_str == "ipv4") {
-            config.prefer = common::prefer_stack::IPv4;
-        }
-        else if (prefer_str == "ipv6") {
-            config.prefer = common::prefer_stack::IPv6;
-        }
-        else if (prefer_str == "auto") {
-            config.prefer = common::prefer_stack::AUTO;
-        }
-        else {
-            throw std::invalid_argument("Invalid prefer stack string: " + prefer_str);
-        }
+        from_string(prefer_str, config.prefer);
     }
 }

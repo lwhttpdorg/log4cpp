@@ -27,22 +27,9 @@ typedef SSIZE_T ssize_t;
 #include "common/log_net.hpp"
 #include "config/log4cpp.hpp"
 
-class TestEnvironment: public testing::Environment {
-public:
-    explicit TestEnvironment(const std::string &cur_path) {
-        size_t end = cur_path.find_last_of('\\');
-        if (end == std::string::npos) {
-            end = cur_path.find_last_of('/');
-        }
-        const std::string work_dir = cur_path.substr(0, end);
-        std::filesystem::current_path(work_dir);
-    }
-};
-
 int main(int argc, char **argv) {
     const std::string cur_path = argv[0];
     testing::InitGoogleTest(&argc, argv);
-    AddGlobalTestEnvironment(new TestEnvironment(cur_path));
     return RUN_ALL_TESTS();
 }
 
@@ -51,24 +38,29 @@ void set_socket_recv_timeout(log4cpp::common::socket_fd sockfd) {
     unsigned int milliseconds = 1000;
     if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&milliseconds), sizeof(milliseconds))
         == SOCKET_ERROR) {
-        printf("Set socket receive timeout failed: %u\n", WSAGetLastError());
+        fprintf(stderr, "[set_socket_recv_timeout] Set socket receive timeout failed: %u\n", WSAGetLastError());
+        fflush(stderr);
     }
 #else
     timeval timeout{};
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
     if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-        perror("Error setting receive timeout");
+        perror("[set_socket_recv_timeout] Error setting receive timeout");
+        fflush(stderr);
     }
 #endif
 }
 
-void tcp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer_stack prefer, unsigned short port,
-                              unsigned int expected_log_count) {
+void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer_stack prefer, unsigned short port,
+                         unsigned int expected_log_count) {
+    std::string prefer_str;
+    log4cpp::common::to_string(prefer, prefer_str);
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (log4cpp::common::INVALID_FD == server_fd) {
-        printf("[log4cpp] socket creation failed...\n");
+        fprintf(stderr, "[tcp_socket_appender_test] socket creation failed...\n");
+        fflush(stderr);
         return;
     }
 
@@ -93,22 +85,26 @@ void tcp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::p
     if (-1 == val) {
 #ifdef _WIN32
         int wsa_error = WSAGetLastError();
-        printf("[log4cpp] %s,L%d,bind failed! errno:%d\n", __func__, __LINE__, wsa_error);
+        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,bind failed! errno:%d\n", __func__, __LINE__, wsa_error);
 #else
-        printf("[log4cpp] %s,L%d,bind failed! errno:%d,%s\n", __func__, __LINE__, errno, strerror(errno));
+        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,bind failed! errno:%d,%s\n", __func__, __LINE__, errno,
+                strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
+        fflush(stderr);
         return;
     }
     val = listen(server_fd, 5);
     if (-1 == val) {
 #ifdef _WIN32
         int wsa_error = WSAGetLastError();
-        printf("[log4cpp] %s,L%d,listen failed! errno:%d\n", __func__, __LINE__, wsa_error);
+        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,listen failed! errno:%d\n", __func__, __LINE__, wsa_error);
 #else
-        printf("[log4cpp] %s,L%d,listen failed! errno:%d,%s\n", __func__, __LINE__, errno, strerror(errno));
+        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,listen failed! errno:%d,%s\n", __func__, __LINE__, errno,
+                strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
+        fflush(stderr);
         return;
     }
 
@@ -124,11 +120,13 @@ void tcp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::p
     if (log4cpp::common::INVALID_FD == client_fd) {
 #ifdef _WIN32
         int wsa_error = WSAGetLastError();
-        printf("[log4cpp] %s,L%d,accept failed! errno:%d\n", __func__, __LINE__, wsa_error);
+        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,accept failed! errno:%d\n", __func__, __LINE__, wsa_error);
 #else
-        printf("[log4cpp] %s,L%d,accept failed! errno:%d,%s\n", __func__, __LINE__, errno, strerror(errno));
+        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,accept failed! errno:%d,%s\n", __func__, __LINE__, errno,
+                strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
+        fflush(stderr);
         return;
     }
     char buffer[1024];
@@ -140,7 +138,7 @@ void tcp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::p
         if (len > 0) {
             buffer[len] = 0;
             ++actual_log_count;
-            printf("TCP [%u]: %s", actual_log_count, buffer);
+            printf("[tcp_socket_appender_test] [%u]: %s", actual_log_count, buffer);
         }
         else if (len == -1) {
             if (errno != EINTR) {
@@ -160,14 +158,16 @@ void tcp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::p
     log4cpp::common::close_socket(client_fd);
     log4cpp::common::close_socket(server_fd);
     ASSERT_GE(expected_log_count, actual_log_count);
+    fflush(stdout);
 }
 
-void udp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer_stack prefer, unsigned short port,
-                              unsigned int expected_log_count) {
+void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer_stack prefer, unsigned short port,
+                         unsigned int expected_log_count) {
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (log4cpp::common::INVALID_FD == server_fd) {
-        printf("[log4cpp] socket creation failed...\n");
+        fprintf(stderr, "[udp_socket_appender_test] socket creation failed...\n");
+        fflush(stderr);
         return;
     }
 
@@ -190,15 +190,37 @@ void udp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::p
         addr_len = sizeof(sockaddr_in);
     }
 
+    int reuse = 1;
+    int result = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (const char *)&reuse, sizeof(reuse));
+    if (result < 0) {
+#ifndef _WIN32
+        fprintf(stderr, "[udp_socket_appender_test] setsockopt(SO_REUSEADDR) failed: %s\n", strerror(errno));
+#else
+        fprintf(stderr, "[udp_socket_appender_test] setsockopt(SO_REUSEADDR) failed (WinError: %d)\n",
+                WSAGetLastError());
+#endif
+        fflush(stderr);
+    }
+
+#ifndef _WIN32
+    result = setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse));
+    if (result < 0) {
+        fprintf(stderr, "[udp_socket_appender_test] setsockopt(SO_REUSEPORT) failed: %s\n", strerror(errno));
+        fflush(stderr);
+    }
+#endif
+
     int val = bind(server_fd, reinterpret_cast<sockaddr *>(&local_addr), addr_len);
     if (-1 == val) {
 #ifdef _WIN32
         int wsa_error = WSAGetLastError();
-        printf("[log4cpp] %s,L%d,bind failed! errno:%d\n", __func__, __LINE__, wsa_error);
+        fprintf(stderr, "[udp_socket_appender_test] %s,L%d,bind failed! errno:%d\n", __func__, __LINE__, wsa_error);
 #else
-        printf("[log4cpp] %s,L%d,bind failed! errno:%d,%s\n", __func__, __LINE__, errno, strerror(errno));
+        fprintf(stderr, "[udp_socket_appender_test] %s,L%d,bind failed! errno:%d,%s\n", __func__, __LINE__, errno,
+                strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
+        fflush(stderr);
         return;
     }
 
@@ -211,7 +233,7 @@ void udp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::p
         if (len > 0) {
             buffer[len] = 0;
             ++actual_log_count;
-            printf("UDP [%u]: %s", actual_log_count, buffer);
+            printf("[udp_socket_appender_test] [%u]: %s", actual_log_count, buffer);
         }
         else if (len == -1) {
             if (errno != EINTR) {
@@ -233,7 +255,7 @@ void udp_log_server_work_loop(std::atomic<bool> &srv_running, log4cpp::common::p
 TEST(socket_appender_test, tcp_socket_appender_test) {
     const std::string config_file = "tcp_socket_appender_test.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    log_mgr.load_config(config_file);
+    ASSERT_NO_THROW(log_mgr.load_config(config_file));
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     const log4cpp::config::socket_appender &socker_appender_cfg = config->appenders.socket.value();
     unsigned short port = socker_appender_cfg.port;
@@ -241,7 +263,7 @@ TEST(socket_appender_test, tcp_socket_appender_test) {
 
 #ifdef _WIN32
     WSADATA wsa_data{};
-    WSAStartup(MAKEWORD(2, 2), &wsa_data);
+    (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
     std::atomic<bool> running(false);
 
@@ -250,7 +272,7 @@ TEST(socket_appender_test, tcp_socket_appender_test) {
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
     std::thread log_server_thread =
-        std::thread(&tcp_log_server_work_loop, std::ref(running), prefer, port, expected_log_count);
+        std::thread(&tcp_log_server_loop, std::ref(running), prefer, port, expected_log_count);
 
     while (!running.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -263,6 +285,8 @@ TEST(socket_appender_test, tcp_socket_appender_test) {
     log->error("this is an error");
     log->fatal("this is a fatal");
 
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
     running.store(false);
     log_server_thread.join();
 #ifdef _WIN32
@@ -273,7 +297,7 @@ TEST(socket_appender_test, tcp_socket_appender_test) {
 TEST(socket_appender_test, udp_socket_appender_test) {
     const std::string config_file = "udp_socket_appender_test.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    log_mgr.load_config(config_file);
+    ASSERT_NO_THROW(log_mgr.load_config(config_file));
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     const log4cpp::config::socket_appender &socker_appender_cfg = config->appenders.socket.value();
     unsigned short port = socker_appender_cfg.port;
@@ -281,7 +305,7 @@ TEST(socket_appender_test, udp_socket_appender_test) {
 
 #ifdef _WIN32
     WSADATA wsa_data{};
-    WSAStartup(MAKEWORD(2, 2), &wsa_data);
+    (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
     std::atomic<bool> running(false);
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
@@ -289,7 +313,7 @@ TEST(socket_appender_test, udp_socket_appender_test) {
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
     std::thread log_server_thread =
-        std::thread(&udp_log_server_work_loop, std::ref(running), prefer, port, expected_log_count);
+        std::thread(&udp_log_server_loop, std::ref(running), prefer, port, expected_log_count);
     while (!running.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

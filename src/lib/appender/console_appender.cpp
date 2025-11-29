@@ -42,6 +42,10 @@ namespace log4cpp::appender {
 
     void console_appender::log(const char *msg, size_t msg_len) {
         std::lock_guard lock_guard(this->lock);
+#ifdef _MSC_VER
+        (void)_write(this->file_no, msg, static_cast<unsigned int>(msg_len));
+#else
         (void)write(this->file_no, msg, msg_len);
+#endif
     }
 }

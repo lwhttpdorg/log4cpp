@@ -16,22 +16,9 @@
 #include "common/log_net.hpp"
 #include "config/log4cpp.hpp"
 
-class TestEnvironment: public testing::Environment {
-public:
-    explicit TestEnvironment(const std::string &cur_path) {
-        size_t end = cur_path.find_last_of('\\');
-        if (end == std::string::npos) {
-            end = cur_path.find_last_of('/');
-        }
-        const std::string work_dir = cur_path.substr(0, end);
-        std::filesystem::current_path(work_dir);
-    }
-};
-
 int main(int argc, char **argv) {
     const std::string cur_path = argv[0];
     testing::InitGoogleTest(&argc, argv);
-    AddGlobalTestEnvironment(new TestEnvironment(cur_path));
     return RUN_ALL_TESTS();
 }
 
@@ -179,7 +166,7 @@ TEST(load_config_test, auto_load_config) {
 TEST(load_config_test, load_config_test_1) {
     const std::string config_file = "log4cpp_config_1.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    log_mgr.load_config(config_file);
+    ASSERT_NO_THROW(log_mgr.load_config(config_file));
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     ASSERT_NE(nullptr, config);
 
@@ -191,7 +178,7 @@ TEST(load_config_test, load_config_test_1) {
 TEST(load_config_test, load_config_test_2) {
     const std::string config_file = "log4cpp_config_2.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    log_mgr.load_config(config_file);
+    ASSERT_NO_THROW(log_mgr.load_config(config_file));
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     ASSERT_NE(nullptr, config);
 

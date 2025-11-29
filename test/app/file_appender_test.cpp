@@ -5,22 +5,9 @@
 
 #include "log4cpp/log4cpp.hpp"
 
-class TestEnvironment: public testing::Environment {
-public:
-    explicit TestEnvironment(const std::string &cur_path) {
-        size_t end = cur_path.find_last_of('\\');
-        if (end == std::string::npos) {
-            end = cur_path.find_last_of('/');
-        }
-        const std::string work_dir = cur_path.substr(0, end);
-        std::filesystem::current_path(work_dir);
-    }
-};
-
 int main(int argc, char **argv) {
     const std::string cur_path = argv[0];
     testing::InitGoogleTest(&argc, argv);
-    AddGlobalTestEnvironment(new TestEnvironment(cur_path));
     return RUN_ALL_TESTS();
 }
 
@@ -47,7 +34,7 @@ void warn_logger() {
 void load_configuration() {
     const std::string config_file = "file_appender_test.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    log_mgr.load_config(config_file);
+    ASSERT_NO_THROW(log_mgr.load_config(config_file));
 }
 
 TEST(file_appender_test, single_thread_test) {

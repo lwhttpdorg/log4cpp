@@ -16,5 +16,7 @@ def clang_format(path: str):
 
 if __name__ == '__main__':
     current_path = os.getcwd()
-    clang_format(current_path + '/src')
     clang_format(current_path + '/demo')
+    clang_format(current_path + '/include')
+    clang_format(current_path + '/src')
+    clang_format(current_path + '/test')

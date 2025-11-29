@@ -23,7 +23,7 @@
 
 namespace log4cpp {
     constexpr unsigned short LOG_LINE_MAX = 512;
-    constexpr const char *DEFAULT_LOG_PATTERN = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}] -- ${W}";
+    constexpr const char *DEFAULT_LOG_PATTERN = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}] -- ${msg}";
     /**
      * The log level.
      */
@@ -138,6 +138,8 @@ namespace log4cpp {
 
     /*********************** logger_manager ***********************/
 
+    class logger_deleter;
+
     class logger_manager final {
     public:
         /**
@@ -163,6 +165,7 @@ namespace log4cpp {
 
         logger_manager &operator=(logger_manager &&) = delete;
         friend class supervisor;
+        friend class logger_deleter;
 
     private:
         logger_manager();
@@ -173,7 +176,7 @@ namespace log4cpp {
         void hot_reload_config();
         void start_hot_reload_thread();
         void event_loop();
-        void update_logger(const std::vector<config::logger> &old_log_cfg, bool appender_chg) const;
+        void update_logger(const std::vector<config::logger> &old_log_cfg, bool appender_chg);
 #endif
         void auto_load_config();
 
@@ -189,6 +192,8 @@ namespace log4cpp {
         std::atomic<bool> evt_loop_run{false};
         std::thread evt_loop_thread;
 #endif
+        void release_logger(const std::string &name);
+
         static std::once_flag init_flag;
         static logger_manager instance;
         std::string config_file_path;
@@ -202,6 +207,6 @@ namespace log4cpp {
         std::shared_ptr<appender::log_appender> socket_appender_ptr;
 
         mutable std::shared_mutex logger_rw_lock;
-        std::unordered_map<std::string, std::shared_ptr<log::logger_proxy>> loggers;
+        std::unordered_map<std::string, std::weak_ptr<log::logger_proxy>> loggers;
     };
 }

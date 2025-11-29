@@ -1,16 +1,8 @@
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include <fcntl.h>
 #include <stdexcept>
 
 #ifdef _MSC_VER
 #include <windows.h>
-#ifdef ERROR
-#undef ERROR
-#endif
-#define F_OK 0
 #endif
 
 #ifdef _WIN32
@@ -39,7 +31,7 @@ namespace log4cpp::appender {
     file_appender::file_appender(const config::file_appender &cfg) {
         if (const auto pos = cfg.file_path.find_last_of('/'); pos != std::string::npos) {
             std::string path = cfg.file_path.substr(0, pos);
-            if (0 != access(path.c_str(), F_OK)) {
+            if (!std::filesystem::exists(path)) {
 #ifdef _WIN32
                 (void)_mkdir(path.c_str());
 #endif
@@ -57,7 +49,11 @@ namespace log4cpp::appender {
         openFlags |= O_CLOEXEC;
         mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 #endif
+#ifdef _MSC_VER
+        this->fd = _open(cfg.file_path.c_str(), openFlags, mode);
+#else
         this->fd = open(cfg.file_path.c_str(), openFlags, mode);
+#endif
         if (this->fd == -1) {
             std::string what("Can not open log file: ");
             what.append(strerror(errno));
@@ -68,12 +64,20 @@ namespace log4cpp::appender {
 
     file_appender::~file_appender() {
         if (this->fd != -1) {
+#ifdef _MSC_VER
+            _close(this->fd);
+#else
             close(this->fd);
+#endif
         }
     }
 
     void file_appender::log(const char *msg, size_t msg_len) {
         std::lock_guard lock_guard(this->lock);
+#ifdef _MSC_VER
+        (void)_write(this->fd, msg, static_cast<unsigned int>(msg_len));
+#else
         (void)write(this->fd, msg, msg_len);
+#endif
     }
 }

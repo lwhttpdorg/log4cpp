@@ -20,6 +20,39 @@ namespace log4cpp::common {
     static socket_init net_init{};
 #endif
 
+    void to_string(prefer_stack prefer, std::string &str) {
+        switch (prefer) {
+            case prefer_stack::IPv4:
+                str = "IPv4";
+                break;
+            case prefer_stack::IPv6:
+                str = "IPv6";
+                break;
+            case prefer_stack::AUTO:
+                str = "AUTO";
+                break;
+            default:
+                str = "Unknown";
+                break;
+        }
+    }
+
+    void from_string(const std::string &str, prefer_stack &prefer) {
+        const auto prefer_str = to_lower(str);
+        if (prefer_str == "ipv4") {
+            prefer = prefer_stack::IPv4;
+        }
+        else if (prefer_str == "ipv6") {
+            prefer = prefer_stack::IPv6;
+        }
+        else if (prefer_str == "auto") {
+            prefer = prefer_stack::AUTO;
+        }
+        else {
+            throw std::invalid_argument("Invalid prefer stack string: " + prefer_str);
+        }
+    }
+
     net_addr::net_addr() {
         this->family = net_family::NET_IPv4;
         this->ip.addr4 = 0;

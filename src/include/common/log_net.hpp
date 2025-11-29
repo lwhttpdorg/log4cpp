@@ -21,6 +21,8 @@
 typedef SSIZE_T ssize_t;
 #endif
 
+#include "log_utils.hpp"
+
 #include <nlohmann/json.hpp>
 
 namespace log4cpp::common {
@@ -48,7 +50,7 @@ namespace log4cpp::common {
     public:
         socket_init() {
             WSADATA wsa_data{};
-            WSAStartup(MAKEWORD(2, 2), &wsa_data);
+            (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
         }
 
         ~socket_init() {
@@ -59,6 +61,10 @@ namespace log4cpp::common {
 
     enum class net_family { NET_IPv4, NET_IPv6 };
     enum class prefer_stack { IPv4, IPv6, AUTO };
+
+    void to_string(prefer_stack prefer, std::string &str);
+
+    void from_string(const std::string &str, prefer_stack &prefer);
 
     class host_resolve_exception: public std::runtime_error {
     public:

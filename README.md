@@ -1,33 +1,64 @@
 # log4cpp
 
 ---
-
 [中文版本](README_ZH.md) | English Edition
-
 ---
+
+<!-- TOC -->
+* [log4cpp](#log4cpp)
+  * [中文版本 | English Edition](#中文版本--english-edition)
+  * [1. What is log4cpp?](#1-what-is-log4cpp)
+  * [2. Requirements](#2-requirements)
+  * [3. Usage](#3-usage)
+    * [3.1. Quick Start](#31-quick-start)
+      * [3.1.1. Create a CMake Project](#311-create-a-cmake-project)
+      * [3.1.2. Include Header File](#312-include-header-file)
+      * [3.1.3. Get Logger](#313-get-logger)
+      * [3.1.4. Output Log](#314-output-log)
+      * [3.1.5. Use in a Class](#315-use-in-a-class)
+      * [3.1.6. Complete Example](#316-complete-example)
+    * [3.2. Advanced Usage](#32-advanced-usage)
+      * [3.2.1. Configuration File](#321-configuration-file)
+        * [3.2.1.1. Log pattern](#3211-log-pattern)
+        * [3.2.1.2. Appender](#3212-appender)
+          * [3.2.1.2.1. Console Appender](#32121-console-appender)
+          * [3.2.1.2.2. File Appender](#32122-file-appender)
+      * [3.2.2. Socket appender](#322-socket-appender)
+      * [3.2.3. Logger](#323-logger)
+    * [3.3. Hot Configuration Reload](#33-hot-configuration-reload)
+  * [4. Building](#4-building)
+    * [4.1. Configuration](#41-configuration)
+      * [4.1.1. Windows](#411-windows)
+      * [4.1.2. Linux](#412-linux)
+    * [4.2. Build](#42-build)
+    * [4.3. Testing](#43-testing)
+    * [4.4. ASAN](#44-asan)
+    * [4.5. License](#45-license)
+<!-- TOC -->
 
 ## 1. What is log4cpp?
 
-log4cpp is a C++ logging library inspired by log4j.
+log4cpp is a C++ logging library inspired by log4j
 
 Features:
 
-- JSON configuration: change behavior without modifying code
-- Output logs to STDOUT and STDERR
-- Output logs to files
-- Output logs to log servers (TCP/UDP)
+- Configurable via JSON files, no code modification required
+- Supports logging to STDOUT and STDERR
+- Supports logging to specified files
+- Supports logging to log server (TCP/UDP)
 - Singleton pattern
 - Thread-safe
-- Hot-reload configuration without restarting the process(Linux only)
+- Hot configuration reload, changes take effect without restarting the process(Linux only)
 
 ## 2. Requirements
 
-1. C++ compiler supporting C++17 or newer
-2. CMake 3.11 or newer
+1. C++ compiler supporting C++17 or later
+2. CMake 3.11 or later
 3. nlohmann-json >= 3.7
 
-_Warning: Due to a series of bugs in the MSVC compiler, this project no longer supports MSVC. Any errors on the MSVC
-platform will no longer be fixed. It is recommended to use MingW64_
+## 3. Usage
+
+### 3.1. Quick Start
 
 To install nlohmann-json on Ubuntu/Debian:
 
@@ -35,54 +66,268 @@ To install nlohmann-json on Ubuntu/Debian:
 sudo apt install nlohmann-json3-dev
 ```
 
-## 3. Usage
+#### 3.1.1. Create a CMake Project
 
-### 3.2. Configuration file
+CMakeLists.txt:
 
-#### 3.2.1. Log output pattern
+```cmake
+cmake_minimum_required(VERSION 3.11)
 
-Example:
+project(log4cpp-demo)
+
+set(TARGET_NAME demo)
+
+add_executable(${TARGET_NAME} main.cpp)
+
+include(FetchContent)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.0)
+FetchContent_MakeAvailable(log4cpp)
+target_link_libraries(${TARGET_NAME} log4cpp)
+```
+
+#### 3.1.2. Include Header File
+
+Header file:
+
+```c++
+#include <log4cpp/log4cpp.hpp>
+```
+
+3.1.3. Load Configuration File (Optional)
+
+Configuration can be loaded in two ways:
+
+- If `log4cpp.json` exists in the current path, it will be loaded automatically
+- If the configuration file is not in the current path, or has a different name, you need to load it manually
+
+_Notes: If `log4cpp.json` does not exist and is not loaded manually, the built-in default configuration will be used._
+
+```c++
+const std::string config_file = "demo.json";
+auto &log_mgr = log4cpp::supervisor::get_logger_manager();
+log_mgr.load_config(config_file);
+```
+
+#### 3.1.3. Get Logger
+
+Get the configured logger by name
+
+```c++
+std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger(const std::string &name = "root");
+```
+
+You can specify a unique string, which can be output to the log (the length of the output can be specified via
+`${<n>NM}` in "log-pattern")
+
+```shell
+hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+```
+
+#### 3.1.4. Output Log
+
+After getting the logger, you can use the following methods to output the log:
+
+```shell
+void trace(const char *__restrict fmt, ...);
+void debug(const char *__restrict fmt, ...);
+void info(const char *__restrict fmt, ...);
+void warn(const char *__restrict fmt, ...);
+void error(const char *__restrict fmt, ...);
+void fatal(const char *__restrict fmt, ...);
+```
+
+Or directly:
+
+```c++
+void log(log_level level, const char *fmt, ...);
+```
+
+The log level `log_level` level is defined as follows:
+
+```c++
+namespace log4cpp {
+    enum class log_level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
+}
+```
+
+Description:
+
+- `FATAL`: Fatal error
+- `ERROR`: Error
+- `WARN`: Warning
+- `INFO`: Information
+- `DEBUG`: Debugging
+- `TRACE`: Tracing
+
+#### 3.1.5. Use in a Class
+
+The logger object can also be used as a class member variable (or static member variable). Since it is a
+`std::shared_ptr`, all instances of the class will use the same logger
+
+```c++
+class demo {
+public:
+    demo() {
+        logger = log4cpp::logger_manager::get_logger("demo");
+        logger->info("constructor");
+    }
+
+    ~demo() {
+        logger->info("destructor");
+    }
+
+    void func(const std::string &name) const {
+        logger->info("func(%s)", name.c_str());
+    }
+
+private:
+    std::shared_ptr<log4cpp::log::logger> logger;
+};
+```
+
+You will get the following log:
+
+```shell
+demo: 2025-11-29 20:06:47:652 [main    ] [INFO ] -- constructor
+demo: 2025-11-29 20:06:47:652 [main    ] [INFO ] -- func(hello)
+demo: 2025-11-29 20:06:47:652 [main    ] [INFO ] -- destructor
+```
+
+#### 3.1.6. Complete Example
+
+```c++
+#include <thread>
+
+#include <log4cpp/log4cpp.hpp>
+
+class demo {
+public:
+    demo() {
+        logger = log4cpp::logger_manager::get_logger("demo");
+        logger->info("constructor");
+    }
+
+    ~demo() {
+        logger->info("destructor");
+    }
+
+    void func(const std::string &name) const {
+        logger->info("func(%s)", name.c_str());
+    }
+
+private:
+    std::shared_ptr<log4cpp::log::logger> logger;
+};
+
+void thread_routine() {
+    log4cpp::set_thread_name("child");
+    const auto log = log4cpp::logger_manager::get_logger("aaa");
+    for (int i = 0; i < 10; ++i) {
+        log->trace("this is a trace");
+        log->debug("this is a debug");
+        log->info("this is a info");
+        log->warn("this is an warning");
+        log->error("this is an error");
+        log->fatal("this is a fatal");
+    }
+}
+
+int main() {
+#ifndef _WIN32
+    log4cpp::supervisor::enable_config_hot_loading();
+#endif
+    const std::string config_file = "demo.json";
+    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
+    log_mgr.load_config(config_file);
+    std::thread child(thread_routine);
+    log4cpp::set_thread_name("main");
+    const auto log = log4cpp::logger_manager::get_logger("hello");
+
+    for (int i = 0; i < 10; ++i) {
+        log->trace("this is a trace");
+        log->debug("this is a debug");
+        log->info("this is a info");
+        log->warn("this is an warning");
+        log->error("this is an error");
+        log->fatal("this is a fatal");
+    }
+    child.join();
+
+    demo app;
+    app.func("hello");
+
+    return 0;
+}
+```
+
+Example Log Output:
+
+```shell
+root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
+hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
+hello  : 2025-11-13 23:32:02:475 [main    ] [FATAL] -- this is a fatal
+root   : 2025-11-13 23:32:02:475 [child   ] [INFO ] -- this is a info
+hello  : 2025-11-13 23:32:02:475 [main    ] [INFO ] -- this is a info
+root   : 2025-11-13 23:32:02:475 [child   ] [WARN ] -- this is an warning
+hello  : 2025-11-13 23:32:02:475 [main    ] [WARN ] -- this is an warning
+root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
+hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
+```
+
+Configuration File Example:
+
+Reference configuration file [demo/demo.json](demo/demo.json)
+
+### 3.2. Advanced Usage
+
+#### 3.2.1. Configuration File
+
+##### 3.2.1.1. Log pattern
 
 ```json
 {
-	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${W}"
+	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}"
 }
 ```
 
 Placeholders:
 
-- `${<n>NM}`: The name of logger, e.g. `${4NM}`. `<n>` is the name length, align left, default is 6, max width is 64
-- `${yy}`: A two digit representation of a year. e.g. 99 or 03
-- `${yyyy}`: A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999,
-  2003, 10191
-- `${M}`: Numeric representation of a month, without leading zeros. 1 through 12
-- `${MM}`: Numeric representation of a month, with leading zeros. 01 through 12
-- `${MMM}`: A short textual representation of a month, three letters. Jan through Dec
-- `${d}`: Day of the month without leading zeros. 1 to 31
-- `${dd}`: Day of the month, 2 digits with leading zeros. 01 to 31
-- `${h}`: 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem, 0 through 12
-- `${hh}`: 12-hour format of an hour with leading zeros, with Uppercase Ante meridiem and Post meridiem, 00 through 12
-- `${H}`: 24-hour format of an hour without leading zeros. 0 through 23
-- `${HH}`: 24-hour format of an hour with leading zeros. 00 through 23
-- `${m}`: Minutes without leading zeros. 1 to 59
-- `${mm}`: Minutes with leading zeros. 01 to 59
-- `${s}`: Seconds without leading zeros. 1 to 59
-- `${ss}`: Seconds with leading zeros. 01 to 59
-- `${ms}`: Milliseconds with leading zeros. 001 to 999
-- `${<n>TN}`: Thread name. e.g. `${8TN}`. `<n>` is the name length, align left, default is 16, max width is 16. If the
-  name is empty, use "T+thread id" instead. e.g. "main"
-- `${<n>TH}`: Thread id, e.g. `${8TH}`. `<n>` is the digit width, left padding with 0, default is 8, max width is 8.
-  e.g. "T12345"
+- `${<n>NM}`: Logger name, e.g. `${8NM}`. `<n>` is the logger name length, left-aligned, default is 6, max is 64
+- `${yy}`: Year represented by 2 digits. e.g. 99 or 03
+- `${yyyy}`: Full year, at least 4 digits, using '-' for BC e.g. -0055, 0787, 1999, 2003, 10191
+- `${M}`: Month in number, without leading zero. From 1 to 12
+- `${MM}`: Month in number, two digits with leading zero. From 01 to 12
+- `${MMM}`: Abbreviated month name, 3 letters. From Jan to Dec
+- `${d}`: Day of the month, without leading zero. From 1 to 31
+- `${dd}`: Day of the month, two digits with leading zero. From 01 to 31
+- `${h}`: Hour in 12-hour clock without leading zero. AM and PM for morning and afternoon. From 0 to 12
+- `${hh}`: Hour in 12-hour clock with leading zero. AM and PM for morning and afternoon. From 00 to 12
+- `${H}`: Hour in 24-hour clock without leading zero. From 0 to 23
+- `${HH}`: Hour in 24-hour clock with leading zero. From 00 to 23
+- `${m}`: Minute without leading zero. From 1 to 59
+- `${mm}`: Minute with leading zero. From 01 to 59
+- `${s}`: Second without leading zero. From 1 to 59
+- `${ss}`: Second with leading zero. From 01 to 59
+- `${ms}`: Millisecond with leading zero. From 001 to 999
+- `${<n>TN}`: is the thread name length, left-aligned, default is 16, max is 16. If the thread name is empty, "T+$
+  {Thread ID}" is used instead, e.g., "main", "T12345"
+- `${<n>TH}`: Thread id, e.g. `${8TH}`. `<n>` is the number of digits for the Thread ID, left-padded with 0, default is
+  8, max is 8. e.g. "T12345"
 - `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-- `${W}`: Log message body, e.g. hello world!
+- `${msg}`: Log message body, e.g. hello world!
 
-_Note: Some systems cannot set thread names; thread ID will be used instead._
+_Note: Some systems cannot set thread names, and multiple threads can only be distinguished by Thread ID_
 
-#### 3.2.2. Appenders
+Note: The default log-pattern is `"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}] -- ${msg}"`
 
-There are four types of appenders: Console appender(`console`), File appender(`file`), Socket appender(`socket`)
+##### 3.2.1.2. Appender
 
-Example:
+There are four types of appenders: Console Appender(`console`), File Appender(`file`), Socket Appender(`socket`, default
+is TCP)
+
+A simple configuration file example:
 
 ```json
 {
@@ -103,11 +348,9 @@ Example:
 }
 ```
 
-#### 3.2.3. Console appender
+###### 3.2.1.2.1. Console Appender
 
-Outputs logs to STDOUT or STDERR.
-
-Example:
+The Console Appender's function is to output logs to `STDOUT` or `STDERR`. Typical configuration is as follows:
 
 ```json
 {
@@ -119,13 +362,13 @@ Example:
 }
 ```
 
-- `out_stream`: "stdout" or "stderr"
+Description:
 
-#### 3.2.4. File appender
+- `out-stream`: Output stream, can be "stdout" or "stderr"
 
-Outputs logs to a specified file.
+###### 3.2.1.2.2. File Appender
 
-Example:
+The File Appender's function is to output logs to a specified file. Typical configuration is as follows:
 
 ```json
 {
@@ -137,12 +380,14 @@ Example:
 }
 ```
 
-- `file_path`: output file path
+Description:
 
-#### 3.2.5. Socket appender
+- `file-path`: output file name
 
-Socket appender is used to send logs to remote logging servers via TCP or UDP. The protocol is specified by the
-`protocol` field; if not set, TCP is used by default.
+#### 3.2.2. Socket appender
+
+The Socket Appender supports both TCP and UDP protocols, distinguished by the `protocol` field. If `protocol` is not
+configured, it defaults to `TCP`
 
 ```json
 {
@@ -157,33 +402,27 @@ Socket appender is used to send logs to remote logging servers via TCP or UDP. T
 }
 ```
 
-- `addr`: The address of remote logging server
-- `port`: The port number of remote logging server
-- `protocol`: "tcp" or "udp", default is "tcp"
-- `prefer-stack`: "IPv4", "IPv6", or "auto", default is "auto"
+Description:
 
-_Notes: For TCP-type socket appender, if the connection to the remote logging server fails, an exponential backoff
-strategy will be used for reconnection._
+- `host`: Remote log server hostname
+- `port`: Remote log server port
+- `protocol`: Protocol, can be "tcp" or "udp", default is "tcp"
+- `prefer-stack`: Preferred address stack, can be "IPv4", "IPv6", or "auto", default is "AUTO"
 
-### 3.3. Configure loggers
+_Notes: For TCP-type socket appender, if the connection to the remote logging server fails, it will attempt to reconnect
+with exponential backoff until the connection succeeds_
 
-There are named loggers (`loggers`) and the root logger (`root`).
+#### 3.2.3. Logger
 
-- Named loggers are optional; the root logger must be present.
-- If a requested logger name does not exist, `log4cpp::logger_manager::get_logger` returns the root logger.
+`loggers` is an array. Each logger configuration includes:
 
-Named logger fields:
+- `name`: Logger name, used to retrieve the logger, must be unique. `root` is the default logger
+- `level`: Log level. Only logs greater than or equal to this level will be output. Can be omitted for non-`root`
+  loggers (automatically inherits from `root`)
+- `appenders`: Appenders. Only configured appenders will output logs. Appenders can be `console`, `file`, `socket`. Can
+  be omitted for non-`root` loggers (automatically inherits from `root`)
 
-- `name`: The logger's unique name, used for retrieval. The name `root` is reserved for the default logger.
-- `level`: The logging level. Only logs with a level greater than or equal to this configured level will be output. This
-  field can be omitted for non-`root` loggers (it automatically inherits the `root` logger's level).
-- `appenders`: The list of appenders (outputs). Only the configured appenders will be used for output. Appenders can
-  include `console`, `file`, and `socket`. This field can be omitted for non-`root` loggers (it automatically inherits
-  the `root` logger's appenders).
-
-__The default logger must be explicitly defined with the name `root`.__
-
-Example structure:
+__The default logger must be defined with name `root`__
 
 ```json
 {
@@ -215,204 +454,87 @@ Example structure:
 }
 ```
 
-### 3.4. Loading configuration
+### 3.3. Hot Configuration Reload
 
-Two ways to load configuration:
+Configuration hot reloading allows changes to the configuration file to take effect without restarting the process (
+Linux system only)
 
-1. If `log4cpp.json` exists in the current working directory, it is loaded automatically.
-2. Otherwise, load manually:
+_Note: The configuration file path and name cannot be changed; the path and name used at startup will be reloaded._
 
-```c++
-const std::string config_file = "log4cpp_config_1.json";
-log4cpp::logger_manager &log_mgr = log4cpp::supervisor::get_logger_manager();
-log_mgr.load_config(config_file);
-```
-
-### 3.5. Hot-reload configuration
-
-Hot-reload allows applying configuration changes without restarting (Linux only).
-
-_Note: The config file path and name must not change; the original path/name used at startup is reloaded._
-
-Enable hot-reload:
+First, you need to enable configuration hot loading:
 
 ```c++
 log4cpp::supervisor::enable_config_hot_loading(int sig = SIGHUP);
 ```
 
-After modifying the configuration file, send a signal (default is `SIGHUP`) to your process:
+After modifying the configuration file, send a signal to your process (default is SIGHUP):
 
 ```shell
 kill -SIGHUP <PID>
 ```
 
-`SIGHUP` triggers log4cpp to reload the cached file path and recreate internal objects. Existing
-`std::shared_ptr<log4cpp::log::logger>` instances returned earlier remain valid until their reference count reaches
-zero.
+The `SIGHUP` signal will trigger log4cpp to reload the configuration file using the cached path and filename, and
+recreate internal objects. The `std::shared_ptr<log4cpp::log::logger>` previously obtained via
+`log4cpp::logger_manager::get_logger()` will not become invalid and can continue to be used
 
-_Note: `log4cpp::logger_manager::get_logger()` may return the same shared_ptr even if the underlying proxy object
-changed._
-
-### 3.6. Usage in code
-
-Include header:
-
-```c++
-#include <log4cpp/log4cpp.hpp>
-```
-
-Get a logger:
-
-```c++
-std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("aaa");
-```
-
-Logging methods:
-
-```c++
-void trace(const char *__restrict fmt, ...);
-void debug(const char *__restrict fmt, ...);
-void info(const char *__restrict fmt, ...);
-void warn(const char *__restrict fmt, ...);
-void error(const char *__restrict fmt, ...);
-void fatal(const char *__restrict fmt, ...);
-```
-
-Or use the generic API:
-
-```c++
-void log(log_level level, const char *fmt, ...);
-```
-
-Log level enum:
-
-```c++
-namespace log4cpp {
-    enum class log_level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
-}
-```
-
-Notes:
-
-- `FATAL`: fatal error
-- `ERROR`: error
-- `WARN`: warning
-- `INFO`: information
-- `DEBUG`: debugging
-- `TRACE`: tracing
-
-### 3.7. Full example
-
-```c++
-#include <thread>
-
-#include <log4cpp/log4cpp.hpp>
-
-void thread_routine() {
-    log4cpp::set_thread_name("child");
-    const auto log = log4cpp::logger_manager::get_logger("aaa");
-    for (int i = 0; i < 100; ++i) {
-        log->trace("this is a trace");
-        log->debug("this is a debug");
-        log->info("this is a info");
-        log->warn("this is an warning");
-        log->error("this is an error");
-        log->fatal("this is a fatal");
-    }
-}
-
-int main() {
-    log4cpp::supervisor::enable_config_hot_loading();
-    const std::string config_file = "demo.json";
-    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    log_mgr.load_config(config_file);
-    std::thread child(thread_routine);
-    log4cpp::set_thread_name("main");
-    const auto log = log4cpp::logger_manager::get_logger("hello");
-
-    for (int i = 0; i < 100; ++i) {
-        log->trace("this is a trace");
-        log->debug("this is a debug");
-        log->info("this is a info");
-        log->warn("this is an warning");
-        log->error("this is an error");
-        log->fatal("this is a fatal");
-    }
-    child.join();
-    return 0;
-}
-```
-
-CMakeLists.txt example:
-
-```cmake
-cmake_minimum_required(VERSION 3.11)
-
-project(log4cpp-demo)
-
-set(TARGET_NAME demo)
-
-add_executable(${TARGET_NAME} main.cpp)
-
-include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.0)
-
-FetchContent_MakeAvailable(log4cpp)
-
-target_link_libraries(${TARGET_NAME} log4cpp)
-```
-
-Sample log output:
-
-```shell
-root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
-hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
-root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
-hello  : 2025-11-13 23:32:02:475 [main    ] [FATAL] -- this is a fatal
-root   : 2025-11-13 23:32:02:475 [child   ] [INFO ] -- this is a info
-hello  : 2025-11-13 23:32:02:475 [main    ] [INFO ] -- this is a info
-root   : 2025-11-13 23:32:02:475 [child   ] [WARN ] -- this is an warning
-hello  : 2025-11-13 23:32:02:475 [main    ] [WARN ] -- this is an warning
-root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
-hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
-root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
-```
-
-Reference config: [demo/demo.json](demo/demo.json)
+_Note: The `std::shared_ptr` returned by `log4cpp::logger_manager::get_logger()` may not change, even if its internal
+proxy object has changed
 
 ## 4. Building
 
-Contributions welcome. Before submitting a PR, note the following.
+### 4.1. Configuration
 
-### 4.1. CMake build options
+#### 4.1.1. Windows
+
+MingW64:
 
 ```shell
-cmake -S . -B build -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
+
+MSVC:
+
+```shell
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
+```
+
+#### 4.1.2. Linux
+
+```shell
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON
+```
+
+Options:
+
+- `DBUILD_LOG4CPP_DEMO=ON`: Build demo, default `OFF` (not build)
+- `DBUILD_LOG4CPP_TEST=ON`: Build test programs , default `OFF` (not build)
+- `DENABLE_ASAN=ON`: Enable AddressSanitizer, default `OFF` (not enabled)
+
+### 4.2. Build
 
 ```shell
 cmake --build build -j $(nproc)
 ```
 
+### 4.3. Testing
+
+This project uses [Google Test](https://github.com/google/googletest) for unit testing
+
 ```shell
 ctest --test-dir build --output-on-failure
 ```
 
-Options:
+Or enable more verbose output from tests:
 
-- `-DBUILD_LOG4CPP_DEMO=ON` build demo (off by default)
-- `-DBUILD_LOG4CPP_TEST=ON` build tests (off by default)
-- `-DENABLE_ASAN=ON` enable AddressSanitizer (off by default)
+```shell
+ctest --test-dir build --verbose
+```
 
-### 4.2. Tests
+### 4.4. ASAN
 
-This project uses Google Test; tests are under the `test` directory. Add tests as needed. Ensure changes are covered by
-tests.
+If your code modifies existing functionality, please ensure that ASAN detection passes. Code that has not passed ASAN
+detection will not be merged
 
-### 4.3. ASAN
+### 4.5. License
 
-Ensure ASAN passes for changes; PRs that fail ASAN will not be merged.
-
-## 5. License
-
-This project is licensed under LGPLv3 (see LICENSE).
+This project is licensed under [LGPLv3](LICENSE)

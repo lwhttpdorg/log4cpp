@@ -6,7 +6,9 @@
 #include <ctime>
 
 #ifdef _MSC_VER
+#include <Windows.h>
 #include <processthreadsapi.h>
+#include <winerror.h>
 #elif defined(__GNUC__)
 
 #include <pthread.h>
@@ -32,7 +34,7 @@ namespace log4cpp {
             int size_needed = WideCharToMultiByte(CP_UTF8, 0, w_name.c_str(), -1, nullptr, 0, nullptr, nullptr);
             std::string name(size_needed, '\0');
             WideCharToMultiByte(CP_UTF8, 0, w_name.c_str(), -1, &name[0], size_needed, nullptr, nullptr);
-            log4c_scnprintf(thread_name, len, "%s", name.c_str());
+            common::log4c_scnprintf(thread_name, len, "%s", name.c_str());
         }
 #endif
 

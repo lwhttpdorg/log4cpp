@@ -7,7 +7,6 @@
 #include <thread>
 
 #include "appender/log_appender.hpp"
-#include "common/log_lock.hpp"
 #include "common/log_net.hpp"
 #include "config/appender.hpp"
 
@@ -36,7 +35,7 @@ namespace log4cpp::appender {
         // Current delay for reconnection
         std::chrono::seconds reconnect_delay{0};
         // Initial delay for reconnection
-        static constexpr std::chrono::seconds RECONNECT_INITIAL_DELAY{10}; // 10 seconds
+        static constexpr std::chrono::seconds RECONNECT_INITIAL_DELAY{1}; // 1 seconds
         // Maximum delay for reconnection
         static constexpr std::chrono::hours RECONNECT_MAX_DELAY{24}; // 24 hours
 

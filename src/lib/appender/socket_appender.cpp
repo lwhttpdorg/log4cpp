@@ -84,16 +84,8 @@ namespace log4cpp::appender {
 
     socket_appender::socket_appender(const config::socket_appender &cfg) :
         host(cfg.host), port(cfg.port), proto(cfg.proto), sock_fd(common::INVALID_FD) {
-        auto addr = resolve_host();
-        // If host is resolved, try to connect
-        if (addr.has_value()) {
-            common::sock_addr saddr;
-            saddr.addr = addr.value();
-            saddr.port = this->port;
-            this->sock_fd = connect_to_server(saddr);
-        }
-        // For TCP, start reconnect thread if not connected
-        if (true != this->is_connected() && config::socket_appender::protocol::TCP == this->proto) {
+        // For TCP, start reconnect thread
+        if (config::socket_appender::protocol::TCP == this->proto) {
             this->reconnect_thread = std::thread(&socket_appender::reconnect_worker_loop, this);
         }
     }
@@ -134,6 +126,10 @@ namespace log4cpp::appender {
     }
 
     void socket_appender::reconnect_worker_loop() {
+#ifdef _DEBUG
+        printf("[socket_appender] reconnect thread is running...\n");
+        fflush(stdout);
+#endif
         while (!this->stop_reconnect.load()) {
             // If connection is normal, wait for notification
             if (this->is_connected()) {
@@ -169,11 +165,25 @@ namespace log4cpp::appender {
             if (common::INVALID_FD != fd) {
                 this->sock_fd = fd;
                 reset_backoff();
+                std::time_t now = std::time(nullptr);
+#ifdef _DEBUG
+                printf("[socket_appender] %s connect to %s success...\n", std::ctime(&now), addr_str.c_str());
+                fflush(stdout);
+#endif
             }
             else {
+                std::time_t now = std::time(nullptr);
+#ifdef _DEBUG
+                printf("[socket_appender] %s connect to %s failed...\n", std::ctime(&now), addr_str.c_str());
                 schedule_backoff();
+                fflush(stdout);
+#endif
             }
         }
+#ifdef _DEBUG
+        printf("[socket_appender] reconnect thread is stop...\n");
+        fflush(stdout);
+#endif
     }
 
     void socket_appender::log(const char *msg, size_t msg_len) {
