@@ -3,11 +3,10 @@ set(TARGET_NAME log4cpp)
 # Sources
 file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/*.cpp")
 
-# Library type
+add_library(${TARGET_NAME} SHARED ${SRC_FILES})
+
 if (CMAKE_HOST_WIN32)
-	add_library(${TARGET_NAME} STATIC ${SRC_FILES})
-else ()
-	add_library(${TARGET_NAME} SHARED ${SRC_FILES})
+	set_target_properties(log4cpp PROPERTIES GENERATE_EXPORT_HEADER ON WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif ()
 
 # C++ standard scoped to target

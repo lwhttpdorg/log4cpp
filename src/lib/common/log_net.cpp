@@ -17,6 +17,20 @@
 namespace log4cpp::common {
 #ifdef _WIN32
     // Windows socket initialization
+    class socket_init {
+    public:
+        socket_init() {
+            WSADATA wsa_data{};
+            (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
+        }
+
+        ~socket_init() {
+            WSACleanup();
+        }
+    };
+#endif
+#ifdef _WIN32
+    // Windows socket initialization
     static socket_init net_init{};
 #endif
 

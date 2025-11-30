@@ -30,6 +30,8 @@ namespace log4cpp::common {
     constexpr SOCKET INVALID_FD = INVALID_SOCKET;
     typedef SOCKET socket_fd;
 
+    constexpr int IN_PROGRESS = WSAEWOULDBLOCK;
+
     inline void close_socket(socket_fd fd) {
         closesocket(fd);
     }
@@ -37,27 +39,20 @@ namespace log4cpp::common {
 #if defined(__linux__)
     constexpr int INVALID_FD = -1;
     typedef int socket_fd;
+    constexpr int IN_PROGRESS = EINPROGRESS;
 
     inline void close_socket(socket_fd fd) {
         close(fd);
     }
-
 #endif
 
+    inline void shutdown_socket(socket_fd fd) {
 #ifdef _WIN32
-    // Windows socket initialization
-    class socket_init {
-    public:
-        socket_init() {
-            WSADATA wsa_data{};
-            (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
-        }
-
-        ~socket_init() {
-            WSACleanup();
-        }
-    };
+        shutdown(fd, SD_BOTH);
+#else
+        shutdown(fd, SHUT_RDWR);
 #endif
+    }
 
     enum class net_family { NET_IPv4, NET_IPv6 };
     enum class prefer_stack { IPv4, IPv6, AUTO };

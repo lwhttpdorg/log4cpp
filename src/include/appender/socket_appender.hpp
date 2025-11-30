@@ -11,6 +11,15 @@
 #include "config/appender.hpp"
 
 namespace log4cpp::appender {
+    constexpr std::chrono::seconds send_timeout = std::chrono::seconds(1);
+
+    enum class connection_fsm_state { DISCONNECTED, IN_PROGRESS, ESTABLISHED };
+
+    struct connect_result {
+        common::socket_fd fd = common::INVALID_FD;
+        connection_fsm_state state = connection_fsm_state::DISCONNECTED;
+    };
+
     class socket_appender: public log_appender {
     public:
         explicit socket_appender(const config::socket_appender &cfg);
@@ -26,11 +35,14 @@ namespace log4cpp::appender {
         unsigned short port{0};
         config::socket_appender::protocol proto;
 
+        std::shared_mutex connection_rw_lock;
         common::socket_fd sock_fd; // Socket file descriptor
+        connection_fsm_state connection_state;
+
         std::mutex reconnect_mutex; // Mutex for reconnect condition variable
         std::condition_variable reconnect_cv; // Condition variable for reconnecting
         std::atomic<bool> stop_reconnect{false}; // Flag to stop reconnect thread
-        void reconnect_worker_loop(); // Reconnect thread function
+        void reconnect_thread_routine(); // Reconnect thread function
         std::thread reconnect_thread; // Reconnect thread
         // Current delay for reconnection
         std::chrono::seconds reconnect_delay{0};
@@ -40,12 +52,11 @@ namespace log4cpp::appender {
         static constexpr std::chrono::hours RECONNECT_MAX_DELAY{24}; // 24 hours
 
         [[nodiscard]] std::optional<common::net_addr> resolve_host() const;
-        [[nodiscard]] common::socket_fd connect_to_server(const common::sock_addr &saddr) const;
+        [[nodiscard]] connect_result connect_to_server(const common::sock_addr &saddr) const;
+        void try_connect();
+        void check_conn_status();
+        void wait_for_reconnect_or_stop();
         void schedule_backoff();
         void reset_backoff();
-
-        [[nodiscard]] bool is_connected() const {
-            return common::INVALID_FD != this->sock_fd;
-        }
     };
 }

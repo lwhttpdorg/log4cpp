@@ -27,7 +27,25 @@ typedef SSIZE_T ssize_t;
 #include "common/log_net.hpp"
 #include "config/log4cpp.hpp"
 
+#ifdef _WIN32
+// Windows socket initialization
+class socket_init {
+public:
+    socket_init() {
+        WSADATA wsa_data{};
+        (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
+    }
+
+    ~socket_init() {
+        WSACleanup();
+    }
+};
+#endif
+
 int main(int argc, char **argv) {
+#ifdef _WIN32
+    socket_init ws_init{};
+#endif
     const std::string cur_path = argv[0];
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
@@ -150,11 +168,7 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
             break;
         }
     }
-#ifdef _WIN32
-    shutdown(client_fd, SD_BOTH);
-#else
-    shutdown(client_fd, SHUT_RDWR);
-#endif
+    log4cpp::common::shutdown_socket(client_fd);
     log4cpp::common::close_socket(client_fd);
     log4cpp::common::close_socket(server_fd);
     ASSERT_GE(expected_log_count, actual_log_count);
@@ -243,11 +257,7 @@ void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
         // Since UDP is connectionless, a recvfrom return value of 0 signifies the successful receipt of a zero-length
         // datagram, and the program should continue its loop
     }
-#ifdef _WIN32
-    shutdown(server_fd, SD_BOTH);
-#else
-    shutdown(server_fd, SHUT_RDWR);
-#endif
+    log4cpp::common::shutdown_socket(server_fd);
     log4cpp::common::close_socket(server_fd);
     ASSERT_GE(expected_log_count, actual_log_count);
 }
@@ -261,10 +271,6 @@ TEST(socket_appender_test, tcp_socket_appender_test) {
     unsigned short port = socker_appender_cfg.port;
     log4cpp::common::prefer_stack prefer = socker_appender_cfg.prefer;
 
-#ifdef _WIN32
-    WSADATA wsa_data{};
-    (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
-#endif
     std::atomic<bool> running(false);
 
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
@@ -289,9 +295,6 @@ TEST(socket_appender_test, tcp_socket_appender_test) {
 
     running.store(false);
     log_server_thread.join();
-#ifdef _WIN32
-    WSACleanup();
-#endif
 }
 
 TEST(socket_appender_test, udp_socket_appender_test) {
@@ -303,10 +306,6 @@ TEST(socket_appender_test, udp_socket_appender_test) {
     unsigned short port = socker_appender_cfg.port;
     log4cpp::common::prefer_stack prefer = socker_appender_cfg.prefer;
 
-#ifdef _WIN32
-    WSADATA wsa_data{};
-    (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
-#endif
     std::atomic<bool> running(false);
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
     log4cpp::log_level max_level = log->get_level();
@@ -325,7 +324,4 @@ TEST(socket_appender_test, udp_socket_appender_test) {
     log->fatal("this is a fatal");
     running.store(false);
     log_server_thread.join();
-#ifdef _WIN32
-    WSACleanup();
-#endif
 }

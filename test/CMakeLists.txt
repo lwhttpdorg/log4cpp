@@ -68,6 +68,10 @@ foreach (test_name IN LISTS TEST_TARGETS)
 		target_link_libraries(${test_name} PRIVATE nlohmann_json::nlohmann_json)
 	endif ()
 
+	if (CMAKE_HOST_WIN32)
+		target_link_libraries(${test_name} PRIVATE ws2_32)
+	endif ()
+
 	# Apply AddressSanitizer if enabled
 	apply_asan_to_target(${test_name})
 
