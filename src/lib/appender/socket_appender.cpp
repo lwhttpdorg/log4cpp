@@ -217,6 +217,9 @@ namespace log4cpp::appender {
                 this->reconnect_thread.join();
             }
         }
+        else {
+            common::close_socket(this->sock_fd);
+        }
     }
 
     void socket_appender::schedule_backoff() {
