@@ -51,21 +51,43 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
+void set_reuse_addr_port(log4cpp::common::socket_fd fd) {
+    int reuse = 1;
+    int result = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+    if (result < 0) {
+#ifndef _WIN32
+        log4cpp::common::log4c_debug(stderr, "[set_reuse_addr_port] setsockopt(SO_REUSEADDR) failed: %s\n",
+                                     strerror(errno));
+#else
+        log4cpp::common::log4c_debug(stderr, "[set_reuse_addr_port] setsockopt(SO_REUSEADDR) failed (WinError: %d)\n",
+                                     WSAGetLastError());
+#endif
+    }
+
+#ifndef _WIN32
+    result = setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse));
+    if (result < 0) {
+        log4cpp::common::log4c_debug(stderr, "[set_reuse_addr_port] setsockopt(SO_REUSEPORT) failed: %s\n",
+                                     strerror(errno));
+    }
+#endif
+}
+
 void set_socket_recv_timeout(log4cpp::common::socket_fd sockfd) {
 #ifdef _WIN32
     unsigned int milliseconds = 1000;
     if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char *>(&milliseconds), sizeof(milliseconds))
         == SOCKET_ERROR) {
-        fprintf(stderr, "[set_socket_recv_timeout] Set socket receive timeout failed: %u\n", WSAGetLastError());
-        fflush(stderr);
+        log4cpp::common::log4c_debug(stderr, "[set_socket_recv_timeout] Set socket receive timeout failed: %u\n",
+                                     WSAGetLastError());
     }
 #else
     timeval timeout{};
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
     if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-        perror("[set_socket_recv_timeout] Error setting receive timeout");
-        fflush(stderr);
+        log4cpp::common::log4c_debug(stderr, "[set_socket_recv_timeout] Error setting receive timeout: %s(%d)",
+                                     strerror(errno), errno);
     }
 #endif
 }
@@ -77,8 +99,7 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (log4cpp::common::INVALID_FD == server_fd) {
-        fprintf(stderr, "[tcp_socket_appender_test] socket creation failed...\n");
-        fflush(stderr);
+        log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] socket creation failed...\n");
         return;
     }
 
@@ -98,35 +119,37 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
         local_addr4.sin_port = htons(port);
     }
 
+    set_reuse_addr_port(server_fd);
+
     int val = bind(server_fd, reinterpret_cast<sockaddr *>(&local_addr),
                    prefer == log4cpp::common::prefer_stack::IPv6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in));
     if (-1 == val) {
 #ifdef _WIN32
         int wsa_error = WSAGetLastError();
-        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,bind failed! errno:%d\n", __func__, __LINE__, wsa_error);
+        log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] %s,L%d,bind failed! errno:%d\n", __func__,
+                                     __LINE__, wsa_error);
 #else
-        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,bind failed! errno:%d,%s\n", __func__, __LINE__, errno,
-                strerror(errno));
+        log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] %s,L%d,bind failed! errno:%d,%s\n", __func__,
+                                     __LINE__, errno, strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
-        fflush(stderr);
         return;
     }
     val = listen(server_fd, 5);
     if (-1 == val) {
 #ifdef _WIN32
         int wsa_error = WSAGetLastError();
-        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,listen failed! errno:%d\n", __func__, __LINE__, wsa_error);
+        log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] %s,L%d,listen failed! errno:%d\n", __func__,
+                                     __LINE__, wsa_error);
 #else
-        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,listen failed! errno:%d,%s\n", __func__, __LINE__, errno,
-                strerror(errno));
+        log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] %s,L%d,listen failed! errno:%d,%s\n", __func__,
+                                     __LINE__, errno, strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
-        fflush(stderr);
         return;
     }
 
-    sockaddr_storage client_addr{};
+    sockaddr_storage remote_addr{};
     socklen_t addr_len = 0;
     if (prefer == log4cpp::common::prefer_stack::IPv6) {
         addr_len = sizeof(sockaddr_in6);
@@ -134,17 +157,17 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     else {
         addr_len = sizeof(sockaddr_in);
     }
-    log4cpp::common::socket_fd client_fd = accept(server_fd, reinterpret_cast<sockaddr *>(&client_addr), &addr_len);
+    log4cpp::common::socket_fd client_fd = accept(server_fd, reinterpret_cast<sockaddr *>(&remote_addr), &addr_len);
     if (log4cpp::common::INVALID_FD == client_fd) {
 #ifdef _WIN32
         int wsa_error = WSAGetLastError();
-        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,accept failed! errno:%d\n", __func__, __LINE__, wsa_error);
+        log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] %s,L%d,accept failed! errno:%d\n", __func__,
+                                     __LINE__, wsa_error);
 #else
-        fprintf(stderr, "[tcp_socket_appender_test] %s,L%d,accept failed! errno:%d,%s\n", __func__, __LINE__, errno,
-                strerror(errno));
+        log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] %s,L%d,accept failed! errno:%d,%s\n", __func__,
+                                     __LINE__, errno, strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
-        fflush(stderr);
         return;
     }
     char buffer[1024];
@@ -172,6 +195,7 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     log4cpp::common::close_socket(client_fd);
     log4cpp::common::close_socket(server_fd);
     ASSERT_GE(expected_log_count, actual_log_count);
+    ASSERT_GT(actual_log_count, 0);
     fflush(stdout);
 }
 
@@ -180,13 +204,15 @@ void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (log4cpp::common::INVALID_FD == server_fd) {
-        fprintf(stderr, "[udp_socket_appender_test] socket creation failed...\n");
-        fflush(stderr);
+        log4cpp::common::log4c_debug(stderr, "[udp_socket_appender_test] socket creation failed...\n");
         return;
     }
 
     sockaddr_storage local_addr{};
     socklen_t addr_len = 0;
+#ifdef _DEBUG
+    char addr_str[INET6_ADDRSTRLEN];
+#endif
     if (prefer == log4cpp::common::prefer_stack::IPv6) {
         // NOLINTNEXTLINE
         sockaddr_in6 &local_addr6 = reinterpret_cast<sockaddr_in6 &>(local_addr);
@@ -194,6 +220,9 @@ void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
         local_addr6.sin6_addr = in6addr_any;
         local_addr6.sin6_port = htons(port);
         addr_len = sizeof(sockaddr_in6);
+#ifdef _DEBUG
+        inet_ntop(AF_INET6, &local_addr6.sin6_addr, addr_str, sizeof(addr_str));
+#endif
     }
     else {
         // NOLINTNEXTLINE
@@ -202,48 +231,41 @@ void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
         local_addr4.sin_addr.s_addr = INADDR_ANY;
         local_addr4.sin_port = htons(port);
         addr_len = sizeof(sockaddr_in);
-    }
-
-    int reuse = 1;
-    int result = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (const char *)&reuse, sizeof(reuse));
-    if (result < 0) {
-#ifndef _WIN32
-        fprintf(stderr, "[udp_socket_appender_test] setsockopt(SO_REUSEADDR) failed: %s\n", strerror(errno));
-#else
-        fprintf(stderr, "[udp_socket_appender_test] setsockopt(SO_REUSEADDR) failed (WinError: %d)\n",
-                WSAGetLastError());
+#ifdef _DEBUG
+        inet_ntop(AF_INET, &local_addr4.sin_addr, addr_str, sizeof(addr_str));
 #endif
-        fflush(stderr);
     }
-
-#ifndef _WIN32
-    result = setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse));
-    if (result < 0) {
-        fprintf(stderr, "[udp_socket_appender_test] setsockopt(SO_REUSEPORT) failed: %s\n", strerror(errno));
-        fflush(stderr);
-    }
+#ifdef _DEBUG
+    log4cpp::common::log4c_debug(stdout, "[udp_socket_appender_test] bind %s@%u\n", addr_str, port);
 #endif
+
+    set_reuse_addr_port(server_fd);
 
     int val = bind(server_fd, reinterpret_cast<sockaddr *>(&local_addr), addr_len);
     if (-1 == val) {
 #ifdef _WIN32
         int wsa_error = WSAGetLastError();
-        fprintf(stderr, "[udp_socket_appender_test] %s,L%d,bind failed! errno:%d\n", __func__, __LINE__, wsa_error);
+        log4cpp::common::log4c_debug(stderr, "[udp_socket_appender_test] %s,L%d,bind failed! errno:%d\n", __func__,
+                                     __LINE__, wsa_error);
 #else
-        fprintf(stderr, "[udp_socket_appender_test] %s,L%d,bind failed! errno:%d,%s\n", __func__, __LINE__, errno,
-                strerror(errno));
+        log4cpp::common::log4c_debug(stderr, "[udp_socket_appender_test] %s,L%d,bind failed! errno:%d,%s\n", __func__,
+                                     __LINE__, errno, strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
-        fflush(stderr);
         return;
     }
+
+    log4cpp::common::log4c_debug(stdout, "[udp_socket_appender_test] UDP log server is running...\n");
 
     set_socket_recv_timeout(server_fd);
     char buffer[1024];
     unsigned int actual_log_count = 0;
+    sockaddr_storage remote_addr{};
+    socklen_t remote_addr_len = sizeof(remote_addr);
     srv_running.store(true);
     while (srv_running.load()) {
-        ssize_t len = recvfrom(server_fd, buffer, sizeof(buffer) - 1, 0, nullptr, nullptr);
+        ssize_t len = recvfrom(server_fd, buffer, sizeof(buffer) - 1, 0,
+                               reinterpret_cast<struct sockaddr *>(&remote_addr), &remote_addr_len);
         if (len > 0) {
             buffer[len] = 0;
             ++actual_log_count;
@@ -260,6 +282,8 @@ void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     log4cpp::common::shutdown_socket(server_fd);
     log4cpp::common::close_socket(server_fd);
     ASSERT_GE(expected_log_count, actual_log_count);
+    ASSERT_GT(actual_log_count, 0);
+    fflush(stdout);
 }
 
 TEST(socket_appender_test, tcp_socket_appender_test) {

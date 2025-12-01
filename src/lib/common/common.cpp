@@ -2,6 +2,7 @@
 #include <cctype>
 #include <stdexcept>
 
+#include "common/log_utils.hpp"
 #include "log4cpp/log4cpp.hpp"
 
 namespace log4cpp {
@@ -13,8 +14,7 @@ namespace log4cpp {
     const char *LOG_LEVEL_DEBUG = "DEBUG";
     const char *LOG_LEVEL_TRACE = "TRACE";
 
-    std::string level_to_string(log_level level) {
-        std::string str;
+    void to_string(log_level level, std::string &str) {
         switch (level) {
             case log_level::FATAL:
                 str = LOG_LEVEL_FATAL;
@@ -37,13 +37,10 @@ namespace log4cpp {
             default:
                 break;
         }
-        return str;
     }
 
-    log_level level_from_string(const std::string &s) {
-        log_level level;
-        std::string tmp = s;
-        std::transform(tmp.begin(), tmp.end(), tmp.begin(), [](unsigned char c) { return std::toupper(c); });
+    void from_string(const std::string &str, log_level &level) {
+        std::string tmp = common::to_upper(str);
         if (tmp == LOG_LEVEL_FATAL) {
             level = log_level::FATAL;
         }
@@ -63,8 +60,7 @@ namespace log4cpp {
             level = log_level::TRACE;
         }
         else {
-            throw std::invalid_argument("invalid loglevel: " + s);
+            throw std::invalid_argument("invalid loglevel \'" + str + "\'");
         }
-        return level;
     }
 }

@@ -32,16 +32,16 @@ namespace log4cpp {
     /**
      * Convert log level to string.
      * @param level: The log level.
-     * @return The string of log level.
+     * @param str: The string of log level.
      */
-    std::string level_to_string(log_level level);
+    void to_string(log_level level, std::string &str);
 
     /**
      * Convert string to log level.
      * @param s: The string of log level.
      * @return The log level.
      */
-    log_level level_from_string(const std::string &s);
+    void from_string(const std::string &str, log_level &level);
 
     unsigned long get_thread_name_id(char *thread_name, size_t len);
 

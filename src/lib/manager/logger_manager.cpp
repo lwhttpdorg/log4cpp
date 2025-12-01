@@ -37,7 +37,7 @@ namespace log4cpp {
 #ifndef _WIN32
     void supervisor::sigusr2_handle([[maybe_unused]] int sig_num) {
 #ifdef _DEBUG
-        printf("%s:%d, log4pp received hot reload trigger event\n", __func__, __LINE__);
+        common::log4c_debug(stdout, "%s:%d, log4pp received hot reload trigger event\n", __func__, __LINE__);
 #endif
         const logger_manager &logger_mgr = get_logger_manager();
         logger_mgr.notify_config_hot_reload();
@@ -119,10 +119,9 @@ namespace log4cpp {
                 return;
             }
             catch (const std::exception &e) {
-                fprintf(stderr,
-                        "Failed to load the configuration file automatically, using default configuration. [%s]\n",
-                        e.what());
-                fflush(stderr);
+                log4cpp::common::log4c_debug(
+                    stderr, "Failed to load the configuration file automatically, using default configuration. [%s]\n",
+                    e.what());
             }
         }
 
@@ -174,8 +173,7 @@ namespace log4cpp {
                         break;
                     default:
 #ifdef _DEBUG
-                        fprintf(stderr, "%s:%d, received unknown event %lu\n", __func__, __LINE__, event);
-                        fflush(stderr);
+                        common::log4c_debug(stdout, "%s:%d, received unknown event %lu\n", __func__, __LINE__, event);
 #endif
                         break;
                 }
@@ -185,8 +183,7 @@ namespace log4cpp {
                     continue;
                 }
                 if (errno != EBADF) {
-                    fprintf(stderr, "%s: event fd read error! break event loop!\n", __func__);
-                    fflush(stderr);
+                    common::log4c_debug(stderr, "%s: event fd read error! break event loop!\n", __func__);
                 }
                 break;
             }
@@ -206,7 +203,7 @@ namespace log4cpp {
 
     void logger_manager::hot_reload_config() {
 #ifdef _DEBUG
-        printf("[logger_manager] hot_reload_config\n");
+        common::log4c_debug(stdout, "[logger_manager] hot_reload_config\n");
 #endif
         config::log4cpp old_cfg;
         bool appenders_changed = false;
@@ -217,8 +214,7 @@ namespace log4cpp {
                 load_config(config_file_path);
             }
             catch (const std::exception &e) {
-                fprintf(stderr, "[%s:%d] failed to reload config: %s\n", __func__, __LINE__, e.what());
-                fflush(stderr);
+                common::log4c_debug(stderr, "[%s:%d] failed to reload config: %s\n", __func__, __LINE__, e.what());
                 return;
             }
             if (old_cfg == *this->config) {

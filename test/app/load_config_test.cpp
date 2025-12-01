@@ -95,7 +95,9 @@ void appenders_check(const nlohmann::json &appenders_json, const log4cpp::config
 namespace log4cpp {
     void from_json(const nlohmann::json &json, log4cpp::config::logger &obj) {
         obj.name = json.at("name");
-        obj.level = level_from_string(json.at("level"));
+        log4cpp::log_level level;
+        from_string(json.at("level"), level);
+        obj.level = level;
         std::vector<std::string> appenders = json.at("appenders");
         unsigned char appenders_flag = log4cpp::config::appender_name_to_flag(appenders);
         obj.appender = appenders_flag;

@@ -55,7 +55,7 @@ namespace log4cpp::config {
             config.proto = socket_appender::protocol::UDP;
         }
         else {
-            throw std::invalid_argument("Invalid protocol string: " + proto_str);
+            throw std::invalid_argument("Invalid protocol string \'" + proto_str + "\'");
         }
         std::string prefer_str;
         j.at("prefer-stack").get_to(prefer_str);

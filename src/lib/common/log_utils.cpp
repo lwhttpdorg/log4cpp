@@ -90,6 +90,25 @@ namespace log4cpp::common {
         return 0;
     }
 
+    void log4c_debug(FILE *__restrict__ stream, const char *__restrict__ fmt, ...) {
+        const std::time_t now = std::time(nullptr);
+        char timebuf[32];
+#ifdef _WIN32
+        ctime_s(timebuf, sizeof(timebuf), &now);
+#else
+        ctime_r(&now, timebuf);
+#endif
+        timebuf[strcspn(timebuf, "\n")] = '\0';
+        char buffer[192];
+        size_t len = log4c_scnprintf(buffer, sizeof(buffer), "[DEBUG] %s: ", timebuf);
+        va_list args;
+        va_start(args, fmt);
+        log4c_vscnprintf(buffer + len, sizeof(buffer) - len, fmt, args);
+        va_end(args);
+        fprintf(stream, buffer);
+        fflush(stream);
+    }
+
     size_t log4c_replace(char *original, size_t length, const char *target, const char *replace) {
         size_t target_len = strlen(target);
         size_t replace_len = strlen(replace);

@@ -24,6 +24,35 @@
 #include "common/log_net.hpp"
 
 namespace log4cpp::appender {
+    void to_string(const connection_fsm_state state, std::string &str) {
+        switch (state) {
+            case connection_fsm_state::DISCONNECTED:
+                str = "DISCONNECTED";
+                break;
+            case connection_fsm_state::IN_PROGRESS:
+                str = "IN_PROGRESS";
+                break;
+            case connection_fsm_state::ESTABLISHED:
+                str = "ESTABLISHED";
+                break;
+        }
+    }
+
+    void from_string(const std::string &str, connection_fsm_state &state) {
+        if (str == "DISCONNECTED") {
+            state = connection_fsm_state::DISCONNECTED;
+        }
+        else if (str == "IN_PROGRESS") {
+            state = connection_fsm_state::IN_PROGRESS;
+        }
+        else if (str == "ESTABLISHED") {
+            state = connection_fsm_state::ESTABLISHED;
+        }
+        else {
+            throw std::invalid_argument("invalid connection_fsm_state \'" + str + "\'");
+        }
+    }
+
     std::optional<common::net_addr> socket_appender::resolve_host() const {
         // Resolve host
         std::optional<common::net_addr> addr;
@@ -62,16 +91,14 @@ namespace log4cpp::appender {
 #ifdef _WIN32
         unsigned int tv = static_cast<unsigned int>(timeout.count()) * 1000;
         if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char *>(&tv), sizeof(tv)) == SOCKET_ERROR) {
-            fprintf(stderr, "setsockopt SO_SNDTIMEO failed: %d\n", WSAGetLastError());
-            fflush(stderr);
+            common::log4c_debug(stderr, "setsockopt SO_SNDTIMEO failed: %d\n", WSAGetLastError());
         }
 #else
-        timeval tv;
+        timeval tv{};
         tv.tv_sec = timeout.count();
         tv.tv_usec = 0;
-        if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const void *>(&tv), sizeof(tv)) < 0) {
-            fprintf(stderr, "setsockopt SO_SNDTIMEO failed: %s(%d)\n", strerror(errno), errno);
-            fflush(stderr);
+        if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0) {
+            common::log4c_debug(stderr, "setsockopt SO_SNDTIMEO failed: %s(%d)\n", strerror(errno), errno);
         }
 #endif
     }
@@ -136,6 +163,26 @@ namespace log4cpp::appender {
         return result;
     }
 
+    void socket_appender::udp_init() {
+        const auto addr = resolve_host();
+        if (!addr.has_value()) {
+            return;
+        }
+        common::sock_addr saddr{};
+        saddr.addr = addr.value();
+        saddr.port = this->port;
+        connect_result result = connect_to_server(saddr);
+#ifdef _DEBUG
+        const auto addr_str = saddr.to_string();
+        std::string state_str;
+        to_string(result.state, state_str);
+        common::log4c_debug(stdout, "UDP connect to %s, %s\n", addr_str.c_str(), state_str.c_str());
+#endif
+        if (connection_fsm_state::ESTABLISHED == result.state) {
+            this->sock_fd = result.fd;
+        }
+    }
+
     socket_appender::socket_appender(const config::socket_appender &cfg) :
         host(cfg.host), port(cfg.port), proto(cfg.proto), sock_fd(common::INVALID_FD),
         connection_state(connection_fsm_state::DISCONNECTED) {
@@ -143,28 +190,32 @@ namespace log4cpp::appender {
         if (config::socket_appender::protocol::TCP == this->proto) {
             this->reconnect_thread = std::thread(&socket_appender::reconnect_thread_routine, this);
         }
+        else {
+            udp_init();
+        }
     }
 
     socket_appender::~socket_appender() {
-        {
-            std::lock_guard lock_guard(this->reconnect_mutex);
-            this->stop_reconnect.store(true);
-            reconnect_cv.notify_one();
+        if (config::socket_appender::protocol::TCP == this->proto) {
+            {
+                std::lock_guard lock_guard(this->reconnect_mutex);
+                this->stop_reconnect.store(true);
+                reconnect_cv.notify_one();
 #ifdef _DEBUG
-            fprintf(stdout, "[socket_appender] notify cv...\n");
-            fflush(stdout);
+                common::log4c_debug(stdout, "[socket_appender] notify cv...\n");
 #endif
-        }
-        {
-            std::unique_lock w_lock(this->connection_rw_lock);
-            if (common::INVALID_FD != this->sock_fd) {
-                common::shutdown_socket(this->sock_fd);
-                common::close_socket(this->sock_fd);
-                this->connection_state = connection_fsm_state::DISCONNECTED;
             }
-        }
-        if (this->reconnect_thread.joinable()) {
-            this->reconnect_thread.join();
+            {
+                std::unique_lock w_lock(this->connection_rw_lock);
+                if (common::INVALID_FD != this->sock_fd) {
+                    common::shutdown_socket(this->sock_fd);
+                    common::close_socket(this->sock_fd);
+                    this->connection_state = connection_fsm_state::DISCONNECTED;
+                }
+            }
+            if (this->reconnect_thread.joinable()) {
+                this->reconnect_thread.join();
+            }
         }
     }
 
@@ -188,8 +239,7 @@ namespace log4cpp::appender {
         // backoff
         if (this->reconnect_delay.count() > 0) {
 #ifdef _DEBUG
-            fprintf(stdout, "[socket_appender] exponential reconnection backoff...\n");
-            fflush(stdout);
+            common::log4c_debug(stdout, "[socket_appender] exponential reconnection backoff...\n");
 #endif
             // Use wait_for instead of sleep_for to allow early wakeup
             std::unique_lock lock(this->reconnect_mutex);
@@ -197,8 +247,7 @@ namespace log4cpp::appender {
             // Check if you need to stop
             if (this->stop_reconnect.load()) {
 #ifdef _DEBUG
-                fprintf(stdout, "[socket_appender] stop reconnect...break out of the loop\n");
-                fflush(stdout);
+                common::log4c_debug(stdout, "[socket_appender] stop reconnect...break out of the loop\n");
 #endif
                 return;
             }
@@ -212,10 +261,9 @@ namespace log4cpp::appender {
         common::sock_addr saddr{};
         saddr.addr = addr.value();
         saddr.port = this->port;
-        auto addr_str = saddr.to_string();
 #ifdef _DEBUG
-        fprintf(stdout, "[socket_appender] try connecting to the server...\n");
-        fflush(stdout);
+        auto addr_str = saddr.to_string();
+        common::log4c_debug(stdout, "[socket_appender] try connecting to the server %s...\n", addr_str.c_str());
 #endif
         connect_result result = connect_to_server(saddr);
         if (connection_fsm_state::DISCONNECTED != result.state) {
@@ -269,9 +317,7 @@ namespace log4cpp::appender {
             this->connection_state = connection_fsm_state::ESTABLISHED;
             reset_backoff();
 #ifdef _DEBUG
-            const std::time_t now = std::time(nullptr);
-            fprintf(stdout, "[socket_appender] %s connection established...\n", std::ctime(&now));
-            fflush(stdout);
+            common::log4c_debug(stdout, "[socket_appender] connection established...\n");
 #endif
         }
         else {
@@ -280,17 +326,16 @@ namespace log4cpp::appender {
             this->connection_state = connection_fsm_state::DISCONNECTED;
             schedule_backoff();
 #ifdef _DEBUG
-            const std::time_t now = std::time(nullptr);
-            fprintf(stdout, "[socket_appender] %s connection failed...will retry with backoff\n", std::ctime(&now));
-            fflush(stdout);
+            common::log4c_debug(stdout, "[socket_appender] connection failed...will retry with backoff\n");
 #endif
         }
     }
 
     void socket_appender::wait_for_reconnect_or_stop() {
 #ifdef _DEBUG
-        fprintf(stdout, "[socket_appender] connection is ESTABLISHED, wait for STOP or reconnect...\n");
-        fflush(stdout);
+        common::log4c_debug(
+            stdout,
+            "[socket_appender] connection is ESTABLISHED, waiting for a stop signal or the next reconnection...\n");
 #endif
         // If connection is normal, wait for notification
         std::unique_lock lock(this->reconnect_mutex);
@@ -298,18 +343,18 @@ namespace log4cpp::appender {
             return this->stop_reconnect.load() || connection_fsm_state::ESTABLISHED != this->connection_state;
         });
 #ifdef _DEBUG
-        fprintf(stdout,
-                "[socket_appender] Condition variable is awakened...connection state {%d}, stop connection {%d}\n",
-                static_cast<int>(this->connection_state), this->stop_reconnect.load());
-        fflush(stdout);
+        std::string state_str;
+        to_string(this->connection_state, state_str);
+        common::log4c_debug(
+            stdout, "[socket_appender] condition variable is awakened...connection state {%s}, stop connection {%s}\n",
+            state_str.c_str(), this->stop_reconnect.load() ? "true" : "false");
 #endif
     }
 
     void socket_appender::reconnect_thread_routine() {
         set_thread_name("reconnect_worker");
 #ifdef _DEBUG
-        fprintf(stdout, "[socket_appender] reconnect thread is running...\n");
-        fflush(stdout);
+        common::log4c_debug(stdout, "[socket_appender] reconnect thread is running...\n");
 #endif
         while (!this->stop_reconnect.load()) {
             connection_fsm_state current_state;
@@ -340,20 +385,19 @@ namespace log4cpp::appender {
             }
         }
 #ifdef _DEBUG
-        fprintf(stdout, "[socket_appender] reconnect thread is stop...\n");
-        fflush(stdout);
+        common::log4c_debug(stdout, "[socket_appender] reconnect thread is stop...\n");
 #endif
     }
 
     void socket_appender::log(const char *msg, size_t msg_len) {
-        std::shared_lock r_lock(this->connection_rw_lock);
-        if (connection_fsm_state::ESTABLISHED != this->connection_state) {
-            return;
-        }
-        ssize_t sent = send(this->sock_fd, msg, static_cast<int>(msg_len), 0);
-        if (sent < 0) {
-            // Connection lost, if protocol is TCP, notify reconnect thread
-            if (config::socket_appender::protocol::TCP == this->proto) {
+        if (config::socket_appender::protocol::TCP == this->proto) {
+            std::shared_lock r_lock(this->connection_rw_lock);
+            if (connection_fsm_state::ESTABLISHED != this->connection_state) {
+                return;
+            }
+            ssize_t sent = send(this->sock_fd, msg, static_cast<int>(msg_len), 0);
+            if (sent < 0) {
+                // Connection lost, notify reconnect thread
                 r_lock.unlock();
                 std::unique_lock w_lock(this->connection_rw_lock);
                 // NOLINTNEXTLINE (double check)
@@ -374,7 +418,10 @@ namespace log4cpp::appender {
                     // For other errors, just ignore
                 }
             }
+        }
+        else {
             // For UDP, just ignore the error
+            (void)send(this->sock_fd, msg, static_cast<int>(msg_len), 0);
         }
     }
 }

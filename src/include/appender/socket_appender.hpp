@@ -15,6 +15,9 @@ namespace log4cpp::appender {
 
     enum class connection_fsm_state { DISCONNECTED, IN_PROGRESS, ESTABLISHED };
 
+    void to_string(connection_fsm_state state, std::string &str);
+    void from_string(const std::string &str, connection_fsm_state &state);
+
     struct connect_result {
         common::socket_fd fd = common::INVALID_FD;
         connection_fsm_state state = connection_fsm_state::DISCONNECTED;
@@ -53,6 +56,7 @@ namespace log4cpp::appender {
 
         [[nodiscard]] std::optional<common::net_addr> resolve_host() const;
         [[nodiscard]] connect_result connect_to_server(const common::sock_addr &saddr) const;
+        void udp_init();
         void try_connect();
         void check_conn_status();
         void wait_for_reconnect_or_stop();

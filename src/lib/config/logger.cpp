@@ -1,7 +1,8 @@
-#include "config/logger.hpp"
+#include "log4cpp/log4cpp.hpp"
 
-#include <config/log4cpp.hpp>
 #include "config/appender.hpp"
+#include "config/log4cpp.hpp"
+#include "config/logger.hpp"
 #include "exception/invalid_config_exception.hpp"
 
 namespace log4cpp::config {
@@ -16,7 +17,9 @@ namespace log4cpp::config {
         }
         j = nlohmann::json{{"name", config.name}, {"appenders", appenders}};
         if (config.level.has_value()) {
-            j["level"] = level_to_string(config.level.value());
+            std::string str;
+            to_string(config.level.value(), str);
+            j["level"] = str;
         }
     }
 
@@ -31,7 +34,9 @@ namespace log4cpp::config {
         if (j.contains("level")) {
             std::string level_str;
             j.at("level").get_to(level_str);
-            config.level = level_from_string(level_str);
+            log_level level;
+            from_string(level_str, level);
+            config.level = level;
         }
         else {
             config.level = std::nullopt;

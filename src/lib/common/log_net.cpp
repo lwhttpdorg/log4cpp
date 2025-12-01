@@ -63,7 +63,7 @@ namespace log4cpp::common {
             prefer = prefer_stack::AUTO;
         }
         else {
-            throw std::invalid_argument("Invalid prefer stack string: " + prefer_str);
+            throw std::invalid_argument("Invalid prefer stack string \'" + prefer_str + "\'");
         }
     }
 
@@ -95,7 +95,7 @@ namespace log4cpp::common {
 #endif
         }
         else {
-            throw std::invalid_argument("Invalid IP address string: " + std::string{addr});
+            throw std::invalid_argument("Invalid IP address string \'" + std::string{addr} + "\'");
         }
     }
 
@@ -130,8 +130,8 @@ namespace log4cpp::common {
             s = std::string{buf};
         }
         else {
-            throw std::invalid_argument("Invalid addr family \"" + std::to_string(static_cast<int>(this->family))
-                                        + "\"");
+            throw std::invalid_argument("Invalid addr family \'" + std::to_string(static_cast<int>(this->family))
+                                        + "\'");
         }
         return s;
     }

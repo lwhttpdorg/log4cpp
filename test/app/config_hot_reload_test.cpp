@@ -208,8 +208,8 @@ TEST_F(log4cpp_config_hot_reload_test, multi_thread_signal_hotloading) {
             std::regex level_pattern(R"(\[(FATAL|ERROR|WARN|INFO|DEBUG|TRACE)\s*\])");
             if (std::regex_search(line, match, level_pattern)) {
                 std::string level_str = match[1];
-                // log_level level_from_string(const std::string &s)
-                auto level = log4cpp::level_from_string(level_str);
+                log4cpp::log_level level;
+                log4cpp::from_string(level_str, level);
                 ASSERT_LE(level, log4cpp::log_level::ERROR)
                     << "Log level of 'aaa' logger is higher than ERROR: " << line;
             }

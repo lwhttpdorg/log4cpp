@@ -267,8 +267,10 @@ namespace log4cpp::pattern {
         }
         // replace ${L} with log level, log level fixed length is 5, align left, fill with space
         if (_pattern.find(LOG_LEVEL) != std::string::npos) {
-            char log_level[6];
-            common::log4c_scnprintf(log_level, sizeof(log_level), "%-5s", level_to_string(level).c_str());
+            char log_level[16];
+            std::string level_str;
+            to_string(level, level_str);
+            common::log4c_scnprintf(log_level, sizeof(log_level), "%-5s", level_str.c_str());
             common::log4c_replace(buf, len, LOG_LEVEL, log_level);
         }
         if (_pattern.find(LOG_MESSAGE) != std::string::npos) {

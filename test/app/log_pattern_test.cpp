@@ -32,10 +32,12 @@ TEST(log_pattern_tests, full_format_test) {
     char thread_name[16];
     unsigned long tid = log4cpp::get_thread_name_id(th_name, sizeof(th_name));
     log4cpp::common::log4c_scnprintf(thread_name, sizeof(thread_name), "%08lu", tid);
-    log4cpp::common::log4c_scnprintf(
-        expected, sizeof(expected), "%-5.5s: %04d-%02d-%02d %02d:%02d:%02d:%03d [T%08s] [%-5s] -- %s\n", LOGGER_NAME,
-        now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, ms,
-        thread_name, log4cpp::level_to_string(level).c_str(), "hello");
+    std::string level_str;
+    log4cpp::to_string(level, level_str);
+    log4cpp::common::log4c_scnprintf(expected, sizeof(expected),
+                                     "%-5.5s: %04d-%02d-%02d %02d:%02d:%02d:%03d [T%08s] [%-5s] -- %s\n", LOGGER_NAME,
+                                     now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour,
+                                     now_tm.tm_min, now_tm.tm_sec, ms, thread_name, level_str.c_str(), "hello");
     // The length of "2025-11-27 19:07:24:401" is 23
     size_t datetime_str_len = 23;
     // Verify the datetime part
@@ -421,8 +423,10 @@ TEST(log_pattern_tests, thread_id_format_test) {
     else {
         len += log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-8.8s]", th_name);
     }
-    log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-5s] -- %s\n",
-                                     log4cpp::level_to_string(level).c_str(), "hello");
+    std::string level_str;
+    log4cpp::to_string(level, level_str);
+    log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-5s] -- %s\n", level_str.c_str(),
+                                     "hello");
     // The length of "2025-11-27 19:02:47:307" is 23
     size_t offset = 23;
     LOG4C_EXPECT_STR_EQ(actual + offset, expected + offset, "Thread id format mismatch");
@@ -437,8 +441,9 @@ TEST(log_pattern_tests, thread_id_format_test) {
     else {
         len += log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-8s]", th_name);
     }
-    log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-5s] -- %s\n",
-                                     log4cpp::level_to_string(level).c_str(), "hello");
+    log4cpp::to_string(level, level_str);
+    log4cpp::common::log4c_scnprintf(expected + len, sizeof(expected) - len, " [%-5s] -- %s\n", level_str.c_str(),
+                                     "hello");
     /* "2025-11-27 19:07:24:401 [T140737353070464] [INFO ] -- hello"
      * The length before "[T140737353070464]" is 24
      */
@@ -457,38 +462,39 @@ TEST(log_pattern_tests, log_level_format_test) {
     log4cpp::log_level level = log4cpp::log_level::FATAL;
     log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
     char expected[1024];
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n",
-                                     log4cpp::level_to_string(level).c_str(), message);
+    std::string level_str;
+    log4cpp::to_string(level, level_str);
+    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
     size_t offset = strlen(actual) - cmp_len;
     LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level FATAL format mismatch");
     // ERROR
     level = log4cpp::log_level::ERROR;
     log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n",
-                                     log4cpp::level_to_string(level).c_str(), message);
+    log4cpp::to_string(level, level_str);
+    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
     LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level ERROR format mismatch");
     // WARN
     level = log4cpp::log_level::WARN;
     log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n",
-                                     log4cpp::level_to_string(level).c_str(), message);
+    log4cpp::to_string(level, level_str);
+    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
     LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level WARN format mismatch");
     // INFO
     level = log4cpp::log_level::INFO;
     log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n",
-                                     log4cpp::level_to_string(level).c_str(), message);
+    log4cpp::to_string(level, level_str);
+    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
     LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level INFO format mismatch");
     // DEBUG
     level = log4cpp::log_level::DEBUG;
     log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n",
-                                     log4cpp::level_to_string(level).c_str(), message);
+    log4cpp::to_string(level, level_str);
+    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
     LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level DEBUG format mismatch");
     // TRACE
     level = log4cpp::log_level::TRACE;
     log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n",
-                                     log4cpp::level_to_string(level).c_str(), message);
+    log4cpp::to_string(level, level_str);
+    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
     LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level TRACE format mismatch");
 }
