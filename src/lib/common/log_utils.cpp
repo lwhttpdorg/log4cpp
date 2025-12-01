@@ -105,7 +105,7 @@ namespace log4cpp::common {
         va_start(args, fmt);
         log4c_vscnprintf(buffer + len, sizeof(buffer) - len, fmt, args);
         va_end(args);
-        fprintf(stream, buffer);
+        fprintf(stream, "%s", buffer);
         fflush(stream);
     }
 
