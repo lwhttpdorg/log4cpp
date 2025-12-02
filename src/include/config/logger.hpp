@@ -17,12 +17,12 @@ namespace log4cpp::config {
         /* appender flag */
         unsigned char appender{};
 
-        bool operator==(const logger &other) const noexcept {
-            return name == other.name && level == other.level && appender == other.appender;
+        friend bool operator==(const logger &lhs, const logger &rhs) {
+            return lhs.name == rhs.name && lhs.level == rhs.level && lhs.appender == rhs.appender;
         }
 
-        bool operator!=(const logger &other) const noexcept {
-            return !(*this == other);
+        friend bool operator!=(const logger &lhs, const logger &rhs) {
+            return !(lhs == rhs);
         }
     };
 

@@ -32,12 +32,12 @@ namespace log4cpp::config {
 
         [[nodiscard]] bool empty() const;
 
-        bool operator==(const log_appender &other) const noexcept {
-            return console == other.console && file == other.file && socket == other.socket;
+        friend bool operator==(const log_appender &lhs, const log_appender &rhs) {
+            return lhs.console == rhs.console && lhs.file == rhs.file && lhs.socket == rhs.socket;
         }
 
-        bool operator!=(const log_appender &other) const noexcept {
-            return !(*this == other);
+        friend bool operator!=(const log_appender &lhs, const log_appender &rhs) {
+            return !(lhs == rhs);
         }
     };
 
@@ -51,12 +51,12 @@ namespace log4cpp::config {
         log_appender appenders{}; // appenders
         std::vector<logger> loggers; // loggers
 
-        bool operator==(const log4cpp &other) const noexcept {
-            return log_pattern == other.log_pattern && appenders == other.appenders && loggers == other.loggers;
+        friend bool operator==(const log4cpp &lhs, const log4cpp &rhs) {
+            return lhs.log_pattern == rhs.log_pattern && lhs.appenders == rhs.appenders && lhs.loggers == rhs.loggers;
         }
 
-        bool operator!=(const log4cpp &other) const noexcept {
-            return !(*this == other);
+        friend bool operator!=(const log4cpp &lhs, const log4cpp &rhs) {
+            return !(lhs == rhs);
         }
 
         static std::string serialize(const log4cpp &cfg);

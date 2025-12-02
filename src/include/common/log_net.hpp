@@ -83,9 +83,11 @@ namespace log4cpp::common {
 
         explicit net_addr(const std::string &addr);
 
-        bool operator==(const net_addr &rhs) const;
+        friend bool operator==(const net_addr &lhs, const net_addr &rhs);
 
-        bool operator!=(const net_addr &rhs) const;
+        friend bool operator!=(const net_addr &lhs, const net_addr &rhs) {
+            return !(lhs == rhs);
+        }
 
         [[nodiscard]] std::string to_string() const;
 
@@ -101,15 +103,26 @@ namespace log4cpp::common {
         net_addr addr{};
         unsigned short port{0};
 
-        sock_addr();
+        sock_addr() {
+            addr = net_addr{};
+            port = 0;
+        }
 
-        explicit sock_addr(const char *ip, unsigned short p);
+        explicit sock_addr(const char *ip, unsigned short p) {
+            this->addr = net_addr(ip);
+            this->port = p;
+        }
 
-        explicit sock_addr(const std::string &ip, unsigned short p);
+        explicit sock_addr(const std::string &ip, unsigned short p) : sock_addr(ip.c_str(), p) {
+        }
 
-        bool operator==(const sock_addr &rhs) const;
+        friend bool operator==(const sock_addr &lhs, const sock_addr &rhs) {
+            return lhs.addr == rhs.addr && lhs.port == rhs.port;
+        }
 
-        bool operator!=(const sock_addr &rhs) const;
+        friend bool operator!=(const sock_addr &lhs, const sock_addr &rhs) {
+            return !(lhs == rhs);
+        }
 
         [[nodiscard]] std::string to_string() const {
             return addr.to_string() + "@" + std::to_string(port);
@@ -117,29 +130,29 @@ namespace log4cpp::common {
     };
 }
 
-namespace std {
-    template<>
-    struct hash<log4cpp::common::net_addr> {
-        std::size_t operator()(const log4cpp::common::net_addr &addr) const noexcept {
-            std::size_t h = 0;
-            if (addr.family == log4cpp::common::net_family::NET_IPv4) {
-                h = std::hash<unsigned int>{}(addr.ip.addr4);
-            }
-            else {
-                for (const auto x: addr.ip.addr6) {
-                    h ^= std::hash<unsigned int>{}(x);
-                }
-            }
-            return h;
-        }
-    };
+// namespace std {
+//     template<>
+//     struct hash<log4cpp::common::net_addr> {
+//         std::size_t operator()(const log4cpp::common::net_addr &addr) const noexcept {
+//             std::size_t h = 0;
+//             if (addr.family == log4cpp::common::net_family::NET_IPv4) {
+//                 h = std::hash<unsigned int>{}(addr.ip.addr4);
+//             }
+//             else {
+//                 for (const auto x: addr.ip.addr6) {
+//                     h ^= std::hash<unsigned int>{}(x);
+//                 }
+//             }
+//             return h;
+//         }
+//     };
 
-    template<>
-    struct hash<log4cpp::common::sock_addr> {
-        std::size_t operator()(const log4cpp::common::sock_addr &saddr) const noexcept {
-            std::size_t h = std::hash<log4cpp::common::net_addr>{}(saddr.addr);
-            h ^= std::hash<unsigned short>{}(saddr.port);
-            return h;
-        }
-    };
-}
+//     template<>
+//     struct hash<log4cpp::common::sock_addr> {
+//         std::size_t operator()(const log4cpp::common::sock_addr &saddr) const noexcept {
+//             std::size_t h = std::hash<log4cpp::common::net_addr>{}(saddr.addr);
+//             h ^= std::hash<unsigned short>{}(saddr.port);
+//             return h;
+//         }
+//     };
+// }

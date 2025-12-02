@@ -14,12 +14,11 @@ namespace log4cpp::config {
         /* The out stream, "stdout" or "stderr" */
         std::string out_stream{};
 
-        bool operator==(const console_appender &other) const noexcept {
-            return out_stream == other.out_stream;
+        friend bool operator==(const console_appender &lhs, const console_appender &rhs) {
+            return lhs.out_stream == rhs.out_stream;
         }
-
-        bool operator!=(const console_appender &other) const noexcept {
-            return !(*this == other);
+        friend bool operator!=(const console_appender &lhs, const console_appender &rhs) {
+            return !(lhs == rhs);
         }
     };
 
@@ -35,12 +34,11 @@ namespace log4cpp::config {
     public:
         std::string file_path;
 
-        bool operator==(const file_appender &other) const noexcept {
-            return file_path == other.file_path;
+        friend bool operator==(const file_appender &lhs, const file_appender &rhs) {
+            return lhs.file_path == rhs.file_path;
         }
-
-        bool operator!=(const file_appender &other) const noexcept {
-            return !(*this == other);
+        friend bool operator!=(const file_appender &lhs, const file_appender &rhs) {
+            return !(lhs == rhs);
         }
     };
 
@@ -60,12 +58,11 @@ namespace log4cpp::config {
         protocol proto{protocol::TCP};
         common::prefer_stack prefer{common::prefer_stack::AUTO};
 
-        bool operator==(const socket_appender &other) const noexcept {
-            return host == other.host && port == other.port && proto == other.proto && prefer == other.prefer;
+        friend bool operator==(const socket_appender &lhs, const socket_appender &rhs) {
+            return lhs.host == rhs.host && lhs.port == rhs.port && lhs.proto == rhs.proto && lhs.prefer == rhs.prefer;
         }
-
-        bool operator!=(const socket_appender &other) const noexcept {
-            return !(*this == other);
+        friend bool operator!=(const socket_appender &lhs, const socket_appender &rhs) {
+            return !(lhs == rhs);
         }
     };
 

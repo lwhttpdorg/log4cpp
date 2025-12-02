@@ -102,19 +102,15 @@ namespace log4cpp::common {
     net_addr::net_addr(const std::string &addr) : net_addr(addr.c_str()) {
     }
 
-    bool net_addr::operator==(const net_addr &rhs) const {
-        if (family != rhs.family) {
+    bool operator==(const net_addr &lhs, const net_addr &rhs) {
+        if (lhs.family != rhs.family) {
             return false;
         }
-        if (family == net_family::NET_IPv4) {
-            return ip.addr4 == rhs.ip.addr4;
+        if (lhs.family == net_family::NET_IPv4) {
+            return lhs.ip.addr4 == rhs.ip.addr4;
         }
-        return ip.addr6[0] == rhs.ip.addr6[0] && ip.addr6[1] == rhs.ip.addr6[1] && ip.addr6[2] == rhs.ip.addr6[2]
-               && ip.addr6[3] == rhs.ip.addr6[3];
-    }
-
-    bool net_addr::operator!=(const net_addr &rhs) const {
-        return !(rhs == *this);
+        return lhs.ip.addr6[0] == rhs.ip.addr6[0] && lhs.ip.addr6[1] == rhs.ip.addr6[1]
+               && lhs.ip.addr6[2] == rhs.ip.addr6[2] && lhs.ip.addr6[3] == rhs.ip.addr6[3];
     }
 
     std::string net_addr::to_string() const {
@@ -214,28 +210,7 @@ namespace log4cpp::common {
     }
 
     void from_json(const nlohmann::json &j, net_addr &addr) {
-        std::string s = j.get<std::string>();
+        const std::string s = j.get<std::string>();
         addr = net_addr(s);
-    }
-
-    sock_addr::sock_addr() {
-        addr = net_addr{};
-        port = 0;
-    }
-
-    sock_addr::sock_addr(const char *ip, unsigned short p) {
-        this->addr = net_addr(ip);
-        this->port = p;
-    }
-
-    sock_addr::sock_addr(const std::string &ip, unsigned short p) : sock_addr(ip.c_str(), p) {
-    }
-
-    bool sock_addr::operator==(const sock_addr &rhs) const {
-        return addr == rhs.addr && port == rhs.port;
-    }
-
-    bool sock_addr::operator!=(const sock_addr &rhs) const {
-        return !(rhs == *this);
     }
 }
