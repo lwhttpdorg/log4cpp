@@ -38,8 +38,8 @@ namespace log4cpp {
 
     /**
      * Convert string to log level.
-     * @param s: The string of log level.
-     * @return The log level.
+     * @param str: The string of log level.
+     * @param level: The log level.
      */
     void from_string(const std::string &str, log_level &level);
 

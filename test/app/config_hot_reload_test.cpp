@@ -16,7 +16,7 @@
 
 #include "log4cpp/log4cpp.hpp"
 
-std::atomic<int> config_epoch(0);
+std::atomic config_epoch(0);
 
 void write_config_file(const std::string &file_path, const std::string &json_content) {
     std::ofstream ofs(file_path);

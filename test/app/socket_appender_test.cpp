@@ -53,7 +53,11 @@ int main(int argc, char **argv) {
 
 void set_reuse_addr_port(log4cpp::common::socket_fd fd) {
     int reuse = 1;
+#ifdef _WIN32
+    int result = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&reuse), sizeof(reuse));
+#else
     int result = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+#endif
     if (result < 0) {
 #ifndef _WIN32
         log4cpp::common::log4c_debug(stderr, "[set_reuse_addr_port] setsockopt(SO_REUSEADDR) failed: %s\n",
@@ -195,7 +199,7 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     log4cpp::common::close_socket(client_fd);
     log4cpp::common::close_socket(server_fd);
     ASSERT_GE(expected_log_count, actual_log_count);
-    ASSERT_GT(actual_log_count, 0);
+    ASSERT_GT(actual_log_count, 0U);
     fflush(stdout);
 }
 
@@ -282,7 +286,7 @@ void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     log4cpp::common::shutdown_socket(server_fd);
     log4cpp::common::close_socket(server_fd);
     ASSERT_GE(expected_log_count, actual_log_count);
-    ASSERT_GT(actual_log_count, 0);
+    ASSERT_GT(actual_log_count, 0U);
     fflush(stdout);
 }
 

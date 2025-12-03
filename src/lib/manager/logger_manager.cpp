@@ -37,7 +37,7 @@ namespace log4cpp {
 #ifndef _WIN32
     void supervisor::sigusr2_handle([[maybe_unused]] int sig_num) {
 #ifdef _DEBUG
-        common::log4c_debug(stdout, "%s:%d, log4pp received hot reload trigger event\n", __func__, __LINE__);
+        common::log4c_debug(stdout, "[sigusr2_handle] log4pp received hot reload trigger event\n");
 #endif
         const logger_manager &logger_mgr = get_logger_manager();
         logger_mgr.notify_config_hot_reload();

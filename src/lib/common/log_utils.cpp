@@ -90,7 +90,7 @@ namespace log4cpp::common {
         return 0;
     }
 
-    void log4c_debug(FILE *__restrict__ stream, const char *__restrict__ fmt, ...) {
+    void log4c_debug(FILE *__restrict stream, const char *__restrict fmt, ...) {
         const std::time_t now = std::time(nullptr);
         char timebuf[32];
 #ifdef _WIN32

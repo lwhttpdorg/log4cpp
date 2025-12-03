@@ -177,7 +177,12 @@ namespace log4cpp::common {
         addrinfo *res = nullptr;
         int ret = getaddrinfo(host.c_str(), nullptr, &hints, &res);
         if (ret != 0) {
+#ifdef _WIN32
+            throw host_resolve_exception("Failed to resolve host: " + host
+                                         + ", error: " + std::to_string(WSAGetLastError()));
+#else
             throw host_resolve_exception("Failed to resolve host: " + host + ", error: " + gai_strerror(ret));
+#endif
         }
         addrinfo_guard res_guard(res);
 

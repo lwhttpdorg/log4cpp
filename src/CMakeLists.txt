@@ -12,6 +12,10 @@ endif ()
 # C++ standard scoped to target
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_17)
 
+if (CMAKE_HOST_WIN32)
+	target_compile_definitions(${TARGET_NAME} PRIVATE UNICODE _UNICODE)
+endif ()
+
 # Check if the generator is MSVC (Visual Studio)
 if (MSVC)
 	# Define _CRT_SECURE_NO_WARNINGS universally for MSVC to suppress C4996 warnings

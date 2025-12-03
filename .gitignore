@@ -39,4 +39,4 @@
 
 # CMake
 cmake-build-*
-build
+build*

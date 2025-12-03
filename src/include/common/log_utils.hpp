@@ -26,7 +26,7 @@ namespace log4cpp::common {
      */
     size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...);
 
-    void log4c_debug(FILE *__restrict__ stream, const char *__restrict__ fmt, ...);
+    void log4c_debug(FILE *__restrict stream, const char *__restrict fmt, ...);
 
     /**
      * Replace the first occurrence of target with replace in original
