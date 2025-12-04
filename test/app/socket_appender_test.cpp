@@ -42,6 +42,8 @@ public:
 };
 #endif
 
+enum class log_server_status { LOG_SERVER_AWAITING_STARTUP, LOG_SERVER_RUNNING, LOG_SERVER_FINISHED };
+
 int main(int argc, char **argv) {
 #ifdef _WIN32
     socket_init ws_init{};
@@ -96,10 +98,8 @@ void set_socket_recv_timeout(log4cpp::common::socket_fd sockfd) {
 #endif
 }
 
-void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer_stack prefer, unsigned short port,
-                         unsigned int expected_log_count) {
-    std::string prefer_str;
-    log4cpp::common::to_string(prefer, prefer_str);
+void tcp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common::prefer_stack prefer,
+                         unsigned short port, unsigned int expected_log_count) {
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (log4cpp::common::INVALID_FD == server_fd) {
@@ -108,12 +108,20 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     }
 
     sockaddr_storage local_addr{};
+    socklen_t addr_len = 0;
+#ifdef _DEBUG
+    char addr_str[INET6_ADDRSTRLEN];
+#endif
     if (prefer == log4cpp::common::prefer_stack::IPv6) {
         // NOLINTNEXTLINE
         sockaddr_in6 &local_addr6 = reinterpret_cast<sockaddr_in6 &>(local_addr);
         local_addr6.sin6_family = AF_INET6;
         local_addr6.sin6_addr = in6addr_any;
         local_addr6.sin6_port = htons(port);
+        addr_len = sizeof(sockaddr_in6);
+#ifdef _DEBUG
+        inet_ntop(AF_INET6, &local_addr6.sin6_addr, addr_str, sizeof(addr_str));
+#endif
     }
     else {
         // NOLINTNEXTLINE
@@ -121,12 +129,19 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
         local_addr4.sin_family = AF_INET;
         local_addr4.sin_addr.s_addr = INADDR_ANY;
         local_addr4.sin_port = htons(port);
+        addr_len = sizeof(sockaddr_in);
+#ifdef _DEBUG
+        inet_ntop(AF_INET, &local_addr4.sin_addr, addr_str, sizeof(addr_str));
+#endif
     }
+
+#ifdef _DEBUG
+    log4cpp::common::log4c_debug(stdout, "[tcp_socket_appender_test] bind %s@%u\n", addr_str, port);
+#endif
 
     set_reuse_addr_port(server_fd);
 
-    int val = bind(server_fd, reinterpret_cast<sockaddr *>(&local_addr),
-                   prefer == log4cpp::common::prefer_stack::IPv6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in));
+    int val = bind(server_fd, reinterpret_cast<sockaddr *>(&local_addr), addr_len);
     if (-1 == val) {
 #ifdef _WIN32
         int wsa_error = WSAGetLastError();
@@ -154,13 +169,6 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     }
 
     sockaddr_storage remote_addr{};
-    socklen_t addr_len = 0;
-    if (prefer == log4cpp::common::prefer_stack::IPv6) {
-        addr_len = sizeof(sockaddr_in6);
-    }
-    else {
-        addr_len = sizeof(sockaddr_in);
-    }
     log4cpp::common::socket_fd client_fd = accept(server_fd, reinterpret_cast<sockaddr *>(&remote_addr), &addr_len);
     if (log4cpp::common::INVALID_FD == client_fd) {
 #ifdef _WIN32
@@ -175,36 +183,90 @@ void tcp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
         return;
     }
     char buffer[1024];
+    std::string pending;
     unsigned int actual_log_count = 0;
     set_socket_recv_timeout(client_fd);
-    srv_running.store(true);
-    while (srv_running.load()) {
+    status.store(log_server_status::LOG_SERVER_RUNNING);
+    for (actual_log_count = 0; actual_log_count < expected_log_count;) {
         ssize_t len = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
         if (len > 0) {
             buffer[len] = 0;
-            ++actual_log_count;
-            printf("[tcp_socket_appender_test] [%u]: %s", actual_log_count, buffer);
+            pending.append(buffer, static_cast<size_t>(len));
+
+            size_t pos = 0;
+            while (true) {
+                size_t nl = pending.find('\n', pos);
+                if (nl == std::string::npos) break;
+
+                std::string line = pending.substr(pos, nl - pos);
+                if (!line.empty() && line.back() == '\r') line.pop_back();
+
+                ++actual_log_count;
+                printf("[tcp_socket_appender_test] [%u]: %s\n", actual_log_count, line.c_str());
+
+                pos = nl + 1;
+            }
+            pending.erase(0, pos);
         }
         else if (len == -1) {
             if (errno != EINTR) {
+#ifdef _DEBUG
+                log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] interrupted");
+#endif
                 break;
             }
         }
         else {
             // Connection closed by peer
+#ifdef _DEBUG
+            log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] recv failed! errno:%d,%s\n", errno,
+                                         strerror(errno));
+#endif
             break;
         }
     }
+    status.store(log_server_status::LOG_SERVER_FINISHED);
     log4cpp::common::shutdown_socket(client_fd);
     log4cpp::common::close_socket(client_fd);
     log4cpp::common::close_socket(server_fd);
-    ASSERT_GE(expected_log_count, actual_log_count);
-    ASSERT_GT(actual_log_count, 0U);
+    ASSERT_EQ(expected_log_count, actual_log_count);
     fflush(stdout);
 }
 
-void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer_stack prefer, unsigned short port,
-                         unsigned int expected_log_count) {
+TEST(socket_appender_test, tcp_socket_appender_test) {
+    const std::string config_file = "tcp_socket_appender_test.json";
+    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
+    ASSERT_NO_THROW(log_mgr.load_config(config_file));
+    const log4cpp::config::log4cpp *config = log_mgr.get_config();
+    const log4cpp::config::socket_appender &socker_appender_cfg = config->appenders.socket.value();
+    unsigned short port = socker_appender_cfg.port;
+    log4cpp::common::prefer_stack prefer = socker_appender_cfg.prefer;
+
+    std::atomic status(log_server_status::LOG_SERVER_AWAITING_STARTUP);
+
+    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
+    log4cpp::log_level max_level = log->get_level();
+    unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
+
+    std::thread log_server_thread =
+        std::thread(&tcp_log_server_loop, std::ref(status), prefer, port, expected_log_count);
+
+    while (log_server_status::LOG_SERVER_RUNNING != status.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    log->trace("this is a trace");
+    log->debug("this is a debug");
+    log->info("this is a info");
+    log->warn("this is an warning");
+    log->error("this is an error");
+    log->fatal("this is a fatal");
+
+    log_server_thread.join();
+}
+
+void udp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common::prefer_stack prefer,
+                         unsigned short port, unsigned int expected_log_count) {
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (log4cpp::common::INVALID_FD == server_fd) {
@@ -266,8 +328,8 @@ void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
     unsigned int actual_log_count = 0;
     sockaddr_storage remote_addr{};
     socklen_t remote_addr_len = sizeof(remote_addr);
-    srv_running.store(true);
-    while (srv_running.load()) {
+    status.store(log_server_status::LOG_SERVER_RUNNING);
+    for (actual_log_count = 0; actual_log_count < expected_log_count;) {
         ssize_t len = recvfrom(server_fd, buffer, sizeof(buffer) - 1, 0,
                                reinterpret_cast<struct sockaddr *>(&remote_addr), &remote_addr_len);
         if (len > 0) {
@@ -283,46 +345,11 @@ void udp_log_server_loop(std::atomic<bool> &srv_running, log4cpp::common::prefer
         // Since UDP is connectionless, a recvfrom return value of 0 signifies the successful receipt of a zero-length
         // datagram, and the program should continue its loop
     }
+    status.store(log_server_status::LOG_SERVER_FINISHED);
     log4cpp::common::shutdown_socket(server_fd);
     log4cpp::common::close_socket(server_fd);
-    ASSERT_GE(expected_log_count, actual_log_count);
-    ASSERT_GT(actual_log_count, 0U);
+    ASSERT_EQ(expected_log_count, actual_log_count);
     fflush(stdout);
-}
-
-TEST(socket_appender_test, tcp_socket_appender_test) {
-    const std::string config_file = "tcp_socket_appender_test.json";
-    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    ASSERT_NO_THROW(log_mgr.load_config(config_file));
-    const log4cpp::config::log4cpp *config = log_mgr.get_config();
-    const log4cpp::config::socket_appender &socker_appender_cfg = config->appenders.socket.value();
-    unsigned short port = socker_appender_cfg.port;
-    log4cpp::common::prefer_stack prefer = socker_appender_cfg.prefer;
-
-    std::atomic<bool> running(false);
-
-    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
-    log4cpp::log_level max_level = log->get_level();
-    unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
-
-    std::thread log_server_thread =
-        std::thread(&tcp_log_server_loop, std::ref(running), prefer, port, expected_log_count);
-
-    while (!running.load()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
-    log->trace("this is a trace");
-    log->debug("this is a debug");
-    log->info("this is a info");
-    log->warn("this is an warning");
-    log->error("this is an error");
-    log->fatal("this is a fatal");
-
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    running.store(false);
-    log_server_thread.join();
 }
 
 TEST(socket_appender_test, udp_socket_appender_test) {
@@ -334,14 +361,14 @@ TEST(socket_appender_test, udp_socket_appender_test) {
     unsigned short port = socker_appender_cfg.port;
     log4cpp::common::prefer_stack prefer = socker_appender_cfg.prefer;
 
-    std::atomic<bool> running(false);
+    std::atomic status(log_server_status::LOG_SERVER_AWAITING_STARTUP);
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
     log4cpp::log_level max_level = log->get_level();
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
     std::thread log_server_thread =
-        std::thread(&udp_log_server_loop, std::ref(running), prefer, port, expected_log_count);
-    while (!running.load()) {
+        std::thread(&udp_log_server_loop, std::ref(status), prefer, port, expected_log_count);
+    while (log_server_status::LOG_SERVER_RUNNING != status.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     log->trace("this is a trace");
@@ -350,6 +377,6 @@ TEST(socket_appender_test, udp_socket_appender_test) {
     log->warn("this is an warning");
     log->error("this is an error");
     log->fatal("this is a fatal");
-    running.store(false);
+
     log_server_thread.join();
 }
