@@ -2,7 +2,7 @@
 
 ---
 
-中文版本 | [English Education](README.md)
+中文版本 | [English Version](README.md)
 
 ---
 
@@ -28,9 +28,6 @@
         * [3.2.1.5. Socket输出器](#3215-socket输出器)
         * [3.2.1.6. logger](#3216-logger)
     * [3.3. 配置热加载](#33-配置热加载)
-  * [4. 构建](#4-构建)
-    * [4.1. 配置](#41-配置)
-      * [4.1.1. Windows](#411-windows)
       * [4.1.2. Linux](#412-linux)
     * [4.2. 构建](#42-构建)
     * [4.3. 测试](#43-测试)
@@ -56,9 +53,7 @@ log4cpp是一个C++日志库, 参照log4j实现
 
 1. 支持C++17及以上的C++编译器
 2. CMake 3.11及以上版本
-3. nlohmann-json >= 3.7
-
-_警告: 由于MSVC编译器的一些列bug, 本项目不再支持MSVC. 任何MSVC平台的错误都不再解决, 建议使用MingW64_
+3. nlohmann-json >= 3.0
 
 ## 3. 使用
 
@@ -306,8 +301,7 @@ root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 - `${s}`: 无补0的秒. 从1到59
 - `${ss}`: 有补0的秒. 从01到59
 - `${ms}`: 有补0的毫米. 从001到999
-- `${<n>TN}`: 线程名, 如`${8TN}`. `<n>`为线程名长度, 左对齐, 默认是16, 最大为16. 如果线程名为空, 使用"T+线程ID"代替, 如"
-  main", "T12345"
+- `${<n>TN}`: 线程名, 如`${8TN}`. `<n>`为线程名长度, 左对齐, 默认是16, 最大为16. 如果线程名为空, 使用"T+线程ID"代替, 如"main", "T12345"
 - `${<n>TH}`: 线程ID, 如`${8TH}`. `<n>`为线程ID位数, 左补0, 默认是8, 最大为8. 如"T12345"
 - `${L}`: 日志级别, 取值FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 - `${msg}`: 日志消息, 如"hello world!"
@@ -461,9 +455,11 @@ log4cpp::supervisor::enable_config_hot_loading(int sig = SIGHUP);
 ```shell
 kill -SIGHUP <PID>
 ```
+``` 
 
 此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。先前已经通过`log4cpp::logger_manager::get_logger()`获得的`std::shared_ptr<log4cpp::log::logger>`
 并不会立即失效并且可继续使用
+此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件。由于内部采用了代理模式，您之前通过 `get_logger()` 获取的 `std::shared_ptr` 依然有效且可以继续使用，它会自动将日志记录请求转发到新的、基于新配置的内部实现上。
 
 _注: `log4cpp::logger_manager::get_logger()`返回的`std::shared_ptr`可能不会发生变化，即使其内部代理对象已经改变_
 

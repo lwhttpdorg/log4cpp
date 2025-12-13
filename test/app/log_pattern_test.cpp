@@ -11,12 +11,6 @@
 
 #include "../include/log4cpp_test.h"
 
-int main(int argc, char **argv) {
-    const std::string cur_path = argv[0];
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
-
 TEST(log_pattern_tests, full_format_test) {
     const std::string pattern = "${5NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}";
     log4cpp::pattern::log_pattern::set_pattern(pattern);

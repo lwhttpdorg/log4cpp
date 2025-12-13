@@ -5,12 +5,6 @@
 
 #include "log4cpp/log4cpp.hpp"
 
-int main(int argc, char **argv) {
-    const std::string cur_path = argv[0];
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
-
 void console_appender_logger() {
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("hello");
     log->trace("this is a trace");

@@ -1,22 +1,23 @@
 # log4cpp
 
 ---
-[中文版本](README_ZH.md) | English Edition
+[中文版本](README_ZH.md) | English Version
 ---
 
 <!-- TOC -->
 * [log4cpp](#log4cpp)
-  * [中文版本 | English Edition](#中文版本--english-edition)
+  * [中文版本 | English Version](#中文版本--english-version)
   * [1. What is log4cpp?](#1-what-is-log4cpp)
   * [2. Requirements](#2-requirements)
   * [3. Usage](#3-usage)
     * [3.1. Quick Start](#31-quick-start)
       * [3.1.1. Create a CMake Project](#311-create-a-cmake-project)
       * [3.1.2. Include Header File](#312-include-header-file)
-      * [3.1.3. Get Logger](#313-get-logger)
-      * [3.1.4. Output Log](#314-output-log)
-      * [3.1.5. Use in a Class](#315-use-in-a-class)
-      * [3.1.6. Complete Example](#316-complete-example)
+      * [3.1.3. Load Configuration File (Optional)](#313-load-configuration-file-optional)
+      * [3.1.4. Get Logger](#314-get-logger)
+      * [3.1.5. Output Log](#315-output-log)
+      * [3.1.6. Use in a Class](#316-use-in-a-class)
+      * [3.1.7. Complete Example](#317-complete-example)
     * [3.2. Advanced Usage](#32-advanced-usage)
       * [3.2.1. Configuration File](#321-configuration-file)
         * [3.2.1.1. Log pattern](#3211-log-pattern)
@@ -54,7 +55,7 @@ Features:
 
 1. C++ compiler supporting C++17 or later
 2. CMake 3.11 or later
-3. nlohmann-json >= 3.7
+3. nlohmann-json >= 3.0
 
 ## 3. Usage
 
@@ -93,7 +94,7 @@ Header file:
 #include <log4cpp/log4cpp.hpp>
 ```
 
-3.1.3. Load Configuration File (Optional)
+#### 3.1.3. Load Configuration File (Optional)
 
 Configuration can be loaded in two ways:
 
@@ -108,7 +109,7 @@ auto &log_mgr = log4cpp::supervisor::get_logger_manager();
 log_mgr.load_config(config_file);
 ```
 
-#### 3.1.3. Get Logger
+#### 3.1.4. Get Logger
 
 Get the configured logger by name
 
@@ -123,7 +124,7 @@ You can specify a unique string, which can be output to the log (the length of t
 hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
 ```
 
-#### 3.1.4. Output Log
+#### 3.1.5. Output Log
 
 After getting the logger, you can use the following methods to output the log:
 
@@ -159,7 +160,7 @@ Description:
 - `DEBUG`: Debugging
 - `TRACE`: Tracing
 
-#### 3.1.5. Use in a Class
+#### 3.1.6. Use in a Class
 
 The logger object can also be used as a class member variable (or static member variable). Since it is a
 `std::shared_ptr`, all instances of the class will use the same logger
@@ -193,7 +194,7 @@ demo: 2025-11-29 20:06:47:652 [main    ] [INFO ] -- func(hello)
 demo: 2025-11-29 20:06:47:652 [main    ] [INFO ] -- destructor
 ```
 
-#### 3.1.6. Complete Example
+#### 3.1.7. Complete Example
 
 ```c++
 #include <thread>

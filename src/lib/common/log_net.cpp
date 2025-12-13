@@ -16,24 +16,36 @@
 
 namespace log4cpp::common {
 #ifdef _WIN32
-    // Windows socket initialization
+    /**
+     * @brief Helper class for Windows Sockets (Winsock) initialization and cleanup.
+     *
+     * Uses RAII to call WSAStartup() on construction and WSACleanup() on destruction,
+     * ensuring Winsock is properly initialized and deinitialized.
+     */
     class socket_init {
     public:
+        /// @brief Initializes Winsock.
         socket_init() {
             WSADATA wsa_data{};
             (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
         }
 
+        /// @brief Cleans up Winsock resources.
         ~socket_init() {
             WSACleanup();
         }
     };
 #endif
 #ifdef _WIN32
-    // Windows socket initialization
+    /// @brief Static instance of socket_init to ensure Winsock is initialized once.
     static socket_init net_init{};
 #endif
 
+    /**
+     * @brief Converts a prefer_stack enum value to its string representation.
+     * @param prefer The prefer_stack enum value.
+     * @param str The output string to store the result.
+     */
     void to_string(prefer_stack prefer, std::string &str) {
         switch (prefer) {
             case prefer_stack::IPv4:
@@ -46,11 +58,20 @@ namespace log4cpp::common {
                 str = "AUTO";
                 break;
             default:
+                // Should not happen with valid enum values.
                 str = "Unknown";
                 break;
         }
     }
 
+    /**
+     * @brief Converts a string to its corresponding prefer_stack enum value.
+     *
+     * The string comparison is case-insensitive.
+     * @param str The input string (e.g., "ipv4", "IPv6", "auto").
+     * @param prefer The output prefer_stack enum value.
+     * @throws std::invalid_argument if the input string does not match a valid prefer_stack.
+     */
     void from_string(const std::string &str, prefer_stack &prefer) {
         const auto prefer_str = to_lower(str);
         if (prefer_str == "ipv4") {
@@ -67,11 +88,17 @@ namespace log4cpp::common {
         }
     }
 
+    /// @brief Default constructor for net_addr, initializes to IPv4 with address 0.
     net_addr::net_addr() {
         this->family = net_family::NET_IPv4;
         this->ip.addr4 = 0;
     }
 
+    /**
+     * @brief Constructs a net_addr from a C-style string IP address.
+     * @param addr The IP address string (e.g., "192.168.1.1", "::1").
+     * @throws std::invalid_argument if the address string is not a valid IPv4 or IPv6 address.
+     */
     net_addr::net_addr(const char *addr) {
         in_addr addr4{};
         in6_addr addr6{};
@@ -81,27 +108,25 @@ namespace log4cpp::common {
         }
         else if (0 < inet_pton(AF_INET6, addr, &addr6)) {
             this->family = net_family::NET_IPv6;
-#if defined(__linux__)
-            this->ip.addr6[0] = addr6.s6_addr32[0];
-            this->ip.addr6[1] = addr6.s6_addr32[1];
-            this->ip.addr6[2] = addr6.s6_addr32[2];
-            this->ip.addr6[3] = addr6.s6_addr32[3];
-#endif
-#if defined(_WIN32)
-            this->ip.addr6[0] = addr6.u.Word[0];
-            this->ip.addr6[1] = addr6.u.Word[1];
-            this->ip.addr6[2] = addr6.u.Word[2];
-            this->ip.addr6[3] = addr6.u.Word[3];
-#endif
+            // Use memcpy for a portable, safe copy of the 16-byte IPv6 address.
+            std::memcpy(this->ip.addr6, &addr6, sizeof(this->ip.addr6));
         }
         else {
             throw std::invalid_argument("Invalid IP address string \'" + std::string{addr} + "\'");
         }
     }
 
+    /// @brief Constructs a net_addr from a std::string IP address.
+    /// @param addr The IP address string.
     net_addr::net_addr(const std::string &addr) : net_addr(addr.c_str()) {
     }
 
+    /**
+     * @brief Compares two net_addr objects for equality.
+     * @param lhs The left-hand side net_addr.
+     * @param rhs The right-hand side net_addr.
+     * @return True if the addresses are equal (same family and IP), false otherwise.
+     */
     bool operator==(const net_addr &lhs, const net_addr &rhs) {
         if (lhs.family != rhs.family) {
             return false;
@@ -109,10 +134,17 @@ namespace log4cpp::common {
         if (lhs.family == net_family::NET_IPv4) {
             return lhs.ip.addr4 == rhs.ip.addr4;
         }
+        // For IPv6, compare all 4 32-bit words.
+        // Note: This assumes a specific layout for addr6, which might vary slightly across platforms for `in6_addr`.
         return lhs.ip.addr6[0] == rhs.ip.addr6[0] && lhs.ip.addr6[1] == rhs.ip.addr6[1]
                && lhs.ip.addr6[2] == rhs.ip.addr6[2] && lhs.ip.addr6[3] == rhs.ip.addr6[3];
     }
 
+    /**
+     * @brief Converts the net_addr to its string representation.
+     * @return The IP address as a string.
+     * @throws std::invalid_argument if the address family is unknown.
+     */
     std::string net_addr::to_string() const {
         std::string s;
         if (this->family == net_family::NET_IPv4) {
@@ -132,35 +164,64 @@ namespace log4cpp::common {
         return s;
     }
 
+    /**
+     * @class addrinfo_guard
+     * @brief A RAII wrapper for `addrinfo` structures.
+     *
+     * Ensures that `freeaddrinfo()` is called when the object goes out of scope,
+     * preventing memory leaks from `getaddrinfo()`.
+     */
     class addrinfo_guard {
     public:
+        /// @brief Constructs the guard with a pointer to the `addrinfo` result.
         explicit addrinfo_guard(addrinfo *res) : res_(res) {
         }
+        /// @brief Destructor, calls `freeaddrinfo()` if `res_` is not null.
         ~addrinfo_guard() {
             if (res_) {
                 freeaddrinfo(res_);
             }
         }
+        // Delete copy and move constructors/assignment operators to ensure unique ownership.
         addrinfo_guard(const addrinfo_guard &) = delete;
         addrinfo_guard(addrinfo_guard &&) = delete;
         addrinfo_guard &operator=(const addrinfo_guard &) = delete;
         addrinfo_guard &operator=(addrinfo_guard &&) = delete;
 
     private:
+        /// @brief Pointer to the `addrinfo` structure.
         addrinfo *res_;
     };
 
-    net_addr net_addr::resolve(const std::string &host, prefer_stack prefer) {
-        // If host is an IP address, return it directly; otherwise, perform DNS resolution
-        // Check if host is an IP address
+    /**
+     * @brief Resolves a hostname to an IP address.
+     *
+     * First checks if the host string is already an IP address. If not, it performs
+     * DNS resolution using `getaddrinfo()`, respecting the `prefer_stack` setting.
+     * @param host The hostname or IP address string to resolve.
+     * @param prefer The preferred IP stack (IPv4, IPv6, or AUTO).
+     * @return A `net_addr` object representing the resolved IP address.
+     * @throws host_resolve_exception if resolution fails or no valid address is found.
+     */
+    // Helper function to try parsing an IP address without throwing exceptions.
+    bool try_parse(const std::string &host, net_addr &addr) {
         try {
-            net_addr addr(host);
-            return addr;
+            addr = net_addr(host);
+            return true;
         }
         catch (const std::invalid_argument &) {
-            // continue to DNS resolution
+            return false;
         }
-        // Not an IP address, perform DNS resolution
+    }
+
+    net_addr net_addr::resolve(const std::string &host, prefer_stack prefer) {
+        net_addr addr;
+        // First, check if the host string is already a valid IP address.
+        if (try_parse(host, addr)) {
+            return addr;
+        }
+
+        // If not, proceed with DNS resolution.
         addrinfo hints{};
         if (prefer == prefer_stack::IPv4) {
             hints.ai_family = AF_INET;
@@ -171,7 +232,7 @@ namespace log4cpp::common {
         else {
             hints.ai_family = AF_UNSPEC;
         }
-        // TCP or UDP
+        // Set socket type to SOCK_STREAM (TCP) as a default hint, though actual protocol is not used for resolution.
         hints.ai_socktype = SOCK_STREAM;
 
         addrinfo *res = nullptr;
@@ -184,9 +245,9 @@ namespace log4cpp::common {
             throw host_resolve_exception("Failed to resolve host: " + host + ", error: " + gai_strerror(ret));
 #endif
         }
+        // Use RAII guard to ensure freeaddrinfo is called.
         addrinfo_guard res_guard(res);
 
-        net_addr addr;
         bool resolved = false;
         for (const addrinfo *p = res; p != nullptr; p = p->ai_next) {
             if (p->ai_family == AF_INET) {
@@ -210,10 +271,20 @@ namespace log4cpp::common {
         return addr;
     }
 
+    /**
+     * @brief Serializes a net_addr object to JSON.
+     * @param j The JSON object to write to.
+     * @param addr The net_addr object to serialize.
+     */
     void to_json(nlohmann::json &j, const net_addr &addr) {
         j = addr.to_string();
     }
 
+    /**
+     * @brief Deserializes a net_addr object from JSON.
+     * @param j The JSON object to read from.
+     * @param addr The net_addr object to populate.
+     */
     void from_json(const nlohmann::json &j, net_addr &addr) {
         const std::string s = j.get<std::string>();
         addr = net_addr(s);

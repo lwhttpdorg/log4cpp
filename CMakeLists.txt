@@ -9,20 +9,13 @@ if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
 endif ()
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
-
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
-else ()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-endif ()
-
 # Options
 option(BUILD_LOG4CPP_DEMO "Build demo application" OFF)
 option(BUILD_LOG4CPP_TEST "Build test applications" OFF)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 
 # nlohmann_json
-find_package(nlohmann_json 3.7 REQUIRED)
+find_package(nlohmann_json 3.0 REQUIRED)
 
 # Helper: apply ASAN to a target (GNU/Clang only)
 function(apply_asan_to_target tgt)

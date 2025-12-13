@@ -16,12 +16,6 @@
 
 #include "config/log4cpp.hpp"
 
-int main(int argc, char **argv) {
-    const std::string cur_path = argv[0];
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
-
 void parse_json(const std::string &config_file, nlohmann::json &expected_json) {
     std::ifstream ifs(config_file);
     ASSERT_EQ(ifs.is_open(), true);

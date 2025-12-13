@@ -27,31 +27,36 @@ typedef SSIZE_T ssize_t;
 #include "common/log_net.hpp"
 #include "config/log4cpp.hpp"
 
+struct server_status {
+    enum class state { AWAITING_STARTUP, RUNNING, FINISHED, FAILED };
+    std::atomic<state> state{state::AWAITING_STARTUP};
+    std::string error_message;
+};
+
+namespace log4cpp::common {
+    inline int get_last_socket_error() {
 #ifdef _WIN32
-// Windows socket initialization
-class socket_init {
-public:
-    socket_init() {
+        return WSAGetLastError();
+#else
+        return errno;
+#endif
+    }
+}
+
+class SocketTest: public ::testing::Test {
+protected:
+    void SetUp() override {
+#ifdef _WIN32
         WSADATA wsa_data{};
         (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
+#endif
     }
-
-    ~socket_init() {
+    void TearDown() override {
+#ifdef _WIN32
         WSACleanup();
+#endif
     }
 };
-#endif
-
-enum class log_server_status { LOG_SERVER_AWAITING_STARTUP, LOG_SERVER_RUNNING, LOG_SERVER_FINISHED };
-
-int main(int argc, char **argv) {
-#ifdef _WIN32
-    socket_init ws_init{};
-#endif
-    const std::string cur_path = argv[0];
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
 
 void set_reuse_addr_port(log4cpp::common::socket_fd fd) {
     int reuse = 1;
@@ -98,13 +103,13 @@ void set_socket_recv_timeout(log4cpp::common::socket_fd sockfd) {
 #endif
 }
 
-void tcp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common::prefer_stack prefer,
-                         unsigned short port, unsigned int expected_log_count) {
+unsigned int tcp_log_server_loop(std::shared_ptr<server_status> status, log4cpp::common::prefer_stack prefer,
+                                 unsigned short port) {
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (log4cpp::common::INVALID_FD == server_fd) {
         log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] socket creation failed...\n");
-        return;
+        return 0;
     }
 
     sockaddr_storage local_addr{};
@@ -152,7 +157,9 @@ void tcp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common
                                      __LINE__, errno, strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
-        return;
+        status->error_message = "Server bind() failed.";
+        status->state.store(server_status::state::FAILED);
+        return 0;
     }
     val = listen(server_fd, 5);
     if (-1 == val) {
@@ -165,7 +172,9 @@ void tcp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common
                                      __LINE__, errno, strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
-        return;
+        status->error_message = "Server listen() failed.";
+        status->state.store(server_status::state::FAILED);
+        return 0;
     }
 
     sockaddr_storage remote_addr{};
@@ -180,14 +189,16 @@ void tcp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common
                                      __LINE__, errno, strerror(errno));
 #endif
         log4cpp::common::close_socket(server_fd);
-        return;
+        status->error_message = "Server accept() failed.";
+        status->state.store(server_status::state::FAILED);
+        return 0;
     }
     char buffer[1024];
     std::string pending;
     unsigned int actual_log_count = 0;
     set_socket_recv_timeout(client_fd);
-    status.store(log_server_status::LOG_SERVER_RUNNING);
-    for (actual_log_count = 0; actual_log_count < expected_log_count;) {
+    status->state.store(server_status::state::RUNNING);
+    while (true) {
         ssize_t len = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
         if (len > 0) {
             buffer[len] = 0;
@@ -209,12 +220,16 @@ void tcp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common
             pending.erase(0, pos);
         }
         else if (len == -1) {
-            if (errno != EINTR) {
+            int error = log4cpp::common::get_last_socket_error();
+            if (error != EINTR && error != EAGAIN && error != EWOULDBLOCK) {
 #ifdef _DEBUG
-                log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] interrupted");
+                log4cpp::common::log4c_debug(stderr, "[tcp_socket_appender_test] recv failed! errno:%d,%s\n", error,
+                                             strerror(error));
 #endif
-                break;
+                break; // Real error
             }
+            // Timeout or interrupt, break the loop to check if test is done
+            break;
         }
         else {
             // Connection closed by peer
@@ -225,33 +240,34 @@ void tcp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common
             break;
         }
     }
-    status.store(log_server_status::LOG_SERVER_FINISHED);
+    status->state.store(server_status::state::FINISHED);
     log4cpp::common::shutdown_socket(client_fd);
     log4cpp::common::close_socket(client_fd);
     log4cpp::common::close_socket(server_fd);
-    ASSERT_EQ(expected_log_count, actual_log_count);
     fflush(stdout);
+    return actual_log_count;
 }
 
-TEST(socket_appender_test, tcp_socket_appender_test) {
+TEST_F(SocketTest, tcp_socket_appender_test) {
     const std::string config_file = "tcp_socket_appender_test.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
+    ASSERT_TRUE(config->appenders.socket.has_value());
     const log4cpp::config::socket_appender &socker_appender_cfg = config->appenders.socket.value();
     unsigned short port = socker_appender_cfg.port;
     log4cpp::common::prefer_stack prefer = socker_appender_cfg.prefer;
 
-    std::atomic status(log_server_status::LOG_SERVER_AWAITING_STARTUP);
+    auto status = std::make_shared<server_status>();
+    unsigned int received_count = 0;
 
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
     log4cpp::log_level max_level = log->get_level();
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
-    std::thread log_server_thread =
-        std::thread(&tcp_log_server_loop, std::ref(status), prefer, port, expected_log_count);
+    std::thread log_server_thread([&]() { received_count = tcp_log_server_loop(status, prefer, port); });
 
-    while (log_server_status::LOG_SERVER_RUNNING != status.load()) {
+    while (status->state.load() == server_status::state::AWAITING_STARTUP) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
@@ -263,15 +279,17 @@ TEST(socket_appender_test, tcp_socket_appender_test) {
     log->fatal("this is a fatal");
 
     log_server_thread.join();
+    ASSERT_NE(status->state.load(), server_status::state::FAILED) << status->error_message;
+    ASSERT_EQ(expected_log_count, received_count);
 }
 
-void udp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common::prefer_stack prefer,
-                         unsigned short port, unsigned int expected_log_count) {
+unsigned int udp_log_server_loop(std::shared_ptr<server_status> status, log4cpp::common::prefer_stack prefer,
+                                 unsigned short port) {
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (log4cpp::common::INVALID_FD == server_fd) {
         log4cpp::common::log4c_debug(stderr, "[udp_socket_appender_test] socket creation failed...\n");
-        return;
+        return 0;
     }
 
     sockaddr_storage local_addr{};
@@ -317,8 +335,9 @@ void udp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common
         log4cpp::common::log4c_debug(stderr, "[udp_socket_appender_test] %s,L%d,bind failed! errno:%d,%s\n", __func__,
                                      __LINE__, errno, strerror(errno));
 #endif
-        log4cpp::common::close_socket(server_fd);
-        return;
+        status->error_message = "Server bind() failed.";
+        status->state.store(server_status::state::FAILED);
+        return 0;
     }
 
     log4cpp::common::log4c_debug(stdout, "[udp_socket_appender_test] UDP log server is running...\n");
@@ -328,8 +347,8 @@ void udp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common
     unsigned int actual_log_count = 0;
     sockaddr_storage remote_addr{};
     socklen_t remote_addr_len = sizeof(remote_addr);
-    status.store(log_server_status::LOG_SERVER_RUNNING);
-    for (actual_log_count = 0; actual_log_count < expected_log_count;) {
+    status->state.store(server_status::state::RUNNING);
+    while (true) {
         ssize_t len = recvfrom(server_fd, buffer, sizeof(buffer) - 1, 0,
                                reinterpret_cast<struct sockaddr *>(&remote_addr), &remote_addr_len);
         if (len > 0) {
@@ -338,39 +357,51 @@ void udp_log_server_loop(std::atomic<log_server_status> &status, log4cpp::common
             printf("[udp_socket_appender_test] [%u]: %s", actual_log_count, buffer);
         }
         else if (len == -1) {
-            if (errno != EINTR) {
-                break;
+            int error = log4cpp::common::get_last_socket_error();
+            if (error != EINTR && error != EAGAIN && error != EWOULDBLOCK) {
+#ifdef _DEBUG
+                log4cpp::common::log4c_debug(stderr, "[udp_socket_appender_test] recvfrom failed! errno:%d,%s\n", error,
+                                             strerror(error));
+#endif
+                break; // Real error
             }
+            // Timeout or interrupt, break the loop to allow test to finish
+            break;
         }
         // Since UDP is connectionless, a recvfrom return value of 0 signifies the successful receipt of a zero-length
         // datagram, and the program should continue its loop
     }
-    status.store(log_server_status::LOG_SERVER_FINISHED);
+    status->state.store(server_status::state::FINISHED);
     log4cpp::common::shutdown_socket(server_fd);
     log4cpp::common::close_socket(server_fd);
-    ASSERT_EQ(expected_log_count, actual_log_count);
     fflush(stdout);
+    return actual_log_count;
 }
 
-TEST(socket_appender_test, udp_socket_appender_test) {
+TEST_F(SocketTest, udp_socket_appender_test) {
     const std::string config_file = "udp_socket_appender_test.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
+    ASSERT_TRUE(config->appenders.socket.has_value());
     const log4cpp::config::socket_appender &socker_appender_cfg = config->appenders.socket.value();
     unsigned short port = socker_appender_cfg.port;
     log4cpp::common::prefer_stack prefer = socker_appender_cfg.prefer;
 
-    std::atomic status(log_server_status::LOG_SERVER_AWAITING_STARTUP);
+    auto status = std::make_shared<server_status>();
+    unsigned int received_count = 0;
+
     const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
     log4cpp::log_level max_level = log->get_level();
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
-    std::thread log_server_thread =
-        std::thread(&udp_log_server_loop, std::ref(status), prefer, port, expected_log_count);
-    while (log_server_status::LOG_SERVER_RUNNING != status.load()) {
+    std::thread log_server_thread([&]() { received_count = udp_log_server_loop(status, prefer, port); });
+
+    while (status->state.load() == server_status::state::AWAITING_STARTUP) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+    ASSERT_NE(status->state.load(), server_status::state::FAILED) << status->error_message;
+
     log->trace("this is a trace");
     log->debug("this is a debug");
     log->info("this is a info");
@@ -379,4 +410,6 @@ TEST(socket_appender_test, udp_socket_appender_test) {
     log->fatal("this is a fatal");
 
     log_server_thread.join();
+    ASSERT_NE(status->state.load(), server_status::state::FAILED) << status->error_message;
+    ASSERT_EQ(expected_log_count, received_count);
 }

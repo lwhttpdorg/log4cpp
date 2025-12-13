@@ -21,6 +21,12 @@
 
 namespace log4cpp {
     /************************thread name*************************/
+    /**
+     * @brief Gets the name and ID of the current thread in a platform-independent way.
+     * @param[out] thread_name Buffer to store the retrieved thread name.
+     * @param len The size of the thread_name buffer.
+     * @return The current thread's ID.
+     */
     unsigned long get_thread_name_id(char *thread_name, size_t len) {
         thread_name[0] = '\0';
 #ifdef _MSC_VER
@@ -49,6 +55,10 @@ namespace log4cpp {
         return tid;
     }
 
+    /**
+     * @brief Sets the name of the current thread in a platform-independent way.
+     * @param name The desired name for the thread.
+     */
     void set_thread_name(const char *name) {
 #ifdef _MSC_VER
         int size_needed = MultiByteToWideChar(CP_UTF8, 0, name, -1, nullptr, 0);
@@ -57,9 +67,8 @@ namespace log4cpp {
         SetThreadDescription(GetCurrentThread(), wchar_str.c_str());
 #endif
 #ifdef __GNUC__
-        char buf[16]; // 15 chars + '\0'
-        strncpy(buf, name, sizeof(buf) - 1);
-        buf[sizeof(buf) - 1] = '\0';
+        char buf[16]; // pthread_setname_np requires a buffer of 16 chars max.
+        common::log4c_scnprintf(buf, sizeof(buf), "%s", name);
         pthread_setname_np(pthread_self(), buf);
 #elif __linux__
         char buf[16];
@@ -71,6 +80,15 @@ namespace log4cpp {
 }
 
 namespace log4cpp::common {
+    /**
+     * @brief A safe wrapper around vsnprintf.
+     *
+     * @param buf The buffer to write to.
+     * @param size The size of the buffer.
+     * @param fmt The format string.
+     * @param args The va_list of arguments.
+     * @return The number of characters written, or 0 on error.
+     */
     size_t log4c_vscnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, va_list args) {
         int i = vsnprintf(buf, size, fmt, args);
         if (i > 0) {
@@ -79,6 +97,14 @@ namespace log4cpp::common {
         return 0;
     }
 
+    /**
+     * @brief A safe wrapper around snprintf with variadic arguments.
+     *
+     * @param buf The buffer to write to.
+     * @param size The size of the buffer.
+     * @param fmt The format string.
+     * @return The number of characters written, or 0 on error.
+     */
     size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...) {
         va_list args;
         va_start(args, fmt);
@@ -90,6 +116,11 @@ namespace log4cpp::common {
         return 0;
     }
 
+    /**
+     * @brief A simple internal debug logging function.
+     *
+     * Prints a timestamped debug message to the specified stream.
+     */
     void log4c_debug(FILE *__restrict stream, const char *__restrict fmt, ...) {
         const std::time_t now = std::time(nullptr);
         char timebuf[32];
@@ -109,6 +140,15 @@ namespace log4cpp::common {
         fflush(stream);
     }
 
+    /**
+     * @brief A safe, in-place string replacement function for C-style strings.
+     *
+     * Replaces the first occurrence of `target` with `replace` in the `original` buffer.
+     * Handles buffer size limits to prevent overflows.
+     * @param original The buffer containing the string to modify.
+     * @param length The total size of the `original` buffer.
+     * @return The new length of the string in the buffer.
+     */
     size_t log4c_replace(char *original, size_t length, const char *target, const char *replace) {
         size_t target_len = strlen(target);
         size_t replace_len = strlen(replace);
@@ -153,6 +193,11 @@ namespace log4cpp::common {
         return new_len;
     }
 
+    /**
+     * @brief A simple string replacement function for std::string.
+     *
+     * Replaces the first occurrence of `target` with `replace`.
+     */
     std::string log4c_replace(const std::string &original, const std::string &target, const std::string &replace) {
         std::string result = original;
         size_t pos = original.find(target);
@@ -162,6 +207,12 @@ namespace log4cpp::common {
         return result;
     }
 
+    /**
+     * @brief Gets the current system time with millisecond precision.
+     *
+     * @param[out] now_tm The output `tm` struct representing the current time.
+     * @param[out] ms The output millisecond part of the current time.
+     */
     void get_time_now(tm &now_tm, unsigned short &ms) {
         const auto now = std::chrono::system_clock::now();
         const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
@@ -174,15 +225,19 @@ namespace log4cpp::common {
         ms = static_cast<unsigned short>(now_ms.count());
     }
 
+    /// @brief Converts a string to lowercase.
     std::string to_lower(const std::string &s) {
         std::string result = s;
         std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
+        std::transform(result.begin(), result.end(), result.begin(), ::tolower);
         return result;
     }
 
+    /// @brief Converts a string to uppercase.
     std::string to_upper(const std::string &s) {
         std::string result = s;
         std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::toupper(c); });
+        std::transform(result.begin(), result.end(), result.begin(), ::toupper);
         return result;
     }
 }

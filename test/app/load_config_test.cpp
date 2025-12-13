@@ -16,12 +16,6 @@
 #include "common/log_net.hpp"
 #include "config/log4cpp.hpp"
 
-int main(int argc, char **argv) {
-    const std::string cur_path = argv[0];
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
-
 void log_pattern_check(const nlohmann::json &expected_json, const std::string &log_pattern) {
     const std::string expected = expected_json.at("log-pattern");
     EXPECT_EQ(log_pattern, expected);

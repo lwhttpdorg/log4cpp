@@ -6,7 +6,7 @@
 #include "log4cpp/log4cpp.hpp"
 
 namespace log4cpp {
-    /************************** log_level *****************************/
+    // String constants for each log level.
     const char *LOG_LEVEL_FATAL = "FATAL";
     const char *LOG_LEVEL_ERROR = "ERROR";
     const char *LOG_LEVEL_WARN = "WARN";
@@ -14,6 +14,11 @@ namespace log4cpp {
     const char *LOG_LEVEL_DEBUG = "DEBUG";
     const char *LOG_LEVEL_TRACE = "TRACE";
 
+    /**
+     * @brief Converts a log_level enum to its string representation.
+     * @param level The log level to convert.
+     * @param[out] str The output string.
+     */
     void to_string(log_level level, std::string &str) {
         switch (level) {
             case log_level::FATAL:
@@ -39,6 +44,12 @@ namespace log4cpp {
         }
     }
 
+    /**
+     * @brief Converts a string to its corresponding log_level enum.
+     * @param str The string to convert (case-insensitive).
+     * @param[out] level The output log_level.
+     * @throws std::invalid_argument if the string is not a valid log level.
+     */
     void from_string(const std::string &str, log_level &level) {
         std::string tmp = common::to_upper(str);
         if (tmp == LOG_LEVEL_FATAL) {

@@ -1,39 +1,40 @@
-set(TARGET_NAME log4cpp)
-
 # Sources
 file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib/*.cpp")
 
-add_library(${TARGET_NAME} SHARED ${SRC_FILES})
+add_library(log4cpp SHARED ${SRC_FILES})
 
 if (CMAKE_HOST_WIN32)
 	set_target_properties(log4cpp PROPERTIES GENERATE_EXPORT_HEADER ON WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif ()
 
 # C++ standard scoped to target
-target_compile_features(${TARGET_NAME} PUBLIC cxx_std_17)
+target_compile_features(log4cpp PUBLIC cxx_std_17)
+
+# Add _DEBUG definition for Debug builds
+target_compile_definitions(log4cpp PRIVATE $<$<CONFIG:Debug>:_DEBUG>)
 
 if (CMAKE_HOST_WIN32)
-	target_compile_definitions(${TARGET_NAME} PRIVATE UNICODE _UNICODE)
+	target_compile_definitions(log4cpp PRIVATE UNICODE _UNICODE)
 endif ()
 
 # Check if the generator is MSVC (Visual Studio)
 if (MSVC)
 	# Define _CRT_SECURE_NO_WARNINGS universally for MSVC to suppress C4996 warnings
-	target_compile_definitions(${TARGET_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
+	target_compile_definitions(log4cpp PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 	# Conditionally define the architecture macros based on the target platform size
 	# CMAKE_SIZEOF_VOID_P is 8 for 64-bit (x64/ARM64) and 4 for 32-bit (x86/ARM)
 	if (${CMAKE_SIZEOF_VOID_P} EQUAL 8)
 		# 64-bit architecture (x64)
-		target_compile_definitions(${TARGET_NAME} PRIVATE _AMD64_)
+		target_compile_definitions(log4cpp PRIVATE _AMD64_)
 	elseif (${CMAKE_SIZEOF_VOID_P} EQUAL 4)
 		# 32-bit architecture (x86)
-		target_compile_definitions(${TARGET_NAME} PRIVATE _X86_)
+		target_compile_definitions(log4cpp PRIVATE _X86_)
 	endif ()
 endif ()
 
 # Includes
-target_include_directories(${TARGET_NAME}
+target_include_directories(log4cpp
 		PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include> $<INSTALL_INTERFACE:include>
 		PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
@@ -41,16 +42,16 @@ target_include_directories(${TARGET_NAME}
 # Platform specifics
 if (CMAKE_HOST_WIN32)
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-		target_compile_definitions(${TARGET_NAME} PRIVATE WIN32_LEAN_AND_MEAN)
+		target_compile_definitions(log4cpp PRIVATE WIN32_LEAN_AND_MEAN)
 	endif ()
-	target_link_libraries(${TARGET_NAME} PRIVATE ws2_32)
+	target_link_libraries(log4cpp PRIVATE ws2_32)
 elseif (CMAKE_HOST_UNIX)
-	target_link_libraries(${TARGET_NAME} PRIVATE pthread)
+	target_link_libraries(log4cpp PRIVATE pthread)
 endif ()
 
 # GNU warnings
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	target_compile_options(${TARGET_NAME} PRIVATE
+	target_compile_options(log4cpp PRIVATE
 			-Wall -Wold-style-cast -Wextra -Wshadow -Wpointer-arith -Wwrite-strings
 			-Woverloaded-virtual -Wstringop-overflow -Wno-pessimizing-move
 			-Wno-uninitialized -Wno-unused-parameter -Wno-unused-function
@@ -58,20 +59,20 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	)
 endif ()
 
-target_link_libraries(${TARGET_NAME} PUBLIC nlohmann_json::nlohmann_json)
+target_link_libraries(log4cpp PUBLIC nlohmann_json::nlohmann_json)
 
 # Output dirs
-set_target_properties(${TARGET_NAME} PROPERTIES
+set_target_properties(log4cpp PROPERTIES
 		ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib
 		LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib
 		RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin
 )
 
 # Apply ASAN
-apply_asan_to_target(${TARGET_NAME})
+apply_asan_to_target(log4cpp)
 
 # Install rules
-install(TARGETS ${TARGET_NAME}
+install(TARGETS log4cpp
 		EXPORT log4cppTargets
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

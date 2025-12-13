@@ -29,47 +29,24 @@ const char *CONFIG_FILE_v1 = "config_hot_reload_test_v1.json";
 const char *CONFIG_FILE_v2 = "config_hot_reload_test_v2.json";
 const char *LOG_V1_FILE = "log_v1.log";
 const char *LOG_V2_FILE = "log_v2.log";
-
-int main(int argc, char **argv) {
-    const std::string cur_path = argv[0];
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
-
 class log4cpp_config_hot_reload_test: public ::testing::Test {
 protected:
     void SetUp() override {
-        std::remove(HOT_RELOAD_CONFIG);
-        // Delete log files
-        std::remove(LOG_V1_FILE);
-        std::remove(LOG_V2_FILE);
+        cleanup();
         config_epoch.store(0);
     }
 
     void TearDown() override {
-        std::remove(HOT_RELOAD_CONFIG);
-        // Delete log files
-        std::remove(LOG_V1_FILE);
-        std::remove(LOG_V2_FILE);
+        cleanup();
+    }
+
+    void cleanup() {
+        // Clean up files that might be left over from previous runs
+        std::filesystem::remove(HOT_RELOAD_CONFIG);
+        std::filesystem::remove(LOG_V1_FILE);
+        std::filesystem::remove(LOG_V2_FILE);
     }
 };
-
-void write_test_config_file(const std::string &src_file, const std::string &dst_file) {
-    // Open source file in binary mode
-    std::ifstream src(src_file, std::ios::binary);
-    if (!src) {
-        throw std::runtime_error("Failed to open source file: " + src_file);
-    }
-
-    // Open destination file in binary mode, overwrite existing content
-    std::ofstream dst(dst_file, std::ios::binary | std::ios::trunc);
-    if (!dst) {
-        throw std::runtime_error("Failed to open destination file: " + dst_file);
-    }
-
-    // Copy content from source to destination
-    dst << src.rdbuf();
-}
 
 std::atomic<bool> finished(false);
 
@@ -126,7 +103,7 @@ void worker_thread_logging_routine_type3(int id) {
 
 TEST_F(log4cpp_config_hot_reload_test, multi_thread_signal_hotloading) {
     // Read CONFIG_FILE_v1 and write it to HOT_RELOAD_CONFIG.
-    write_test_config_file(CONFIG_FILE_v1, HOT_RELOAD_CONFIG);
+    std::filesystem::copy(CONFIG_FILE_v1, HOT_RELOAD_CONFIG, std::filesystem::copy_options::overwrite_existing);
 
     // Load initial config and enable hot-loading
     auto &manager = log4cpp::supervisor::get_logger_manager();
@@ -153,7 +130,7 @@ TEST_F(log4cpp_config_hot_reload_test, multi_thread_signal_hotloading) {
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
     // Read CONFIG_FILE_v2 and write it to HOT_RELOAD_CONFIG
-    write_test_config_file(CONFIG_FILE_v2, HOT_RELOAD_CONFIG);
+    std::filesystem::copy(CONFIG_FILE_v2, HOT_RELOAD_CONFIG, std::filesystem::copy_options::overwrite_existing);
 
     // Send SIGHUP signal to trigger hot-loading
     pid_t pid = getpid();

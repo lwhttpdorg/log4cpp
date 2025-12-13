@@ -8,6 +8,7 @@
 #include "pattern/log_pattern.hpp"
 
 namespace log4cpp::pattern {
+    // The global log format pattern string.
     std::string log_pattern::_pattern = DEFAULT_LOG_PATTERN;
 
     void log_pattern::set_pattern(const std::string &pattern) {
@@ -15,55 +16,78 @@ namespace log4cpp::pattern {
     }
 
     /* The regular expression to match the logger name pattern, e.g. ${8NM}. default width is 8, max width is 16. */
+    // Regex to match the logger name pattern, e.g., ${8NM}. Default width is 8, max is 64.
     const std::regex LOGGER_NAME_REGEX(R"(\$\{(\d{1,2})?NM\})");
     /* A two digit representation of a year. e.g. 99 or 03 */
+    // A two-digit representation of a year, e.g., 99 or 03.
     const char *SHORT_YEAR = "${yy}";
     /* A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999, 2003,
      * 10191 */
+    // A full numeric representation of a year (at least 4 digits), with a '-' for BCE years. e.g., 1999, 2003, -0055.
     const char *FULL_YEAR = "${yyyy}";
     /* Numeric representation of a month, without leading zeros. 1 through 12 */
+    // Numeric representation of a month, without leading zeros (1-12).
     const char *SHORT_MONTH = "${M}";
     /* Numeric representation of a month, with leading zeros. 01 through 12 */
+    // Numeric representation of a month, with leading zeros (01-12).
     const char *FULL_MONTH = "${MM}";
     /* A short textual representation of a month, three letters. Jan through Dec */
+    // A short textual representation of a month (Jan-Dec).
     const char *ABBR_MONTH = "${MMM}";
     /* Day of the month without leading zeros. 1 to 31 */
+    // Day of the month without leading zeros (1-31).
     const char *SHORT_DAY = "${d}";
     /* Day of the month, 2 digits with leading zeros. 01 to 31 */
+    // Day of the month, 2 digits with leading zeros (01-31).
     const char *FULL_DAY = "${dd}";
     /* 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem. 0 through 12
      * e.g. AM 01 or PM 11 */
+    // 12-hour format of an hour without leading zeros (0-12), with uppercase AM/PM.
     const char *SHORT_12HOUR = "${h}";
     /* 12-hour format of an hour with leading zeros, with Uppercase Ante meridiem and Post meridiem. 00 through 12 e.g.
      * AM 01 or PM 11 */
+    // 12-hour format of an hour with leading zeros (00-12), with uppercase AM/PM, e.g., 01 AM.
     const char *FULL_12HOUR = "${hh}";
     /* 24-hour format of an hour without leading zeros, 0 through 23. e.g. 1 or 23 */
+    // 24-hour format of an hour without leading zeros, e.g., 1, 23.
     const char *SHORT_24HOUR = "${H}";
     /* 24-hour format of an hour with leading zeros. 00 through 23. e.g. 01 or 23 */
+    // 24-hour format of an hour with leading zeros, e.g., 01, 23.
     const char *FULL_24HOUR = "${HH}";
     /* Minutes without leading zeros. 1 to 59 */
+    // Minutes without leading zeros (1-59).
     const char *SHORT_MINUTES = "${m}";
     /* Minutes with leading zeros. 01 to 59 */
+    // Minutes with leading zeros (01-59).
     const char *FULL_MINUTES = "${mm}";
     /* Seconds without leading zeros. 1 to 59 */
+    // Seconds without leading zeros (1-59).
     const char *SHORT_SECOND = "${s}";
     /* Seconds with leading zeros. 01 to 59 */
+    // Seconds with leading zeros (01-59).
     const char *FULL_SECOND = "${ss}";
     /* Milliseconds with leading zeros. 001 to 999 */
+    // Milliseconds with leading zeros (001-999).
     const char *MILLISECOND = "${ms}";
     /* The regular expression to match the thread name pattern, e.g. ${8TN}. default width is 8, max width is 16. e.g.
      * "main". If the name is empty, use thread id instead */
+    // Regex to match the thread name pattern, e.g., ${8TN}. If name is empty, use thread ID.
     const std::regex THREAD_NAME_REGEX(R"(\$\{(\d{1,2})?TN\})");
     /* The regular expression to match the thread id pattern, e.g. ${8TH}. default width is 8, max width is 8. e.g.
      * T12345 */
+    // Regex to match the thread ID pattern, e.g., ${8TH}.
     const std::regex THREAD_ID_REGEX(R"(\$\{(\d{1,2})?TH\})");
     /* Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE */
+    // Log level, e.g., FATAL, ERROR, INFO.
     const char *LOG_LEVEL = "${L}";
     /* Log message, e.g.: hello world! */
+    // The log message body.
     const char *LOG_MESSAGE = "${msg}";
 
+    // Internal enum to determine hour format.
     enum class HOUR_BASE { HOUR_NONE, HOUR_12, HOUR_24 };
 
+    // Formats date-related placeholders (year, month, day).
     void format_day(char *buf, size_t len, const std::string &pattern, const tm &now_tm) {
         common::log4c_scnprintf(buf, len, "%s", pattern.c_str());
         if (pattern.find(SHORT_YEAR) != std::string::npos) {
@@ -101,6 +125,7 @@ namespace log4cpp::pattern {
         }
     }
 
+    // Formats time-related placeholders (hour, minute, second, millisecond, AM/PM).
     void format_time(char *buf, size_t len, const std::string &pattern, const tm &now_tm, unsigned short ms) {
         HOUR_BASE hour_base = HOUR_BASE::HOUR_NONE;
         char time_str[16];
@@ -196,11 +221,13 @@ namespace log4cpp::pattern {
         common::log4c_replace(buf, len, replace_str, time_str);
     }
 
+    // Formats both date and time placeholders.
     void format_daytime(char *buf, size_t len, const std::string &pattern, const tm &now_tm, unsigned short ms) {
         format_day(buf, len, pattern, now_tm);
         format_time(buf, len, pattern, now_tm, ms);
     }
 
+    // Formats all parts of a log message according to the global `_pattern`.
     size_t log_pattern::format_with_pattern(char *buf, size_t len, const char *name, log_level level, const char *msg) {
         tm now_tm{};
         unsigned short ms;
@@ -209,6 +236,7 @@ namespace log4cpp::pattern {
         format_daytime(buf, len, _pattern, now_tm, ms);
 
         // replace ${\d+NM} with logger name
+        // Replace `${...NM}` with the logger name.
         if (std::smatch match; std::regex_search(_pattern, match, LOGGER_NAME_REGEX)) {
             size_t width = LOGGER_NAME_DEFAULT_LEN;
             if (match[1].matched) {
@@ -225,6 +253,7 @@ namespace log4cpp::pattern {
             common::log4c_replace(buf, len, full_match_str.c_str(), logger_name);
         }
 
+        // Replace `${...TN}` with the thread name or ID.
         if (std::smatch match; std::regex_search(_pattern, match, THREAD_NAME_REGEX)) {
             size_t width = THREAD_NAME_DEFAULT_LEN;
             if (match[1].matched) {
@@ -246,6 +275,8 @@ namespace log4cpp::pattern {
             const std::string full_match_str = match[0];
             common::log4c_replace(buf, len, full_match_str.c_str(), thread_name);
         }
+
+        // Replace `${...TH}` with the thread ID.
         if (std::smatch match; std::regex_search(_pattern, match, THREAD_ID_REGEX)) {
             size_t width = THREAD_ID_WIDTH_MAX;
             if (match[1].matched) {
@@ -266,6 +297,8 @@ namespace log4cpp::pattern {
             common::log4c_replace(buf, len, full_match_str.c_str(), thread_id);
         }
         // replace ${L} with log level, log level fixed length is 5, align left, fill with space
+
+        // Replace `${L}` with the log level (fixed width, left-aligned).
         if (_pattern.find(LOG_LEVEL) != std::string::npos) {
             char log_level[16];
             std::string level_str;
@@ -273,12 +306,15 @@ namespace log4cpp::pattern {
             common::log4c_scnprintf(log_level, sizeof(log_level), "%-5s", level_str.c_str());
             common::log4c_replace(buf, len, LOG_LEVEL, log_level);
         }
+
+        // Replace `${msg}` with the final log message.
         if (_pattern.find(LOG_MESSAGE) != std::string::npos) {
             common::log4c_replace(buf, len, LOG_MESSAGE, msg);
         }
         return 0;
     }
 
+    // Public formatting interface (va_list version).
     size_t log_pattern::format(char *buf, size_t buf_len, const char *name, log_level level, const char *fmt,
                                va_list args) {
         char message[LOG_LINE_MAX];
@@ -291,6 +327,7 @@ namespace log4cpp::pattern {
         return used_len;
     }
 
+    // Public formatting interface (variadic version).
     size_t log_pattern::format(char *buf, size_t buf_len, const char *name, log_level level, const char *fmt, ...) {
         char message[LOG_LINE_MAX];
         message[0] = '\0';
