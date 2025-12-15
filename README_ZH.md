@@ -68,14 +68,12 @@ cmake_minimum_required(VERSION 3.11)
 
 project(log4cpp-demo)
 
-set(TARGET_NAME demo)
-
-add_executable(${TARGET_NAME} main.cpp)
+add_executable(demo main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.2)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.3)
 FetchContent_MakeAvailable(log4cpp)
-target_link_libraries(${TARGET_NAME} log4cpp)
+target_link_libraries(demo log4cpp)
 ```
 
 #### 3.1.2. 引入头文件
