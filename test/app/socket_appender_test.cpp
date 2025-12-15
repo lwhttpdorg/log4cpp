@@ -44,7 +44,7 @@ namespace log4cpp::common {
     }
 }
 
-class socket_appender_test: public ::testing::Test {
+class socket_appender_test: public testing::Test {
 protected:
     void SetUp() override {
 #ifdef _WIN32
@@ -267,7 +267,7 @@ TEST_F(socket_appender_test, tcp_socket_appender_test) {
     log4cpp::log_level max_level = log->get_level();
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
-    std::thread log_server_thread([&]() { received_count = tcp_log_server_loop(std::cref(status), prefer, port); });
+    std::thread log_server_thread([&] { received_count = tcp_log_server_loop(std::cref(status), prefer, port); });
 
     while (status->state.load() == server_status::state::AWAITING_STARTUP) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -398,7 +398,7 @@ TEST_F(socket_appender_test, udp_socket_appender_test) {
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
     std::thread log_server_thread(
-        [&]() { received_count = udp_log_server_loop(std::cref(status), prefer, port, expected_log_count); });
+        [&] { received_count = udp_log_server_loop(std::cref(status), prefer, port, expected_log_count); });
 
     while (status->state.load() == server_status::state::AWAITING_STARTUP) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

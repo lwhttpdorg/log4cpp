@@ -29,7 +29,7 @@ const char *CONFIG_FILE_v1 = "config_hot_reload_test_v1.json";
 const char *CONFIG_FILE_v2 = "config_hot_reload_test_v2.json";
 const char *LOG_V1_FILE = "log_v1.log";
 const char *LOG_V2_FILE = "log_v2.log";
-class log4cpp_config_hot_reload_test: public ::testing::Test {
+class log4cpp_config_hot_reload_test: public testing::Test {
 protected:
     void SetUp() override {
         cleanup();
