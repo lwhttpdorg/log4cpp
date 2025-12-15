@@ -29,6 +29,7 @@ typedef SSIZE_T ssize_t;
 
 struct server_status {
     enum class state { AWAITING_STARTUP, RUNNING, FINISHED, FAILED };
+
     std::atomic<state> state{state::AWAITING_STARTUP};
     std::string error_message;
 };
@@ -43,7 +44,7 @@ namespace log4cpp::common {
     }
 }
 
-class SocketTest: public ::testing::Test {
+class socket_appender_test: public ::testing::Test {
 protected:
     void SetUp() override {
 #ifdef _WIN32
@@ -51,6 +52,7 @@ protected:
         (void)WSAStartup(MAKEWORD(2, 2), &wsa_data);
 #endif
     }
+
     void TearDown() override {
 #ifdef _WIN32
         WSACleanup();
@@ -103,7 +105,7 @@ void set_socket_recv_timeout(log4cpp::common::socket_fd sockfd) {
 #endif
 }
 
-unsigned int tcp_log_server_loop(std::shared_ptr<server_status> status, log4cpp::common::prefer_stack prefer,
+unsigned int tcp_log_server_loop(const std::shared_ptr<server_status> &status, log4cpp::common::prefer_stack prefer,
                                  unsigned short port) {
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -248,7 +250,7 @@ unsigned int tcp_log_server_loop(std::shared_ptr<server_status> status, log4cpp:
     return actual_log_count;
 }
 
-TEST_F(SocketTest, tcp_socket_appender_test) {
+TEST_F(socket_appender_test, tcp_socket_appender_test) {
     const std::string config_file = "tcp_socket_appender_test.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
@@ -265,7 +267,7 @@ TEST_F(SocketTest, tcp_socket_appender_test) {
     log4cpp::log_level max_level = log->get_level();
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
-    std::thread log_server_thread([&]() { received_count = tcp_log_server_loop(status, prefer, port); });
+    std::thread log_server_thread([&]() { received_count = tcp_log_server_loop(std::cref(status), prefer, port); });
 
     while (status->state.load() == server_status::state::AWAITING_STARTUP) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -283,7 +285,7 @@ TEST_F(SocketTest, tcp_socket_appender_test) {
     ASSERT_EQ(expected_log_count, received_count);
 }
 
-unsigned int udp_log_server_loop(std::shared_ptr<server_status> status, log4cpp::common::prefer_stack prefer,
+unsigned int udp_log_server_loop(const std::shared_ptr<server_status> &status, log4cpp::common::prefer_stack prefer,
                                  unsigned short port, unsigned int expected_count) {
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -378,7 +380,7 @@ unsigned int udp_log_server_loop(std::shared_ptr<server_status> status, log4cpp:
     return actual_log_count;
 }
 
-TEST_F(SocketTest, udp_socket_appender_test) {
+TEST_F(socket_appender_test, udp_socket_appender_test) {
     const std::string config_file = "udp_socket_appender_test.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
@@ -396,7 +398,7 @@ TEST_F(SocketTest, udp_socket_appender_test) {
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
     std::thread log_server_thread(
-        [&]() { received_count = udp_log_server_loop(status, prefer, port, expected_log_count); });
+        [&]() { received_count = udp_log_server_loop(std::cref(status), prefer, port, expected_log_count); });
 
     while (status->state.load() == server_status::state::AWAITING_STARTUP) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
