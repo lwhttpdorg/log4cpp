@@ -37,6 +37,7 @@ namespace log4cpp::appender {
         std::string host;
         unsigned short port{0};
         config::socket_appender::protocol proto;
+        common::prefer_stack ip_stack;
 
         std::shared_mutex connection_rw_lock;
         common::socket_fd sock_fd; // Socket file descriptor

@@ -10,8 +10,8 @@
 		"socket": {
 			"host": "localhost",
 			"port": 9443,
-			"protocol": "udp",
-			"prefer-stack": "IPv6"
+			"protocol": "tcp",
+			"prefer-stack": "IPv4"
 		}
 	},
 	"loggers": [

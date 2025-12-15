@@ -5,7 +5,7 @@
 
 #include "log4cpp/log4cpp.hpp"
 
-namespace log4cpp::log {
+namespace log4cpp {
     /**
      * @class logger_proxy
      * @brief A proxy that forwards logging calls to a real logger implementation.

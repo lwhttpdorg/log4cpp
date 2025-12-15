@@ -74,74 +74,72 @@ namespace log4cpp {
         class log_appender;
     }
 
-    namespace log {
+    /**
+     * @class logger
+     * @brief The abstract base class (interface) for a logger.
+     *
+     * Defines the core functionality that all concrete logger implementations must provide.
+     */
+    class logger {
+    public:
+        virtual ~logger() = default;
+
+        [[nodiscard]] virtual std::string get_name() const = 0;
+        virtual void set_name(const std::string &name) = 0;
+
+        [[nodiscard]] virtual log_level get_level() const = 0;
+        virtual void set_level(log_level level) = 0;
+
         /**
-         * @class logger
-         * @brief The abstract base class (interface) for a logger.
-         *
-         * Defines the core functionality that all concrete logger implementations must provide.
+         * @brief Logs a formatted message with a specific log level.
+         * @param _level The log level.
+         * @param fmt The C-style format string.
+         * @param args The list of arguments matching the format string.
          */
-        class logger {
-        public:
-            virtual ~logger() = default;
+        virtual void log(log_level _level, const char *__restrict fmt, va_list args) const = 0;
 
-            [[nodiscard]] virtual std::string get_name() const = 0;
-            virtual void set_name(const std::string &name) = 0;
+        /**
+         * @brief Logs a message at the FATAL level.
+         * @param fmt The C-style format string.
+         * @param ... Variable arguments.
+         */
+        virtual void fatal(const char *__restrict fmt, ...) const = 0;
 
-            [[nodiscard]] virtual log_level get_level() const = 0;
-            virtual void set_level(log_level level) = 0;
+        /**
+         * @brief Logs a message at the ERROR level.
+         * @param fmt The C-style format string.
+         * @param ... Variable arguments.
+         */
+        virtual void error(const char *__restrict fmt, ...) const = 0;
 
-            /**
-             * @brief Logs a formatted message with a specific log level.
-             * @param _level The log level.
-             * @param fmt The C-style format string.
-             * @param args The list of arguments matching the format string.
-             */
-            virtual void log(log_level _level, const char *__restrict fmt, va_list args) const = 0;
+        /**
+         * @brief Logs a message at the WARN level.
+         * @param fmt The C-style format string.
+         * @param ... Variable arguments.
+         */
+        virtual void warn(const char *__restrict fmt, ...) const = 0;
 
-            /**
-             * @brief Logs a message at the FATAL level.
-             * @param fmt The C-style format string.
-             * @param ... Variable arguments.
-             */
-            virtual void fatal(const char *__restrict fmt, ...) const = 0;
+        /**
+         * @brief Logs a message at the INFO level.
+         * @param fmt The C-style format string.
+         * @param ... Variable arguments.
+         */
+        virtual void info(const char *__restrict fmt, ...) const = 0;
 
-            /**
-             * @brief Logs a message at the ERROR level.
-             * @param fmt The C-style format string.
-             * @param ... Variable arguments.
-             */
-            virtual void error(const char *__restrict fmt, ...) const = 0;
+        /**
+         * @brief Logs a message at the DEBUG level.
+         * @param fmt The C-style format string.
+         * @param ... Variable arguments.
+         */
+        virtual void debug(const char *__restrict fmt, ...) const = 0;
 
-            /**
-             * @brief Logs a message at the WARN level.
-             * @param fmt The C-style format string.
-             * @param ... Variable arguments.
-             */
-            virtual void warn(const char *__restrict fmt, ...) const = 0;
-
-            /**
-             * @brief Logs a message at the INFO level.
-             * @param fmt The C-style format string.
-             * @param ... Variable arguments.
-             */
-            virtual void info(const char *__restrict fmt, ...) const = 0;
-
-            /**
-             * @brief Logs a message at the DEBUG level.
-             * @param fmt The C-style format string.
-             * @param ... Variable arguments.
-             */
-            virtual void debug(const char *__restrict fmt, ...) const = 0;
-
-            /**
-             * @brief Logs a message at the TRACE level.
-             * @param fmt The C-style format string.
-             * @param ... Variable arguments.
-             */
-            virtual void trace(const char *__restrict fmt, ...) const = 0;
-        };
-    }
+        /**
+         * @brief Logs a message at the TRACE level.
+         * @param fmt The C-style format string.
+         * @param ... Variable arguments.
+         */
+        virtual void trace(const char *__restrict fmt, ...) const = 0;
+    };
 
     class logger_manager;
     /**
@@ -178,11 +176,8 @@ namespace log4cpp {
         static std::string serialize(const config::log4cpp &cfg);
     };
 
-    namespace log {
-        class logger;
-        class logger_proxy;
-    }
-
+    class logger;
+    class logger_proxy;
     class logger_deleter;
 
     /**
@@ -216,7 +211,7 @@ namespace log4cpp {
          * @param name The name of the logger. Defaults to "root".
          * @return A shared pointer to the logger interface.
          */
-        static std::shared_ptr<log::logger> get_logger(const std::string &name = "root");
+        static std::shared_ptr<logger> get_logger(const std::string &name = "root");
 
         const config::log4cpp *get_config() const;
 
@@ -258,11 +253,11 @@ namespace log4cpp {
         void build_appender();
 
         // @brief Builds a concrete logger instance based on the given logger configuration.
-        std::shared_ptr<log::logger> build_logger(const config::logger &log_cfg) const;
+        std::shared_ptr<logger> build_logger(const config::logger &log_cfg) const;
 
         // @brief Gets or creates a logger if it doesn't exist. Uses a double-checked locking pattern for thread-safety
         // and efficiency.
-        std::shared_ptr<log::logger_proxy> get_or_create_logger(const std::string &name);
+        std::shared_ptr<logger_proxy> get_or_create_logger(const std::string &name);
 #ifndef _WIN32
         // @brief (Non-Windows only) The event file descriptor for inter-thread communication.
         int evt_fd;
@@ -299,6 +294,6 @@ namespace log4cpp {
         // A read-write lock to protect the logger map.
         mutable std::shared_mutex logger_rw_lock;
         // A map storing all active logger proxies (name -> weak_ptr of logger_proxy).
-        std::unordered_map<std::string, std::weak_ptr<log::logger_proxy>> loggers;
+        std::unordered_map<std::string, std::weak_ptr<logger_proxy>> loggers;
     };
 }

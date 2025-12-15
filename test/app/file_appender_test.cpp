@@ -6,7 +6,7 @@
 #include "log4cpp/log4cpp.hpp"
 
 void info_logger() {
-    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("info_logger");
+    const std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("info_logger");
     log->trace("this is a trace");
     log->debug("this is a debug");
     log->info("this is a info");
@@ -16,7 +16,7 @@ void info_logger() {
 }
 
 void warn_logger() {
-    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger("warn_logger");
+    const std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("warn_logger");
     log->trace("this is a trace");
     log->debug("this is a debug");
     log->info("this is a info");

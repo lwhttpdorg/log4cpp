@@ -10,7 +10,7 @@ namespace log4cpp::appender {
     class log_appender;
 }
 
-namespace log4cpp::log {
+namespace log4cpp {
     class core_logger: public logger {
     public:
         core_logger();

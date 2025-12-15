@@ -104,7 +104,7 @@ namespace log4cpp {
          * @brief The deleter call operator.
          * @param logger_ptr A pointer to the logger_proxy object to be deleted.
          */
-        void operator()(const log::logger_proxy *logger_ptr) const {
+        void operator()(const logger_proxy *logger_ptr) const {
             // Deregister this logger from the manager.
             auto &log_mgr = supervisor::get_logger_manager();
             log_mgr.release_logger(this->logger_name);
@@ -370,7 +370,7 @@ namespace log4cpp {
                     log_changed = true;
                 }
                 if (appender_chg || log_changed) {
-                    std::shared_ptr<log::logger> new_logger = nullptr;
+                    std::shared_ptr<logger> new_logger = nullptr;
                     if (new_log_cfg_hash.find(logger_name) != new_log_cfg_hash.end()) {
                         new_logger = build_logger(new_log_cfg_hash[logger_name]);
                     }
@@ -384,7 +384,7 @@ namespace log4cpp {
         }
     }
 #endif
-    std::shared_ptr<log::logger> logger_manager::get_logger(const std::string &name) {
+    std::shared_ptr<logger> logger_manager::get_logger(const std::string &name) {
         // On the first call, use std::call_once to ensure thread-safe initialization of the singleton.
         // The initialization process includes:
         // 1. Automatically loading the configuration (auto_load_config)
@@ -415,7 +415,7 @@ namespace log4cpp {
      * @param name The name of the logger.
      * @return A shared pointer to the logger_proxy.
      */
-    std::shared_ptr<log::logger_proxy> logger_manager::get_or_create_logger(const std::string &name) {
+    std::shared_ptr<logger_proxy> logger_manager::get_or_create_logger(const std::string &name) {
         // Acquire a shared lock (read lock) for the fast path.
         {
             std::shared_lock reader_lock(logger_rw_lock);
@@ -474,7 +474,7 @@ namespace log4cpp {
         new_logger->set_name(name);
 
         // Wrap the new logger in a proxy object
-        const auto proxy = std::shared_ptr<log::logger_proxy>(new log::logger_proxy(new_logger), logger_deleter{name});
+        const auto proxy = std::shared_ptr<logger_proxy>(new logger_proxy(new_logger), logger_deleter{name});
 
         // Insert the proxy into the map under the protection of the unique lock.
         loggers[name] = proxy;
@@ -544,7 +544,7 @@ namespace log4cpp {
      * @param log_cfg The configuration for this logger.
      * @return A shared pointer to the newly created core_logger.
      */
-    std::shared_ptr<log::logger> logger_manager::build_logger(const config::logger &log_cfg) const {
+    std::shared_ptr<logger> logger_manager::build_logger(const config::logger &log_cfg) const {
         std::shared_ptr<appender::log_appender> temp_appenders[3];
 
         std::shared_lock appender_lock(appender_rw_lock);
@@ -552,7 +552,7 @@ namespace log4cpp {
         temp_appenders[1] = this->file_appender_ptr;
         temp_appenders[2] = this->socket_appender_ptr;
 
-        auto new_logger = std::make_shared<log::core_logger>(log_cfg.name, log_cfg.level.value());
+        auto new_logger = std::make_shared<core_logger>(log_cfg.name, log_cfg.level.value());
         if (log_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) {
             new_logger->add_appender(temp_appenders[0]);
         }

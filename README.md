@@ -43,13 +43,13 @@ log4cpp is a C++ logging library inspired by log4j
 
 Features:
 
-- Configurable via JSON files, no code modification required
-- Supports logging to STDOUT and STDERR
-- Supports logging to specified files
-- Supports logging to log server (TCP/UDP)
-- Singleton pattern
-- Thread-safe
-- Hot configuration reload, changes take effect without restarting the process(Linux only)
+* Configurable via JSON files, no code modification required
+* Supports logging to STDOUT and STDERR
+* Supports logging to specified files
+* Supports logging to log server (TCP/UDP)
+* Singleton pattern
+* Thread-safe
+* Hot configuration reload, changes take effect without restarting the process(Linux only)
 
 ## 2. Requirements
 
@@ -98,8 +98,8 @@ Header file:
 
 Configuration can be loaded in two ways:
 
-- If `log4cpp.json` exists in the current path, it will be loaded automatically
-- If the configuration file is not in the current path, or has a different name, you need to load it manually
+* If `log4cpp.json` exists in the current path, it will be loaded automatically
+* If the configuration file is not in the current path, or has a different name, you need to load it manually
 
 _Notes: If `log4cpp.json` does not exist and is not loaded manually, the built-in default configuration will be used._
 
@@ -114,14 +114,14 @@ log_mgr.load_config(config_file);
 Get the configured logger by name
 
 ```c++
-std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger(const std::string &name = "root");
+std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger(const std::string &name = "root");
 ```
 
 You can specify a unique string, which can be output to the log (the length of the output can be specified via
 `${<n>NM}` in "log-pattern")
 
 ```shell
-hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 ```
 
 #### 3.1.5. Output Log
@@ -147,18 +147,18 @@ The log level `log_level` level is defined as follows:
 
 ```c++
 namespace log4cpp {
-    enum class log_level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
+  enum class log_level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
 }
 ```
 
 Description:
 
-- `FATAL`: Fatal error
-- `ERROR`: Error
-- `WARN`: Warning
-- `INFO`: Information
-- `DEBUG`: Debugging
-- `TRACE`: Tracing
+* `FATAL`: Fatal error
+* `ERROR`: Error
+* `WARN`: Warning
+* `INFO`: Information
+* `DEBUG`: Debugging
+* `TRACE`: Tracing
 
 #### 3.1.6. Use in a Class
 
@@ -182,16 +182,16 @@ public:
     }
 
 private:
-    std::shared_ptr<log4cpp::log::logger> logger;
+    std::shared_ptr<log4cpp::logger> logger;
 };
 ```
 
 You will get the following log:
 
 ```shell
-demo: 2025-11-29 20:06:47:652 [main    ] [INFO ] -- constructor
-demo: 2025-11-29 20:06:47:652 [main    ] [INFO ] -- func(hello)
-demo: 2025-11-29 20:06:47:652 [main    ] [INFO ] -- destructor
+demo: 2025-11-29 20:06:47:652 [main  ] [INFO ] -- constructor
+demo: 2025-11-29 20:06:47:652 [main  ] [INFO ] -- func(hello)
+demo: 2025-11-29 20:06:47:652 [main  ] [INFO ] -- destructor
 ```
 
 #### 3.1.7. Complete Example
@@ -217,7 +217,7 @@ public:
     }
 
 private:
-    std::shared_ptr<log4cpp::log::logger> logger;
+    std::shared_ptr<log4cpp::logger> logger;
 };
 
 void thread_routine() {
@@ -265,15 +265,15 @@ Example Log Output:
 
 ```shell
 root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
-hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
-hello  : 2025-11-13 23:32:02:475 [main    ] [FATAL] -- this is a fatal
+hello  : 2025-11-13 23:32:02:475 [main  ] [FATAL] -- this is a fatal
 root   : 2025-11-13 23:32:02:475 [child   ] [INFO ] -- this is a info
-hello  : 2025-11-13 23:32:02:475 [main    ] [INFO ] -- this is a info
+hello  : 2025-11-13 23:32:02:475 [main  ] [INFO ] -- this is a info
 root   : 2025-11-13 23:32:02:475 [child   ] [WARN ] -- this is an warning
-hello  : 2025-11-13 23:32:02:475 [main    ] [WARN ] -- this is an warning
+hello  : 2025-11-13 23:32:02:475 [main  ] [WARN ] -- this is an warning
 root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
-hello  : 2025-11-13 23:32:02:475 [main    ] [ERROR] -- this is an error
+hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 ```
 
@@ -295,29 +295,29 @@ Reference configuration file [demo/demo.json](demo/demo.json)
 
 Placeholders:
 
-- `${<n>NM}`: Logger name, e.g. `${8NM}`. `<n>` is the logger name length, left-aligned, default is 6, max is 64
-- `${yy}`: Year represented by 2 digits. e.g. 99 or 03
-- `${yyyy}`: Full year, at least 4 digits, using '-' for BC e.g. -0055, 0787, 1999, 2003, 10191
-- `${M}`: Month in number, without leading zero. From 1 to 12
-- `${MM}`: Month in number, two digits with leading zero. From 01 to 12
-- `${MMM}`: Abbreviated month name, 3 letters. From Jan to Dec
-- `${d}`: Day of the month, without leading zero. From 1 to 31
-- `${dd}`: Day of the month, two digits with leading zero. From 01 to 31
-- `${h}`: Hour in 12-hour clock without leading zero. AM and PM for morning and afternoon. From 0 to 12
-- `${hh}`: Hour in 12-hour clock with leading zero. AM and PM for morning and afternoon. From 00 to 12
-- `${H}`: Hour in 24-hour clock without leading zero. From 0 to 23
-- `${HH}`: Hour in 24-hour clock with leading zero. From 00 to 23
-- `${m}`: Minute without leading zero. From 1 to 59
-- `${mm}`: Minute with leading zero. From 01 to 59
-- `${s}`: Second without leading zero. From 1 to 59
-- `${ss}`: Second with leading zero. From 01 to 59
-- `${ms}`: Millisecond with leading zero. From 001 to 999
-- `${<n>TN}`: is the thread name length, left-aligned, default is 16, max is 16. If the thread name is empty, "T+$
+* `${<n>NM}`: Logger name, e.g. `${8NM}`. `<n>` is the logger name length, left-aligned, default is 6, max is 64
+* `${yy}`: Year represented by 2 digits. e.g. 99 or 03
+* `${yyyy}`: Full year, at least 4 digits, using '-' for BC e.g. -0055, 0787, 1999, 2003, 10191
+* `${M}`: Month in number, without leading zero. From 1 to 12
+* `${MM}`: Month in number, two digits with leading zero. From 01 to 12
+* `${MMM}`: Abbreviated month name, 3 letters. From Jan to Dec
+* `${d}`: Day of the month, without leading zero. From 1 to 31
+* `${dd}`: Day of the month, two digits with leading zero. From 01 to 31
+* `${h}`: Hour in 12-hour clock without leading zero. AM and PM for morning and afternoon. From 0 to 12
+* `${hh}`: Hour in 12-hour clock with leading zero. AM and PM for morning and afternoon. From 00 to 12
+* `${H}`: Hour in 24-hour clock without leading zero. From 0 to 23
+* `${HH}`: Hour in 24-hour clock with leading zero. From 00 to 23
+* `${m}`: Minute without leading zero. From 1 to 59
+* `${mm}`: Minute with leading zero. From 01 to 59
+* `${s}`: Second without leading zero. From 1 to 59
+* `${ss}`: Second with leading zero. From 01 to 59
+* `${ms}`: Millisecond with leading zero. From 001 to 999
+* `${<n>TN}`: is the thread name length, left-aligned, default is 16, max is 16. If the thread name is empty, "T+$
   {Thread ID}" is used instead, e.g., "main", "T12345"
-- `${<n>TH}`: Thread id, e.g. `${8TH}`. `<n>` is the number of digits for the Thread ID, left-padded with 0, default is
+* `${<n>TH}`: Thread id, e.g. `${8TH}`. `<n>` is the number of digits for the Thread ID, left-padded with 0, default is
   8, max is 8. e.g. "T12345"
-- `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-- `${msg}`: Log message body, e.g. hello world!
+* `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
+* `${msg}`: Log message body, e.g. hello world!
 
 _Note: Some systems cannot set thread names, and multiple threads can only be distinguished by Thread ID_
 
@@ -365,7 +365,7 @@ The Console Appender's function is to output logs to `STDOUT` or `STDERR`. Typic
 
 Description:
 
-- `out-stream`: Output stream, can be "stdout" or "stderr"
+* `out-stream`: Output stream, can be "stdout" or "stderr"
 
 ###### 3.2.1.2.2. File Appender
 
@@ -383,7 +383,7 @@ The File Appender's function is to output logs to a specified file. Typical conf
 
 Description:
 
-- `file-path`: output file name
+* `file-path`: output file name
 
 #### 3.2.2. Socket appender
 
@@ -405,10 +405,10 @@ configured, it defaults to `TCP`
 
 Description:
 
-- `host`: Remote log server hostname
-- `port`: Remote log server port
-- `protocol`: Protocol, can be "tcp" or "udp", default is "tcp"
-- `prefer-stack`: Preferred address stack, can be "IPv4", "IPv6", or "auto", default is "AUTO"
+* `host`: Remote log server hostname
+* `port`: Remote log server port
+* `protocol`: Protocol, can be "tcp" or "udp", default is "tcp"
+* `prefer-stack`: Preferred address stack, can be "IPv4", "IPv6", or "auto", default is "AUTO"
 
 _Notes: For TCP-type socket appender, if the connection to the remote logging server fails, it will attempt to reconnect
 with exponential backoff until the connection succeeds_
@@ -417,10 +417,10 @@ with exponential backoff until the connection succeeds_
 
 `loggers` is an array. Each logger configuration includes:
 
-- `name`: Logger name, used to retrieve the logger, must be unique. `root` is the default logger
-- `level`: Log level. Only logs greater than or equal to this level will be output. Can be omitted for non-`root`
+* `name`: Logger name, used to retrieve the logger, must be unique. `root` is the default logger
+* `level`: Log level. Only logs greater than or equal to this level will be output. Can be omitted for non-`root`
   loggers (automatically inherits from `root`)
-- `appenders`: Appenders. Only configured appenders will output logs. Appenders can be `console`, `file`, `socket`. Can
+* `appenders`: Appenders. Only configured appenders will output logs. Appenders can be `console`, `file`, `socket`. Can
   be omitted for non-`root` loggers (automatically inherits from `root`)
 
 __The default logger must be defined with name `root`__
@@ -475,7 +475,7 @@ kill -SIGHUP <PID>
 ```
 
 The `SIGHUP` signal will trigger log4cpp to reload the configuration file using the cached path and filename, and
-recreate internal objects. The `std::shared_ptr<log4cpp::log::logger>` previously obtained via
+recreate internal objects. The `std::shared_ptr<log4cpp::logger>` previously obtained via
 `log4cpp::logger_manager::get_logger()` will not become invalid and can continue to be used
 
 _Note: The `std::shared_ptr` returned by `log4cpp::logger_manager::get_logger()` may not change, even if its internal
@@ -507,9 +507,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG
 
 Options:
 
-- `DBUILD_LOG4CPP_DEMO=ON`: Build demo, default `OFF` (not build)
-- `DBUILD_LOG4CPP_TEST=ON`: Build test programs , default `OFF` (not build)
-- `DENABLE_ASAN=ON`: Enable AddressSanitizer, default `OFF` (not enabled)
+* `DBUILD_LOG4CPP_DEMO=ON`: Build demo, default `OFF` (not build)
+* `DBUILD_LOG4CPP_TEST=ON`: Build test programs , default `OFF` (not build)
+* `DENABLE_ASAN=ON`: Enable AddressSanitizer, default `OFF` (not enabled)
 
 ### 4.2. Build
 
@@ -522,13 +522,13 @@ cmake --build build -j $(nproc)
 This project uses [Google Test](https://github.com/google/googletest) for unit testing
 
 ```shell
-ctest --test-dir build --output-on-failure
+ctest -C Debug --test-dir build --output-on-failure
 ```
 
 Or enable more verbose output from tests:
 
 ```shell
-ctest --test-dir build --verbose
+ctest -C Debug --test-dir build --verbose
 ```
 
 ### 4.4. ASAN

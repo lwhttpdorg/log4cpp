@@ -1,7 +1,6 @@
 #pragma once
 
 #include <common/log_lock.hpp>
-#include <string>
 
 #include "appender/console_appender.hpp"
 #include "appender/log_appender.hpp"

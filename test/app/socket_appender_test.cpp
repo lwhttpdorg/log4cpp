@@ -261,7 +261,7 @@ TEST_F(SocketTest, tcp_socket_appender_test) {
     auto status = std::make_shared<server_status>();
     unsigned int received_count = 0;
 
-    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
+    const std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger();
     log4cpp::log_level max_level = log->get_level();
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
@@ -284,7 +284,7 @@ TEST_F(SocketTest, tcp_socket_appender_test) {
 }
 
 unsigned int udp_log_server_loop(std::shared_ptr<server_status> status, log4cpp::common::prefer_stack prefer,
-                                 unsigned short port) {
+                                 unsigned short port, unsigned int expected_count) {
     log4cpp::common::socket_fd server_fd =
         socket(prefer == log4cpp::common::prefer_stack::IPv6 ? AF_INET6 : AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (log4cpp::common::INVALID_FD == server_fd) {
@@ -348,7 +348,7 @@ unsigned int udp_log_server_loop(std::shared_ptr<server_status> status, log4cpp:
     sockaddr_storage remote_addr{};
     socklen_t remote_addr_len = sizeof(remote_addr);
     status->state.store(server_status::state::RUNNING);
-    while (true) {
+    while (actual_log_count < expected_count) {
         ssize_t len = recvfrom(server_fd, buffer, sizeof(buffer) - 1, 0,
                                reinterpret_cast<struct sockaddr *>(&remote_addr), &remote_addr_len);
         if (len > 0) {
@@ -391,11 +391,12 @@ TEST_F(SocketTest, udp_socket_appender_test) {
     auto status = std::make_shared<server_status>();
     unsigned int received_count = 0;
 
-    const std::shared_ptr<log4cpp::log::logger> log = log4cpp::logger_manager::get_logger();
+    const std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger();
     log4cpp::log_level max_level = log->get_level();
     unsigned int expected_log_count = static_cast<int>(max_level) + 1; // enum is zero-indexed
 
-    std::thread log_server_thread([&]() { received_count = udp_log_server_loop(status, prefer, port); });
+    std::thread log_server_thread(
+        [&]() { received_count = udp_log_server_loop(status, prefer, port, expected_log_count); });
 
     while (status->state.load() == server_status::state::AWAITING_STARTUP) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

@@ -27,7 +27,7 @@ TEST(configuration_serialize_test, log4cpp_config_serialize_test) {
     // Just to load the configuration file
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config("serialize_test.json"));
-    std::shared_ptr<log4cpp::log::logger> logger = log4cpp::logger_manager::get_logger("console_logger");
+    std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("console_logger");
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     const std::string actual_json_str = log4cpp::config::log4cpp::serialize(*config);
     nlohmann::json expected_json;

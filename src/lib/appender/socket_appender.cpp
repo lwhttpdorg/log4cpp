@@ -57,7 +57,7 @@ namespace log4cpp::appender {
         // Resolve host
         std::optional<common::net_addr> addr;
         try {
-            addr = common::net_addr::resolve(this->host);
+            addr = common::net_addr::resolve(this->host, this->ip_stack);
         }
         catch (const common::host_resolve_exception &) {
             // Failed to resolve host, retry later
@@ -184,7 +184,7 @@ namespace log4cpp::appender {
     }
 
     socket_appender::socket_appender(const config::socket_appender &cfg) :
-        host(cfg.host), port(cfg.port), proto(cfg.proto), sock_fd(common::INVALID_FD),
+        host(cfg.host), port(cfg.port), proto(cfg.proto), ip_stack(cfg.prefer), sock_fd(common::INVALID_FD),
         connection_state(connection_fsm_state::DISCONNECTED) {
         // For TCP, start reconnect thread
         if (config::socket_appender::protocol::TCP == this->proto) {

@@ -4,50 +4,72 @@ set(gtest_force_shared_crt ON)
 # Fetch GoogleTest
 include(FetchContent)
 FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG v1.17.0
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.17.0
 )
 FetchContent_MakeAvailable(googletest)
 
+# List of test targets
+set(TEST_TARGETS
+    load_config_tests
+    log_pattern_tests
+    console_appender_tests
+    file_appender_tests
+    socket_appender_tests
+    serialize_test
+)
+
+if (NOT WIN32)
+    list(APPEND TEST_TARGETS config_hot_reload_tests)
+endif ()
+
+# Map each test target to its source file
+set(load_config_tests_SRC app/load_config_test.cpp)
+set(log_pattern_tests_SRC app/log_pattern_test.cpp)
+set(console_appender_tests_SRC app/console_appender_test.cpp)
+set(file_appender_tests_SRC app/file_appender_test.cpp)
+set(socket_appender_tests_SRC app/socket_appender_test.cpp)
+set(serialize_test_SRC app/serialize_test.cpp)
+set(config_hot_reload_tests_SRC app/config_hot_reload_test.cpp)
+
 # Collect JSON config files from test/config/
-file(GLOB TEST_CONFIG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/config/*.json")
+file(GLOB TEST_CONFIG_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/config/*.json")
 
 # Define an INTERFACE library for common test includes
 add_library(test_includes INTERFACE)
-target_include_directories(test_includes INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include # For test-specific headers like log4cpp_test.h
-        ${CMAKE_SOURCE_DIR}/src/include      # For internal library headers like common/log_utils.hpp
-)
+target_include_directories(test_includes INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Define a function to simplify adding tests
-function(add_log4cpp_test test_name)
-    add_executable(${test_name} "app/${test_name}.cpp")
+# Place all test executables in build/bin
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
-    set_target_properties(${test_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+# Copy JSON configs at configure time into runtime output dir and test binary dir
+if (TEST_CONFIG_FILES)
+    file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    file(COPY ${TEST_CONFIG_FILES} DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+    # CTest runs tests with working dir = ${CMAKE_CURRENT_BINARY_DIR} (build/test),
+    # copy configs there so discovery / tests can open "./log4cpp.json"
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+    file(COPY ${TEST_CONFIG_FILES} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+endif ()
+
+foreach (test_name IN LISTS TEST_TARGETS)
+    # Create executable for each test
+    add_executable(${test_name} ${${test_name}_SRC})
+
+    target_include_directories(${test_name} PRIVATE "${CMAKE_SOURCE_DIR}/src/include")
 
     # Link against GoogleTest, main library, and common includes
     target_link_libraries(${test_name} PRIVATE GTest::gtest_main log4cpp test_includes)
-    if (test_name STREQUAL "load_config_test" OR test_name STREQUAL "serialize_test")
+
+    # Only load_config_tests and serialize_test need nlohmann_json
+    if (test_name STREQUAL "load_config_tests" OR test_name STREQUAL "serialize_test")
         target_link_libraries(${test_name} PRIVATE nlohmann_json::nlohmann_json)
     endif ()
 
-    if (CMAKE_HOST_WIN32)
+    if (WIN32)
         target_link_libraries(${test_name} PRIVATE ws2_32)
-    endif ()
-
-    # Copy config files needed for tests using a post-build command
-    if (TEST_CONFIG_FILES)
-        # Copy to the binary directory for IDE runners (e.g., CLion)
-        add_custom_command(TARGET ${test_name} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TEST_CONFIG_FILES} $<TARGET_FILE_DIR:${test_name}>
-                COMMENT "Copying test configs to bin directory for ${test_name}"
-        )
-        # Copy to the CTest working directory
-        add_custom_command(TARGET ${test_name} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${TEST_CONFIG_FILES} ${CMAKE_CURRENT_BINARY_DIR}
-                COMMENT "Copying test configs to CTest directory for ${test_name}"
-        )
     endif ()
 
     # Apply AddressSanitizer if enabled
@@ -64,24 +86,12 @@ function(add_log4cpp_test test_name)
 
         # Conditionally define the architecture macros based on the target platform size
         # CMAKE_SIZEOF_VOID_P is 8 for 64-bit (x64/ARM64) and 4 for 32-bit (x86/ARM)
-        if (${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+        if (CMAKE_SIZEOF_VOID_P EQUAL 8)
             # 64-bit architecture (x64)
             target_compile_definitions(${test_name} PRIVATE _AMD64_)
-        elseif (${CMAKE_SIZEOF_VOID_P} EQUAL 4)
+        elseif (CMAKE_SIZEOF_VOID_P EQUAL 4)
             # 32-bit architecture (x86)
             target_compile_definitions(${test_name} PRIVATE _X86_)
         endif ()
     endif ()
-endfunction()
-
-# Add all test targets
-add_log4cpp_test(load_config_test)
-add_log4cpp_test(log_pattern_test)
-add_log4cpp_test(console_appender_test)
-add_log4cpp_test(file_appender_test)
-add_log4cpp_test(socket_appender_test)
-add_log4cpp_test(serialize_test)
-# This test is not supported on Windows
-if (NOT WIN32)
-    add_log4cpp_test(config_hot_reload_test)
-endif ()
+endforeach ()

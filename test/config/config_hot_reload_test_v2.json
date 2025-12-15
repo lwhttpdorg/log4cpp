@@ -2,7 +2,7 @@
 	"log-pattern": "${NM}: ${yy}-${MMM}-${dd} ${h}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${msg}",
 	"appenders": {
 		"console": {
-			"out-stream": "stdout"
+			"out-stream": "stderr"
 		},
 		"file": {
 			"file-path": "log_v2.log"

@@ -20,7 +20,7 @@
 #include "common/log_utils.hpp"
 
 namespace log4cpp {
-    /************************thread name*************************/
+    // Platform-specific implementations for thread name management.
     /**
      * @brief Gets the name and ID of the current thread in a platform-independent way.
      * @param[out] thread_name Buffer to store the retrieved thread name.
@@ -71,9 +71,8 @@ namespace log4cpp {
         common::log4c_scnprintf(buf, sizeof(buf), "%s", name);
         pthread_setname_np(pthread_self(), buf);
 #elif __linux__
-        char buf[16];
-        strncpy(buf, name, sizeof(buf) - 1);
-        buf[sizeof(buf) - 1] = '\0';
+        char buf[16]; // prctl(PR_SET_NAME) has a limit of 16 bytes.
+        common::log4c_scnprintf(buf, sizeof(buf), "%s", name);
         prctl(PR_SET_NAME, buf);
 #endif
     }
@@ -103,6 +102,7 @@ namespace log4cpp::common {
      * @param buf The buffer to write to.
      * @param size The size of the buffer.
      * @param fmt The format string.
+     * @param ...
      * @return The number of characters written, or 0 on error.
      */
     size_t log4c_scnprintf(char *__restrict buf, size_t size, const char *__restrict fmt, ...) {
@@ -147,7 +147,9 @@ namespace log4cpp::common {
      * Handles buffer size limits to prevent overflows.
      * @param original The buffer containing the string to modify.
      * @param length The total size of the `original` buffer.
-     * @return The new length of the string in the buffer.
+     * @param target The substring to search for.
+     * @param replace The string to replace `target` with.
+     * @return The new length of the modified string in the buffer.
      */
     size_t log4c_replace(char *original, size_t length, const char *target, const char *replace) {
         size_t target_len = strlen(target);
@@ -196,7 +198,11 @@ namespace log4cpp::common {
     /**
      * @brief A simple string replacement function for std::string.
      *
-     * Replaces the first occurrence of `target` with `replace`.
+     * Replaces the first occurrence of `target` with `replace` in the given string.
+     * @param original The original string.
+     * @param target The substring to search for.
+     * @param replace The string to replace `target` with.
+     * @return A new string with the replacement made.
      */
     std::string log4c_replace(const std::string &original, const std::string &target, const std::string &replace) {
         std::string result = original;
@@ -225,18 +231,24 @@ namespace log4cpp::common {
         ms = static_cast<unsigned short>(now_ms.count());
     }
 
-    /// @brief Converts a string to lowercase.
+    /**
+     * @brief Converts a string to lowercase.
+     * @param s The input string to convert.
+     * @return The converted lowercase string.
+     */
     std::string to_lower(const std::string &s) {
         std::string result = s;
-        std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
         std::transform(result.begin(), result.end(), result.begin(), ::tolower);
         return result;
     }
 
-    /// @brief Converts a string to uppercase.
+    /**
+     * @brief Converts a string to uppercase.
+     * @param s The input string to convert.
+     * @return The converted uppercase string.
+     */
     std::string to_upper(const std::string &s) {
         std::string result = s;
-        std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::toupper(c); });
         std::transform(result.begin(), result.end(), result.begin(), ::toupper);
         return result;
     }

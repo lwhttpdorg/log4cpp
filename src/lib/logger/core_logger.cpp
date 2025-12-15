@@ -4,7 +4,7 @@
 #include "logger/core_logger.hpp"
 #include "pattern/log_pattern.hpp"
 
-namespace log4cpp::log {
+namespace log4cpp {
     core_logger::core_logger() {
         this->level_ = log_level::WARN;
     }
@@ -15,7 +15,7 @@ namespace log4cpp::log {
     }
 
     void core_logger::add_appender(const std::shared_ptr<appender::log_appender> &appender) {
-        std::unique_lock<std::shared_mutex> lock(appenders_mtx);
+        std::unique_lock lock(appenders_mtx);
         this->appenders.insert(appender);
     }
 
@@ -25,7 +25,7 @@ namespace log4cpp::log {
             buffer[0] = '\0';
             const size_t used_len =
                 pattern::log_pattern::format(buffer, sizeof(buffer), this->name_.c_str(), _level, fmt, args);
-            std::shared_lock<std::shared_mutex> lock(appenders_mtx);
+            std::shared_lock lock(appenders_mtx);
             for (auto &l: this->appenders) {
                 l->log(buffer, used_len);
             }

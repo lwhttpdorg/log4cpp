@@ -35,10 +35,9 @@ namespace log4cpp::common {
             WSACleanup();
         }
     };
-#endif
-#ifdef _WIN32
+
     /// @brief Static instance of socket_init to ensure Winsock is initialized once.
-    static socket_init net_init{};
+    [[maybe_unused]] static socket_init net_init{};
 #endif
 
     /**
@@ -193,16 +192,6 @@ namespace log4cpp::common {
         addrinfo *res_;
     };
 
-    /**
-     * @brief Resolves a hostname to an IP address.
-     *
-     * First checks if the host string is already an IP address. If not, it performs
-     * DNS resolution using `getaddrinfo()`, respecting the `prefer_stack` setting.
-     * @param host The hostname or IP address string to resolve.
-     * @param prefer The preferred IP stack (IPv4, IPv6, or AUTO).
-     * @return A `net_addr` object representing the resolved IP address.
-     * @throws host_resolve_exception if resolution fails or no valid address is found.
-     */
     // Helper function to try parsing an IP address without throwing exceptions.
     bool try_parse(const std::string &host, net_addr &addr) {
         try {
@@ -214,6 +203,16 @@ namespace log4cpp::common {
         }
     }
 
+    /**
+     * @brief Resolves a hostname to an IP address.
+     *
+     * First checks if the host string is already an IP address. If not, it performs
+     * DNS resolution using `getaddrinfo()`, respecting the `prefer_stack` setting.
+     * @param host The hostname or IP address string to resolve.
+     * @param prefer The preferred IP stack (IPv4, IPv6, or AUTO).
+     * @return A `net_addr` object representing the resolved IP address.
+     * @throws host_resolve_exception if resolution fails or no valid address is found.
+     */
     net_addr net_addr::resolve(const std::string &host, prefer_stack prefer) {
         net_addr addr;
         // First, check if the host string is already a valid IP address.
@@ -232,8 +231,9 @@ namespace log4cpp::common {
         else {
             hints.ai_family = AF_UNSPEC;
         }
-        // Set socket type to SOCK_STREAM (TCP) as a default hint, though actual protocol is not used for resolution.
-        hints.ai_socktype = SOCK_STREAM;
+        // Do not specify a socket type. This allows getaddrinfo to return addresses
+        // suitable for any socket type (TCP, UDP, etc.), which is more robust.
+        hints.ai_socktype = 0;
 
         addrinfo *res = nullptr;
         int ret = getaddrinfo(host.c_str(), nullptr, &hints, &res);

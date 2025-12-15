@@ -4,11 +4,10 @@
 #include <log4cpp/log4cpp.hpp>
 #include <log4cpp/logger.hpp>
 
-namespace log4cpp::log {
+namespace log4cpp {
     constexpr unsigned int PROXY_HOT_RELOADED = 1;
 
-    logger_proxy::logger_proxy(std::shared_ptr<logger> target_logger) :
-        real_logger(std::move(target_logger)), hot_reload_flag(0) {
+    logger_proxy::logger_proxy(std::shared_ptr<logger> target_logger) : real_logger(std::move(target_logger)) {
         if (!real_logger) {
             throw std::invalid_argument("logger_proxy: real_logger (delegated logger) must not be null");
         }

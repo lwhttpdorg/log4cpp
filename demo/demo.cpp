@@ -18,7 +18,7 @@ public:
     }
 
 private:
-    std::shared_ptr<log4cpp::log::logger> logger;
+    std::shared_ptr<log4cpp::logger> logger;
 };
 
 void thread_routine() {

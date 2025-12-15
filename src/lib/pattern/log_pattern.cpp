@@ -15,72 +15,46 @@ namespace log4cpp::pattern {
         _pattern = pattern;
     }
 
-    /* The regular expression to match the logger name pattern, e.g. ${8NM}. default width is 8, max width is 16. */
     // Regex to match the logger name pattern, e.g., ${8NM}. Default width is 8, max is 64.
     const std::regex LOGGER_NAME_REGEX(R"(\$\{(\d{1,2})?NM\})");
-    /* A two digit representation of a year. e.g. 99 or 03 */
     // A two-digit representation of a year, e.g., 99 or 03.
     const char *SHORT_YEAR = "${yy}";
-    /* A full numeric representation of a year, at least 4 digits, with - for years BCE. e.g. -0055, 0787, 1999, 2003,
-     * 10191 */
     // A full numeric representation of a year (at least 4 digits), with a '-' for BCE years. e.g., 1999, 2003, -0055.
     const char *FULL_YEAR = "${yyyy}";
-    /* Numeric representation of a month, without leading zeros. 1 through 12 */
     // Numeric representation of a month, without leading zeros (1-12).
     const char *SHORT_MONTH = "${M}";
-    /* Numeric representation of a month, with leading zeros. 01 through 12 */
     // Numeric representation of a month, with leading zeros (01-12).
     const char *FULL_MONTH = "${MM}";
-    /* A short textual representation of a month, three letters. Jan through Dec */
     // A short textual representation of a month (Jan-Dec).
     const char *ABBR_MONTH = "${MMM}";
-    /* Day of the month without leading zeros. 1 to 31 */
     // Day of the month without leading zeros (1-31).
     const char *SHORT_DAY = "${d}";
-    /* Day of the month, 2 digits with leading zeros. 01 to 31 */
     // Day of the month, 2 digits with leading zeros (01-31).
     const char *FULL_DAY = "${dd}";
-    /* 12-hour format of an hour without leading zeros, with Uppercase Ante meridiem and Post meridiem. 0 through 12
-     * e.g. AM 01 or PM 11 */
     // 12-hour format of an hour without leading zeros (0-12), with uppercase AM/PM.
     const char *SHORT_12HOUR = "${h}";
-    /* 12-hour format of an hour with leading zeros, with Uppercase Ante meridiem and Post meridiem. 00 through 12 e.g.
-     * AM 01 or PM 11 */
     // 12-hour format of an hour with leading zeros (00-12), with uppercase AM/PM, e.g., 01 AM.
     const char *FULL_12HOUR = "${hh}";
-    /* 24-hour format of an hour without leading zeros, 0 through 23. e.g. 1 or 23 */
     // 24-hour format of an hour without leading zeros, e.g., 1, 23.
     const char *SHORT_24HOUR = "${H}";
-    /* 24-hour format of an hour with leading zeros. 00 through 23. e.g. 01 or 23 */
     // 24-hour format of an hour with leading zeros, e.g., 01, 23.
     const char *FULL_24HOUR = "${HH}";
-    /* Minutes without leading zeros. 1 to 59 */
     // Minutes without leading zeros (1-59).
     const char *SHORT_MINUTES = "${m}";
-    /* Minutes with leading zeros. 01 to 59 */
     // Minutes with leading zeros (01-59).
     const char *FULL_MINUTES = "${mm}";
-    /* Seconds without leading zeros. 1 to 59 */
     // Seconds without leading zeros (1-59).
     const char *SHORT_SECOND = "${s}";
-    /* Seconds with leading zeros. 01 to 59 */
     // Seconds with leading zeros (01-59).
     const char *FULL_SECOND = "${ss}";
-    /* Milliseconds with leading zeros. 001 to 999 */
     // Milliseconds with leading zeros (001-999).
     const char *MILLISECOND = "${ms}";
-    /* The regular expression to match the thread name pattern, e.g. ${8TN}. default width is 8, max width is 16. e.g.
-     * "main". If the name is empty, use thread id instead */
     // Regex to match the thread name pattern, e.g., ${8TN}. If name is empty, use thread ID.
     const std::regex THREAD_NAME_REGEX(R"(\$\{(\d{1,2})?TN\})");
-    /* The regular expression to match the thread id pattern, e.g. ${8TH}. default width is 8, max width is 8. e.g.
-     * T12345 */
     // Regex to match the thread ID pattern, e.g., ${8TH}.
     const std::regex THREAD_ID_REGEX(R"(\$\{(\d{1,2})?TH\})");
-    /* Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE */
     // Log level, e.g., FATAL, ERROR, INFO.
     const char *LOG_LEVEL = "${L}";
-    /* Log message, e.g.: hello world! */
     // The log message body.
     const char *LOG_MESSAGE = "${msg}";
 

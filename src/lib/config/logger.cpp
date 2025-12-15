@@ -3,7 +3,7 @@
 #include "config/appender.hpp"
 #include "config/log4cpp.hpp"
 #include "config/logger.hpp"
-#include "exception/invalid_config_exception.hpp"
+#include "exception/config_exception.hpp"
 
 namespace log4cpp::config {
     constexpr const char *DEFAULT_LOGGER_NAME = "root";

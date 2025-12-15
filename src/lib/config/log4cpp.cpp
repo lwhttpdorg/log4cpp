@@ -1,6 +1,6 @@
 #include "config/log4cpp.hpp"
 #include "config/appender.hpp"
-#include "exception/invalid_config_exception.hpp"
+#include "exception/config_exception.hpp"
 
 namespace log4cpp::config {
     // =========================================================
