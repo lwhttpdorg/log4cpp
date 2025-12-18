@@ -4,34 +4,46 @@
 
 #include "log4cpp/log4cpp.hpp"
 
-#ifdef _MSC_VER
-// clang-format off
-#include <winsock2.h>
-#include <windows.h>
-// clang-format on
-
-#endif
-
 #include <gtest/gtest.h>
 
 #include "config/log4cpp.hpp"
 
+namespace fs = std::filesystem;
+
 void parse_json(const std::string &config_file, nlohmann::json &expected_json) {
     std::ifstream ifs(config_file);
-    ASSERT_EQ(ifs.is_open(), true);
+    ASSERT_TRUE(ifs.is_open());
     expected_json = nlohmann::json::parse(ifs);
     ifs.close();
 }
 
-TEST(configuration_serialize_test, log4cpp_config_serialize_test) {
-    // Just to load the configuration file
+TEST(configuration_serialize_test, log4cpp_config_roundtrip_test) {
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    ASSERT_NO_THROW(log_mgr.load_config("serialize_test.json"));
-    std::shared_ptr<log4cpp::logger> logger = log4cpp::logger_manager::get_logger("console_logger");
-    const log4cpp::config::log4cpp *config = log_mgr.get_config();
-    const std::string actual_json_str = log4cpp::config::log4cpp::serialize(*config);
-    nlohmann::json expected_json;
-    parse_json("serialize_test.json", expected_json);
-    const nlohmann::json actual_json = nlohmann::json::parse(actual_json_str);
-    EXPECT_EQ(expected_json, actual_json);
+
+    for (const auto &entry: fs::directory_iterator(fs::current_path())) {
+        if (entry.is_regular_file() && entry.path().extension() == ".json") {
+            const std::string filename = entry.path().string();
+
+            // Load original config
+            ASSERT_NO_THROW(log_mgr.load_config(filename));
+            const log4cpp::config::log4cpp original_config = *log_mgr.get_config();
+
+            // Serialize to JSON string
+            const std::string json_str = log4cpp::config::log4cpp::serialize(original_config);
+
+            // Write to a temporary file
+            const std::string tmpfile = (fs::temp_directory_path() / entry.path().filename()).string();
+            {
+                std::ofstream ofs(tmpfile);
+                ofs << json_str;
+            }
+
+            // Load config back from the temporary file
+            ASSERT_NO_THROW(log_mgr.load_config(tmpfile));
+            const log4cpp::config::log4cpp roundtrip_config = *log_mgr.get_config();
+
+            // Compare the two config objects (you may need to implement operator==)
+            EXPECT_EQ(original_config, roundtrip_config) << "Roundtrip mismatch in file: " << filename;
+        }
+    }
 }

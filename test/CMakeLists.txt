@@ -45,12 +45,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 # Copy JSON configs at configure time into runtime output dir and test binary dir
 if (TEST_CONFIG_FILES)
-    file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-    file(COPY ${TEST_CONFIG_FILES} DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    # build/bin
+    #file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+    #file(COPY ${TEST_CONFIG_FILES} DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
     # CTest runs tests with working dir = ${CMAKE_CURRENT_BINARY_DIR} (build/test),
-    # copy configs there so discovery / tests can open "./log4cpp.json"
-    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+    #file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     file(COPY ${TEST_CONFIG_FILES} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 endif ()
 
