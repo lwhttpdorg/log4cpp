@@ -455,8 +455,6 @@ log4cpp::supervisor::enable_config_hot_loading(int sig = SIGHUP);
 kill -SIGHUP <PID>
 ```
 
-``` 
-
 此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。先前已经通过`log4cpp::logger_manager::get_logger()`获得的`std::shared_ptr<log4cpp::logger>`
 并不会立即失效并且可继续使用
 此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件。由于内部采用了代理模式，您之前通过 `get_logger()` 获取的 `std::shared_ptr` 依然有效且可以继续使用，它会自动将日志记录请求转发到新的、基于新配置的内部实现上。
@@ -522,3 +520,4 @@ ctest -C Debug --test-dir build --verbose
 ## 5. 许可
 
 本项目使用[LGPLv3](LICENSE)许可
+
