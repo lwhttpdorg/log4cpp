@@ -174,15 +174,15 @@ namespace log4cpp {
         this->config->log_pattern = DEFAULT_LOG_PATTERN;
 #if __cplusplus >= 202002L
         this->config->appenders.console = config::console_appender{.out_stream = "stdout"};
-        const config::logger default_logger{.name = "root",
-                                            .level = log_level::WARN,
-                                            .appender = static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)};
+        const config::logger fallback_logger{.name = FALLBACK_LOGGER_NAME,
+                                             .level = log_level::WARN,
+                                             .appender = static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)};
 #else
         this->config->appenders.console = config::console_appender{"stdout"};
-        const config::logger default_logger{"root", log_level::WARN,
-                                            static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)};
+        const config::logger fallback_logger{FALLBACK_LOGGER_NAME, log_level::WARN,
+                                             static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)};
 #endif
-        this->config->loggers.push_back(default_logger);
+        this->config->loggers.emplace(fallback_logger.name, fallback_logger);
     }
 
     /**
@@ -299,43 +299,39 @@ namespace log4cpp {
      * This function calculates the diff of logger configurations (added, removed, changed)
      * by comparing the new and old configs. It then iterates over all currently active
      * logger proxies and updates their underlying real logger instances as needed.
-     * @param old_log_cfg The vector of logger configurations before the hot-reload.
+     * @param old_log_cfg The unordered_map of logger configurations before the hot-reload.
      * @param appender_chg A boolean indicating if the Appender configuration has changed.
      */
-    void logger_manager::update_logger(const std::vector<config::logger> &old_log_cfg, bool appender_chg) {
-        // Build hashmaps for efficient O(1) lookups
-        std::unordered_map<std::string, config::logger> new_log_cfg_hash, old_log_cfg_hash;
-        for (const auto &log_cfg: this->config->loggers) {
-            new_log_cfg_hash[log_cfg.name] = log_cfg;
-        }
-        for (const auto &log_cfg: old_log_cfg) {
-            old_log_cfg_hash[log_cfg.name] = log_cfg;
-        }
+    void logger_manager::update_logger(const std::unordered_map<std::string, config::logger> &old_log_cfg,
+                                       bool appender_chg) {
+        const std::unordered_map<std::string, config::logger> &new_log_cfg = this->config->loggers;
 
         // Calculate the diff: added, removed, changed
         std::unordered_set<std::string> added, removed, changed;
-        for (const auto &old_cfg: old_log_cfg) {
-            if (new_log_cfg_hash.find(old_cfg.name) == new_log_cfg_hash.end()) {
+        for (const auto &[name, old_log]: old_log_cfg) {
+            if (new_log_cfg.find(name) == new_log_cfg.end()) {
                 // Not in new config, so it was removed
-                removed.insert(old_cfg.name);
+                removed.insert(name);
             }
             else {
                 // In both configs, check if they are different
-                auto new_cfg = new_log_cfg_hash[old_cfg.name];
-                if (new_cfg != old_cfg) {
-                    changed.insert(old_cfg.name);
+                const config::logger &new_cfg = new_log_cfg.at(name);
+                if (new_cfg != old_log) {
+                    changed.insert(name);
                 }
             }
         }
-        for (auto &new_cfg: new_log_cfg_hash) {
-            if (old_log_cfg_hash.find(new_cfg.first) == old_log_cfg_hash.end()) {
+        for (auto &[name, new_log]: new_log_cfg) {
+            if (old_log_cfg.find(name) == old_log_cfg.end()) {
                 // In new config but not in old config, so it was added
-                added.insert(new_cfg.first);
+                added.insert(name);
             }
         }
 
-        // Get the default "root" config, which is assumed to be the first one
-        const config::logger &root_log_cfg = this->config->loggers.front();
+        // Get the default FALLBACK_LOGGER_NAME config
+        const config::logger &new_fallback_logger = new_log_cfg.at(FALLBACK_LOGGER_NAME);
+        const config::logger &old_fallback_logger = old_log_cfg.at(FALLBACK_LOGGER_NAME);
+        bool fallback_chged = old_fallback_logger != new_fallback_logger;
         /*
          * 'this->loggers' stores the currently active (in-use) logger proxies.
          * We must iterate over this map and update the target of each proxy
@@ -364,18 +360,26 @@ namespace log4cpp {
                 it = loggers.erase(it);
             }
             else {
-                bool log_changed = false;
+                bool cfg_chged = false;
                 if (changed.find(logger_name) != changed.end() || added.find(logger_name) != added.end()
                     || removed.find(logger_name) != removed.end()) {
-                    log_changed = true;
+                    cfg_chged = true;
                 }
-                if (appender_chg || log_changed) {
+                bool is_fallback = false;
+                const auto old_it = old_log_cfg.find(logger_name);
+                if (old_log_cfg.end() == old_it) {
+                    is_fallback = true;
+                }
+                if (is_fallback && fallback_chged) {
+                    cfg_chged = true;
+                }
+                if (appender_chg || cfg_chged) {
                     std::shared_ptr<logger> new_logger = nullptr;
-                    if (new_log_cfg_hash.find(logger_name) != new_log_cfg_hash.end()) {
-                        new_logger = build_logger(new_log_cfg_hash[logger_name]);
+                    if (new_log_cfg.find(logger_name) != new_log_cfg.end()) {
+                        new_logger = build_logger(new_log_cfg.at(logger_name));
                     }
                     else {
-                        new_logger = build_logger(root_log_cfg);
+                        new_logger = build_logger(new_fallback_logger);
                     }
                     proxy->set_target(new_logger);
                 }
@@ -445,27 +449,20 @@ namespace log4cpp {
 
         // --- Logger Creation ---
 
-        std::vector<config::logger>::iterator cfg_it;
-        for (cfg_it = this->config->loggers.begin(); cfg_it != this->config->loggers.end(); ++cfg_it) {
-            if (cfg_it->name == name) {
-                break;
-            }
-        }
-
-        // "root" logger is the first one
-        const config::logger root_log_cfg = this->config->loggers.front();
+        const config::logger fallback_log_cfg = this->config->loggers[FALLBACK_LOGGER_NAME];
         config::logger log_cfg;
-        if (cfg_it != this->config->loggers.end()) {
-            log_cfg = *cfg_it;
+        auto cfg_it = this->config->loggers.find(name);
+        if (this->config->loggers.end() != cfg_it) {
+            log_cfg = cfg_it->second;
             if (!log_cfg.level.has_value()) {
-                log_cfg.level = root_log_cfg.level;
+                log_cfg.level = fallback_log_cfg.level;
             }
             if (0 == log_cfg.appender) {
-                log_cfg.appender = root_log_cfg.appender;
+                log_cfg.appender = fallback_log_cfg.appender;
             }
         }
         else {
-            log_cfg = root_log_cfg;
+            log_cfg = fallback_log_cfg;
         }
 
         auto new_logger = build_logger(log_cfg);
@@ -509,8 +506,8 @@ namespace log4cpp {
         // Determine which appenders are actually required by iterating through all loggers.
         unsigned char required_appenders_mask = 0;
         if (config && !config->loggers.empty()) {
-            for (const auto &logger_cfg: config->loggers) {
-                required_appenders_mask |= logger_cfg.appender;
+            for (const auto &[name, log]: config->loggers) {
+                required_appenders_mask |= log.appender;
             }
         }
 

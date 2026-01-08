@@ -30,6 +30,8 @@ namespace log4cpp {
      * @brief The default log pattern to use if no configuration file is provided.
      */
     constexpr const char *DEFAULT_LOG_PATTERN = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}] -- ${msg}";
+    constexpr const char *FALLBACK_LOGGER_NAME = "root";
+
     /**
      * @enum log_level
      * @brief Defines the severity levels for log messages.
@@ -211,7 +213,7 @@ namespace log4cpp {
          * @param name The name of the logger. Defaults to "root".
          * @return A shared pointer to the logger interface.
          */
-        static std::shared_ptr<logger> get_logger(const std::string &name = "root");
+        static std::shared_ptr<logger> get_logger(const std::string &name = FALLBACK_LOGGER_NAME);
 
         const config::log4cpp *get_config() const;
 
@@ -240,7 +242,7 @@ namespace log4cpp {
         void event_loop();
         // @brief (Non-Windows only) After a hot-reload, updates all active loggers based on the diff between old and
         // new configs.
-        void update_logger(const std::vector<config::logger> &old_log_cfg, bool appender_chg);
+        void update_logger(const std::unordered_map<std::string, config::logger> &old_log_cfg, bool appender_chg);
 #endif
         // @brief Automatically loads the config file from the default path, or uses built-in defaults on failure.
         void auto_load_config();

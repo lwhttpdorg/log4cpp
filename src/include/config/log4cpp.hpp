@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <unordered_map>
 
 #include "appender.hpp"
 #include "logger.hpp"
@@ -49,7 +50,7 @@ namespace log4cpp::config {
     public:
         std::optional<std::string> log_pattern; // log_pattern
         log_appender appenders{}; // appenders
-        std::vector<logger> loggers; // loggers
+        std::unordered_map<std::string, logger> loggers; // loggers
 
         friend bool operator==(const log4cpp &lhs, const log4cpp &rhs) {
             return lhs.log_pattern == rhs.log_pattern && lhs.appenders == rhs.appenders && lhs.loggers == rhs.loggers;

@@ -141,7 +141,10 @@ void configuration_check(const nlohmann::json &expected_json, const log4cpp::con
     appenders_check(expected_json, config->appenders);
 
     // Loggers
-    std::vector<log4cpp::config::logger> loggers_cfg = config->loggers;
+    std::vector<log4cpp::config::logger> loggers_cfg;
+    for (const auto &[name, logger]: config->loggers) {
+        loggers_cfg.push_back(logger);
+    }
     std::sort(loggers_cfg.begin(), loggers_cfg.end(), logger_less);
     logger_check(expected_json, loggers_cfg);
 }
@@ -150,7 +153,7 @@ TEST(load_config_test, auto_load_config) {
     // Just to load the configuration file
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     // Calling get_logger() causes automatic loading
-    const auto logger = log4cpp::logger_manager::get_logger("root");
+    const auto logger = log4cpp::logger_manager::get_logger(log4cpp::FALLBACK_LOGGER_NAME);
     logger->info("[load_config_test.auto_load_config] Calling get_logger() causes automatic loading");
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     ASSERT_NE(nullptr, config);

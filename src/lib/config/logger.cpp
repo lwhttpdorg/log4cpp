@@ -6,8 +6,6 @@
 #include "exception/config_exception.hpp"
 
 namespace log4cpp::config {
-    constexpr const char *DEFAULT_LOGGER_NAME = "root";
-
     void to_json(nlohmann::json &j, const logger &config) {
         std::vector<std::string> appenders;
         for (const auto &entry: APPENDER_TABLE) {
