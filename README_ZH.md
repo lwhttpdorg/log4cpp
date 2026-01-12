@@ -75,7 +75,7 @@ project(log4cpp-demo)
 add_executable(demo main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.3)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.4)
 FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(demo log4cpp)
 ```
