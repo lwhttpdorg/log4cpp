@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(log4cpp VERSION 1.0.0 LANGUAGES CXX)
+project(log4cpp VERSION 4.0.4 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 
@@ -63,3 +63,5 @@ if (BUILD_LOG4CPP_TEST)
     enable_testing()
     add_subdirectory(test)
 endif ()
+
+include(cmake/CPackConfig.cmake)

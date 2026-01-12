@@ -34,7 +34,8 @@
       * [4.1.2. Linux](#412-linux)
     * [4.2. 构建](#42-构建)
     * [4.3. 测试](#43-测试)
-    * [4.4. ASAN](#44-asan)
+    * [4.4. 构建RPM/DEB](#44-构建rpmdeb)
+    * [4.5. ASAN](#44-asan)
   * [5. 许可](#5-许可)
 <!-- TOC -->
 
@@ -516,7 +517,27 @@ ctest -C Debug --test-dir build --output-on-failure
 ctest -C Debug --test-dir build --verbose
 ```
 
-### 4.4. ASAN
+### 4.4. 构建RPM/DEB
+
+构建全部:
+
+```shell
+cpack --config build/CPackConfig.cmake
+```
+
+只构建DEB:
+
+```shell
+cpack -G DEB --config build/CPackConfig.cmake
+```
+
+只构建RPM:
+
+```shell
+cpack -G RPM --config build/CPackConfig.cmake
+```
+
+### 4.5. ASAN
 
 如果你的代码修改了现有功能, 请确保ASAN检测通过, 未经ASAN检测通过的代码不会合并
 

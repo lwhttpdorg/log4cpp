@@ -33,8 +33,9 @@
       * [4.1.2. Linux](#412-linux)
     * [4.2. Build](#42-build)
     * [4.3. Testing](#43-testing)
-    * [4.4. ASAN](#44-asan)
-    * [4.5. License](#45-license)
+    * [4.4. Build RPM/DEB](#44-build-rpmdeb)
+    * [4.5. ASAN](#45-asan)
+  * [5. License](#5-license)
 <!-- TOC -->
 
 ## 1. What is log4cpp?
@@ -529,11 +530,30 @@ Or enable more verbose output from tests:
 ctest -C Debug --test-dir build --verbose
 ```
 
-### 4.4. ASAN
+### 4.4. Build RPM/DEB
+
+Build everything:
+
+```shell
+cpack --config build/CPackConfig.cmake
+```
+
+Build only DEB:
+
+```shell
+cpack -G DEB --config build/CPackConfig.cmake
+```
+Build only RPM:
+
+```shell
+cpack -G RPM --config build/CPackConfig.cmake
+```
+
+### 4.5. ASAN
 
 If your code modifies existing functionality, please ensure that ASAN detection passes. Code that has not passed ASAN
 detection will not be merged
 
-### 4.5. License
+## 5. License
 
 This project is licensed under [LGPLv3](LICENSE)

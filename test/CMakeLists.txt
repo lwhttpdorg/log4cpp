@@ -1,6 +1,8 @@
 # Force shared CRT on Windows for GoogleTest
 set(gtest_force_shared_crt ON)
 
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+
 # Fetch GoogleTest
 include(FetchContent)
 FetchContent_Declare(
