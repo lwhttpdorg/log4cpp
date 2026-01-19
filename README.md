@@ -532,21 +532,19 @@ ctest -C Debug --test-dir build --verbose
 
 ### 4.4. Build RPM/DEB
 
-Build everything:
+Build DEB:
 
 ```shell
-cpack --config build/CPackConfig.cmake
+fakeroot debian/rules clean
+DEB_BUILD_OPTIONS="noddebs" dpkg-buildpackage -us -uc -b -j$(nproc)
 ```
-
-Build only DEB:
-
-```shell
-cpack -G DEB --config build/CPackConfig.cmake
-```
-Build only RPM:
+Build RPM:
 
 ```shell
-cpack -G RPM --config build/CPackConfig.cmake
+rpmdev-setuptree
+tar -czf ~/rpmbuild/SOURCES/liblog4cpp-4.0.4.tar.gz log4cpp/
+cp log4cpp/liblog4cpp.spec rpmbuild/SPECS/
+rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 ```
 
 ### 4.5. ASAN

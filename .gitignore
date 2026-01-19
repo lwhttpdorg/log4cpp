@@ -41,7 +41,5 @@
 cmake-build-*
 build*
 
-# CPack
-_CPack_Packages
-liblog4cpp*.rpm
-liblog4cpp*.deb
+# pkg
+obj-*

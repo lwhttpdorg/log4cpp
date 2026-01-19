@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: liblog4cpp
+Description: A log4j-style C++ logging library
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -llog4cpp
+Cflags: -I${includedir}

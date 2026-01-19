@@ -1,0 +1,3 @@
+usr/include/*
+usr/lib/*/liblog4cpp.so
+usr/lib/*/pkgconfig/*

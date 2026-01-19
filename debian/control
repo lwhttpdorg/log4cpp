@@ -1,0 +1,19 @@
+Source: liblog4cpp
+Section: libs
+Priority: optional
+Maintainer: developer <developer@log4cpp.org>
+Build-Depends: debhelper-compat (= 13), cmake, nlohmann-json3-dev (>= 3.0.0)
+Standards-Version: 4.5.0
+
+Package: liblog4cpp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A log4j-style C++ logging library
+ Runtime library for log4cpp.
+
+Package: liblog4cpp-dev
+Section: libdevel
+Architecture: any
+Depends: liblog4cpp (= ${binary:Version}), nlohmann-json3-dev (>= 3.0.0), ${misc:Depends}
+Description: Development files for Log4cpp
+ Headers and static libraries for log4cpp development.

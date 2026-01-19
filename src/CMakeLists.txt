@@ -32,10 +32,12 @@ if (MSVC)
 endif ()
 
 # Includes
-target_include_directories(log4cpp
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include> $<INSTALL_INTERFACE:include>
+target_include_directories(log4cpp 
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+set_target_properties(log4cpp PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
 
 # Platform specifics
 if (WIN32)
@@ -57,7 +59,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     )
 endif ()
 
-target_link_libraries(log4cpp PUBLIC nlohmann_json::nlohmann_json)
+target_link_libraries(log4cpp PRIVATE nlohmann_json::nlohmann_json)
 
 # Output dirs
 set_target_properties(log4cpp PROPERTIES
@@ -72,12 +74,7 @@ apply_asan_to_target(log4cpp)
 # Install rules
 install(TARGETS log4cpp
     EXPORT log4cppTargets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT runtime
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/log4cpp
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT dev
-)
-
-set_target_properties(log4cpp PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 4)

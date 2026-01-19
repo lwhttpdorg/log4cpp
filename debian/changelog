@@ -1,0 +1,6 @@
+liblog4cpp (4.0.4) unstable; urgency=low
+
+  * Initial native release.
+  * Added pkg-config support.
+
+ -- developer <developer@log4cpp.org>  Mon, 19 Jan 2026 14:30:00 +0800

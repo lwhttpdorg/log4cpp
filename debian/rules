@@ -1,0 +1,23 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@ --buildsystem=cmake
+
+override_dh_auto_build:
+	dh_auto_build --parallel VERBOSE=1
+
+override_dh_missing:
+	dh_missing --fail-missing
+
+override_dh_installdocs:
+	# nothing
+	:
+
+override_dh_strip:
+	dh_strip --no-ddebs
+
+override_dh_auto_test:
+	# Skip tests
+	:
