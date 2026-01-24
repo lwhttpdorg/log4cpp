@@ -427,4 +427,4 @@ namespace log4cpp::appender {
             (void)send(this->sock_fd, msg, static_cast<int>(msg_len), 0);
         }
     }
-}
+} // namespace log4cpp::appender

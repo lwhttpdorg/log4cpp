@@ -289,4 +289,4 @@ namespace log4cpp::common {
         const std::string s = j.get<std::string>();
         addr = net_addr(s);
     }
-}
+} // namespace log4cpp::common

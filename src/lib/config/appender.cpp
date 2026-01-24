@@ -62,4 +62,4 @@ namespace log4cpp::config {
         // Convert to lowercase for comparison
         from_string(prefer_str, config.prefer);
     }
-}
+} // namespace log4cpp::config

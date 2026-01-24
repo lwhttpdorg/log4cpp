@@ -25,4 +25,4 @@ namespace log4cpp::appender {
         int file_no = -1;
         common::log_lock lock;
     };
-}
+} // namespace log4cpp::appender

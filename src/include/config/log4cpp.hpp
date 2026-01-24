@@ -48,8 +48,8 @@ namespace log4cpp::config {
 
     class log4cpp {
     public:
-        std::optional<std::string> log_pattern; // log_pattern
-        log_appender appenders{}; // appenders
+        std::optional<std::string> log_pattern;          // log_pattern
+        log_appender appenders{};                        // appenders
         std::unordered_map<std::string, logger> loggers; // loggers
 
         friend bool operator==(const log4cpp &lhs, const log4cpp &rhs) {
@@ -67,4 +67,4 @@ namespace log4cpp::config {
     void to_json(nlohmann::json &j, const log4cpp &config);
 
     void from_json(const nlohmann::json &j, log4cpp &config);
-}
+} // namespace log4cpp::config

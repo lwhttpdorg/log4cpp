@@ -5,7 +5,7 @@ AccessModifierOffset: -4
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignOperands: Align
-AlignTrailingComments: false
+AlignTrailingComments: true
 AllowShortBlocksOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: true
@@ -37,7 +37,7 @@ BreakConstructorInitializersBeforeComma: false
 BreakBeforeBinaryOperators: NonAssignment
 ColumnLimit: 120
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-FixNamespaceComments: false
+FixNamespaceComments: true
 IncludeCategories: 
   - Regex: '^<.*'
     Priority: 1

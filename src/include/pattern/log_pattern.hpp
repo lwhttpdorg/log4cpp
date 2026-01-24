@@ -66,4 +66,4 @@ namespace log4cpp::pattern {
          */
         static size_t format_with_pattern(char *buf, size_t len, const char *name, log_level level, const char *msg);
     };
-}
+} // namespace log4cpp::pattern

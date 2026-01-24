@@ -43,11 +43,11 @@ namespace log4cpp::appender {
         common::socket_fd sock_fd; // Socket file descriptor
         connection_fsm_state connection_state;
 
-        std::mutex reconnect_mutex; // Mutex for reconnect condition variable
-        std::condition_variable reconnect_cv; // Condition variable for reconnecting
+        std::mutex reconnect_mutex;              // Mutex for reconnect condition variable
+        std::condition_variable reconnect_cv;    // Condition variable for reconnecting
         std::atomic<bool> stop_reconnect{false}; // Flag to stop reconnect thread
-        void reconnect_thread_routine(); // Reconnect thread function
-        std::thread reconnect_thread; // Reconnect thread
+        void reconnect_thread_routine();         // Reconnect thread function
+        std::thread reconnect_thread;            // Reconnect thread
         // Current delay for reconnection
         std::chrono::seconds reconnect_delay{0};
         // Initial delay for reconnection
@@ -64,4 +64,4 @@ namespace log4cpp::appender {
         void schedule_backoff();
         void reset_backoff();
     };
-}
+} // namespace log4cpp::appender

@@ -72,4 +72,4 @@ namespace log4cpp {
             throw std::invalid_argument("invalid loglevel \'" + str + "\'");
         }
     }
-}
+} // namespace log4cpp

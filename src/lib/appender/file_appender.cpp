@@ -80,4 +80,4 @@ namespace log4cpp::appender {
         (void)write(this->fd, msg, msg_len);
 #endif
     }
-}
+} // namespace log4cpp::appender

@@ -116,4 +116,4 @@ namespace log4cpp {
         }
         return *this;
     }
-}
+} // namespace log4cpp

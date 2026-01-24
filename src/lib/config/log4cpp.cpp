@@ -179,4 +179,4 @@ namespace log4cpp::config {
         nlohmann::json j = nlohmann::json::parse(json);
         return j.get<log4cpp>();
     }
-}
+} // namespace log4cpp::config

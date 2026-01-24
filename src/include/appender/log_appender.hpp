@@ -14,4 +14,4 @@ namespace log4cpp::appender {
 
         virtual ~log_appender() = default;
     };
-}
+} // namespace log4cpp::appender

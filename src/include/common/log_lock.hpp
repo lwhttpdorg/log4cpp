@@ -56,4 +56,4 @@ namespace log4cpp::common {
         pthread_spinlock_t _m_lock{};
 #endif
     };
-}
+} // namespace log4cpp::common

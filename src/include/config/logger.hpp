@@ -29,4 +29,4 @@ namespace log4cpp::config {
     void to_json(nlohmann::json &j, const logger &config);
 
     void from_json(const nlohmann::json &j, logger &config);
-}
+} // namespace log4cpp::config

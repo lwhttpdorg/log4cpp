@@ -314,4 +314,4 @@ namespace log4cpp::pattern {
         used_len += common::log4c_scnprintf(buf + used_len, buf_len - used_len, "\n");
         return used_len;
     }
-}
+} // namespace log4cpp::pattern

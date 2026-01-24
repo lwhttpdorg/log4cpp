@@ -42,7 +42,7 @@ namespace log4cpp::common {
         return errno;
 #endif
     }
-}
+} // namespace log4cpp::common
 
 class socket_appender_test: public testing::Test {
 protected:

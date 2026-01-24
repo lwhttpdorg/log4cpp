@@ -128,7 +128,7 @@ namespace log4cpp::common {
             return addr.to_string() + "@" + std::to_string(port);
         }
     };
-}
+} // namespace log4cpp::common
 
 // namespace std {
 //     template<>

@@ -101,7 +101,7 @@ namespace log4cpp {
         std::vector<std::string> appenders = log4cpp::config::appender_flag_to_name(obj.appender);
         json = nlohmann::json{{{"name", obj.name}, {"level", obj.level.value()}, {"appenders", appenders}}};
     }
-}
+} // namespace log4cpp
 
 bool logger_less(const log4cpp::config::logger &a, const log4cpp::config::logger &b) {
     if (a.name != b.name) return a.name < b.name;

@@ -51,4 +51,4 @@ namespace log4cpp::config {
             config.appender = 0;
         }
     }
-}
+} // namespace log4cpp::config

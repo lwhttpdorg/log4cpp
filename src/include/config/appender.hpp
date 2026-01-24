@@ -68,4 +68,4 @@ namespace log4cpp::config {
 
     void to_json(nlohmann::json &j, const socket_appender &config);
     void from_json(const nlohmann::json &j, socket_appender &config);
-}
+} // namespace log4cpp::config

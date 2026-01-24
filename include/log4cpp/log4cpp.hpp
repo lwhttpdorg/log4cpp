@@ -70,7 +70,7 @@ namespace log4cpp {
     namespace config {
         class logger;
         class log4cpp;
-    }
+    } // namespace config
 
     namespace appender {
         class log_appender;
@@ -298,4 +298,4 @@ namespace log4cpp {
         // A map storing all active logger proxies (name -> weak_ptr of logger_proxy).
         std::unordered_map<std::string, std::weak_ptr<logger_proxy>> loggers;
     };
-}
+} // namespace log4cpp

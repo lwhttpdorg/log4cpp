@@ -95,4 +95,4 @@ namespace log4cpp {
         /// @brief A flag to signal the hot-reload state.
         unsigned int hot_reload_flag{0};
     };
-}
+} // namespace log4cpp

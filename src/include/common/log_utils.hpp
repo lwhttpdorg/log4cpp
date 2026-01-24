@@ -67,4 +67,4 @@ namespace log4cpp::common {
      * @return uppercase string
      */
     std::string to_upper(const std::string &s);
-}
+} // namespace log4cpp::common

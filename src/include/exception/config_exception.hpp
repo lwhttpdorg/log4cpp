@@ -9,4 +9,4 @@ namespace log4cpp::config {
             std::runtime_error("Invalid log4cpp configuration: " + msg) {
         }
     };
-}
+} // namespace log4cpp::config

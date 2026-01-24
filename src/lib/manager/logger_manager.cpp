@@ -139,7 +139,10 @@ namespace log4cpp {
         if (evt_loop_thread.joinable()) {
             evt_loop_run.store(false);
             constexpr uint64_t val = EVT_SHUTDOWN;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
             (void)write(evt_fd, &val, sizeof(uint64_t));
+#pragma GCC diagnostic pop
             evt_loop_thread.join();
         }
         if (evt_fd != -1) {
@@ -248,7 +251,10 @@ namespace log4cpp {
     /// @brief Sends a hot-reload notification to the event loop thread.
     void logger_manager::notify_config_hot_reload() const {
         constexpr uint64_t val = EVT_HOT_RELOAD;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
         (void)write(evt_fd, &val, sizeof(uint64_t));
+#pragma GCC diagnostic pop
     }
 
     /// @brief Creates and starts the event loop thread.
@@ -561,4 +567,4 @@ namespace log4cpp {
         }
         return new_logger;
     }
-}
+} // namespace log4cpp

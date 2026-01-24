@@ -76,7 +76,7 @@ namespace log4cpp {
         prctl(PR_SET_NAME, buf);
 #endif
     }
-}
+} // namespace log4cpp
 
 namespace log4cpp::common {
     /**
@@ -252,4 +252,4 @@ namespace log4cpp::common {
         std::transform(result.begin(), result.end(), result.begin(), ::toupper);
         return result;
     }
-}
+} // namespace log4cpp::common

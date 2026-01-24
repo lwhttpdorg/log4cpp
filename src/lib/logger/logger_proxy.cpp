@@ -162,4 +162,4 @@ namespace log4cpp {
     bool logger_proxy::hot_reload_flag_is_set() const {
         return (hot_reload_flag & PROXY_HOT_RELOADED) != 0;
     }
-}
+} // namespace log4cpp
