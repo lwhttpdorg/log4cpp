@@ -77,7 +77,10 @@ namespace log4cpp::appender {
 #ifdef _MSC_VER
         (void)_write(this->fd, msg, static_cast<unsigned int>(msg_len));
 #else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
         (void)write(this->fd, msg, msg_len);
+#pragma GCC diagnostic pop
 #endif
     }
 } // namespace log4cpp::appender
