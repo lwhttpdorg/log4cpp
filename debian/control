@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: developer <developer@log4cpp.org>
 Build-Depends: debhelper-compat (= 13), cmake, nlohmann-json3-dev (>= 3.0.0)
-Standards-Version: 4.5.0
+Standards-Version: 4.5.1
 
 Package: liblog4cpp
 Architecture: any

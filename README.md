@@ -34,6 +34,8 @@
     * [4.2. Build](#42-build)
     * [4.3. Testing](#43-testing)
     * [4.4. Build RPM/DEB](#44-build-rpmdeb)
+      * [4.4.1. Manual Build](#441-manual-build)
+      * [4.4.2. Using build script](#442-using-build-script)
     * [4.5. ASAN](#45-asan)
   * [5. License](#5-license)
 <!-- TOC -->
@@ -70,7 +72,7 @@ sudo apt install nlohmann-json3-dev
 
 #### 3.1.1. Create a CMake Project
 
-CMakeLists.txt:
+Using `FetchContent`:
 
 ```cmake
 cmake_minimum_required(VERSION 3.11)
@@ -83,6 +85,20 @@ include(FetchContent)
 FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.4)
 FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(demo log4cpp)
+```
+
+Or using `pkg-config`(The log4cpp deb/rpm package has already been installed):
+
+```cmake
+cmake_minimum_required(VERSION 3.11)
+
+project(log4cpp-demo)
+
+add_executable(log4cpp-demo main.cpp)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LOG4CPP REQUIRED log4cpp)
+target_link_libraries(log4cpp-demo PRIVATE ${LOG4CPP_LIBRARIES})
 ```
 
 #### 3.1.2. Include Header File
@@ -288,7 +304,7 @@ Reference configuration file [demo/demo.json](demo/demo.json)
 
 ```json
 {
-	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}"
+  "log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}"
 }
 ```
 
@@ -331,20 +347,20 @@ A simple configuration file example:
 
 ```json
 {
-	"appenders": {
-		"console": {
-			"out-stream": "stdout"
-		},
-		"file": {
-			"file-path": "log/log4cpp.log"
-		},
-		"socket": {
-			"host": "10.0.0.1",
-			"port": 9443,
-			"protocol": "tcp",
-			"prefer-stack": "auto"
-		}
-	}
+  "appenders": {
+    "console": {
+      "out-stream": "stdout"
+    },
+    "file": {
+      "file-path": "log/log4cpp.log"
+    },
+    "socket": {
+      "host": "10.0.0.1",
+      "port": 9443,
+      "protocol": "tcp",
+      "prefer-stack": "auto"
+    }
+  }
 }
 ```
 
@@ -354,11 +370,11 @@ The Console Appender's function is to output logs to `STDOUT` or `STDERR`. Typic
 
 ```json
 {
-	"appenders": {
-		"console": {
-			"out-stream": "stdout"
-		}
-	}
+  "appenders": {
+    "console": {
+      "out-stream": "stdout"
+    }
+  }
 }
 ```
 
@@ -372,11 +388,11 @@ The File Appender's function is to output logs to a specified file. Typical conf
 
 ```json
 {
-	"appenders": {
-		"file": {
-			"file-path": "log/log4cpp.log"
-		}
-	}
+  "appenders": {
+    "file": {
+      "file-path": "log/log4cpp.log"
+    }
+  }
 }
 ```
 
@@ -391,14 +407,14 @@ configured, it defaults to `TCP`
 
 ```json
 {
-	"appenders": {
-		"socket": {
-			"host": "10.0.0.1",
-			"port": 9443,
-			"protocol": "tcp",
-			"prefer-stack": "auto"
-		}
-	}
+  "appenders": {
+    "socket": {
+      "host": "10.0.0.1",
+      "port": 9443,
+      "protocol": "tcp",
+      "prefer-stack": "auto"
+    }
+  }
 }
 ```
 
@@ -426,31 +442,31 @@ __The default logger must be defined with name `root`__
 
 ```json
 {
-	"loggers": [
-		{
-			"name": "root",
-			"level": "INFO",
-			"appenders": [
-				"console",
-				"file"
-			]
-		},
-		{
-			"name": "hello",
-			"level": "INFO",
-			"appenders": [
-				"console",
-				"socket"
-			]
-		},
-		{
-			"name": "aaa",
-			"level": "WARN",
-			"appenders": [
-				"file"
-			]
-		}
-	]
+  "loggers": [
+    {
+      "name": "root",
+      "level": "INFO",
+      "appenders": [
+        "console",
+        "file"
+      ]
+    },
+    {
+      "name": "hello",
+      "level": "INFO",
+      "appenders": [
+        "console",
+        "socket"
+      ]
+    },
+    {
+      "name": "aaa",
+      "level": "WARN",
+      "appenders": [
+        "file"
+      ]
+    }
+  ]
 }
 ```
 
@@ -532,12 +548,15 @@ ctest -C Debug --test-dir build --verbose
 
 ### 4.4. Build RPM/DEB
 
+#### 4.4.1. Manual Build
+
 Build DEB:
 
 ```shell
 fakeroot debian/rules clean
 DEB_BUILD_OPTIONS="noddebs" dpkg-buildpackage -us -uc -b -j$(nproc)
 ```
+
 Build RPM:
 
 ```shell
@@ -545,6 +564,24 @@ rpmdev-setuptree
 tar -czf ~/rpmbuild/SOURCES/liblog4cpp-4.0.4.tar.gz log4cpp/
 cp log4cpp/liblog4cpp.spec rpmbuild/SPECS/
 rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
+```
+
+#### 4.4.2. Using build script
+
+This project provides a build script `build-rpm.sh` and `build-deb.sh` to build RPM and DEB packages
+
+```shell
+# build DEB
+./build-deb.sh
+# clean
+./build-deb.sh clean
+```
+
+```shell
+# build RPM
+./build-rpm.sh
+# clean
+./build-rpm.sh clean
 ```
 
 ### 4.5. ASAN

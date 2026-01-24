@@ -35,7 +35,9 @@
     * [4.2. 构建](#42-构建)
     * [4.3. 测试](#43-测试)
     * [4.4. 构建RPM/DEB](#44-构建rpmdeb)
-    * [4.5. ASAN](#44-asan)
+      * [4.4.1. 手动构建](#441-手动构建)
+      * [4.4.2. 使用构建脚本](#442-使用构建脚本)
+    * [4.5. ASAN](#45-asan)
   * [5. 许可](#5-许可)
 <!-- TOC -->
 
@@ -65,7 +67,7 @@ log4cpp是一个C++日志库, 参照log4j实现
 
 #### 3.1.1. 创建CMake项目
 
-`CMakeLists.txt`:
+使用`FetchContent`:
 
 ```cmake
 cmake_minimum_required(VERSION 3.11)
@@ -78,6 +80,20 @@ include(FetchContent)
 FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.4)
 FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(demo log4cpp)
+```
+
+或者使用`pkg-config`(已经安装了log4cpp的deb/rpm包):
+
+```cmake
+cmake_minimum_required(VERSION 3.11)
+
+project(log4cpp-demo)
+
+add_executable(log4cpp-demo main.cpp)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LOG4CPP REQUIRED log4cpp)
+target_link_libraries(log4cpp-demo PRIVATE ${LOG4CPP_LIBRARIES})
 ```
 
 #### 3.1.2. 引入头文件
@@ -280,7 +296,7 @@ root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 
 ```json
 {
-	"log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}"
+  "log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}"
 }
 ```
 
@@ -321,20 +337,20 @@ _注: 默认log-pattern为`"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}
 
 ```json
 {
-	"appenders": {
-		"console": {
-			"out-stream": "stdout"
-		},
-		"file": {
-			"file-path": "log/log4cpp.log"
-		},
-		"socket": {
-			"host": "10.0.0.1",
-			"port": 9443,
-			"protocol": "tcp",
-			"prefer-stack": "auto"
-		}
-	}
+  "appenders": {
+    "console": {
+      "out-stream": "stdout"
+    },
+    "file": {
+      "file-path": "log/log4cpp.log"
+    },
+    "socket": {
+      "host": "10.0.0.1",
+      "port": 9443,
+      "protocol": "tcp",
+      "prefer-stack": "auto"
+    }
+  }
 }
 ```
 
@@ -344,11 +360,11 @@ _注: 默认log-pattern为`"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}
 
 ```json
 {
-	"appenders": {
-		"console": {
-			"out-stream": "stdout"
-		}
-	}
+  "appenders": {
+    "console": {
+      "out-stream": "stdout"
+    }
+  }
 }
 ```
 
@@ -362,11 +378,11 @@ _注: 默认log-pattern为`"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}
 
 ```json
 {
-	"appenders": {
-		"file": {
-			"file-path": "log/log4cpp.log"
-		}
-	}
+  "appenders": {
+    "file": {
+      "file-path": "log/log4cpp.log"
+    }
+  }
 }
 ```
 
@@ -380,14 +396,14 @@ Socket输出器支持TCP和UDP两种协议, 通过`protocol`字段区分, 如果
 
 ```json
 {
-	"appenders": {
-		"socket": {
-			"host": "10.0.0.1",
-			"port": 9443,
-			"protocol": "tcp",
-			"prefer-stack": "auto"
-		}
-	}
+  "appenders": {
+    "socket": {
+      "host": "10.0.0.1",
+      "port": 9443,
+      "protocol": "tcp",
+      "prefer-stack": "auto"
+    }
+  }
 }
 ```
 
@@ -413,31 +429,31 @@ __注: 必须定义`name`为`root`默认logger__
 
 ```json
 {
-	"loggers": [
-		{
-			"name": "root",
-			"level": "INFO",
-			"appenders": [
-				"console",
-				"file"
-			]
-		},
-		{
-			"name": "hello",
-			"level": "INFO",
-			"appenders": [
-				"console",
-				"socket"
-			]
-		},
-		{
-			"name": "aaa",
-			"level": "WARN",
-			"appenders": [
-				"file"
-			]
-		}
-	]
+  "loggers": [
+    {
+      "name": "root",
+      "level": "INFO",
+      "appenders": [
+        "console",
+        "file"
+      ]
+    },
+    {
+      "name": "hello",
+      "level": "INFO",
+      "appenders": [
+        "console",
+        "socket"
+      ]
+    },
+    {
+      "name": "aaa",
+      "level": "WARN",
+      "appenders": [
+        "file"
+      ]
+    }
+  ]
 }
 ```
 
@@ -459,9 +475,11 @@ log4cpp::supervisor::enable_config_hot_loading(int sig = SIGHUP);
 kill -SIGHUP <PID>
 ```
 
-此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。先前已经通过`log4cpp::logger_manager::get_logger()`获得的`std::shared_ptr<log4cpp::logger>`
+此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。先前已经通过
+`log4cpp::logger_manager::get_logger()`获得的`std::shared_ptr<log4cpp::logger>`
 并不会立即失效并且可继续使用
-此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件。由于内部采用了代理模式，您之前通过 `get_logger()` 获取的 `std::shared_ptr` 依然有效且可以继续使用，它会自动将日志记录请求转发到新的、基于新配置的内部实现上。
+此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件。由于内部采用了代理模式，您之前通过 `get_logger()` 获取的
+`std::shared_ptr` 依然有效且可以继续使用，它会自动将日志记录请求转发到新的、基于新配置的内部实现上。
 
 _注: `log4cpp::logger_manager::get_logger()`返回的`std::shared_ptr`可能不会发生变化，即使其内部代理对象已经改变_
 
@@ -519,6 +537,8 @@ ctest -C Debug --test-dir build --verbose
 
 ### 4.4. 构建RPM/DEB
 
+#### 4.4.1. 手动构建
+
 构建DEB:
 
 ```shell
@@ -535,6 +555,24 @@ cp log4cpp/liblog4cpp.spec rpmbuild/SPECS/
 rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 ```
 
+#### 4.4.2. 使用构建脚本
+
+本项目提供了构建脚本`build-rpm.sh`和`build-deb.sh`, 用于构建 RPM 和 DEB 软件包
+
+```shell
+# build DEB
+./build-deb.sh
+# clean
+./build-deb.sh clean
+```
+
+```shell
+# build RPM
+./build-rpm.sh
+# clean
+./build-rpm.sh clean
+```
+
 ### 4.5. ASAN
 
 如果你的代码修改了现有功能, 请确保ASAN检测通过, 未经ASAN检测通过的代码不会合并
@@ -542,4 +580,3 @@ rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 ## 5. 许可
 
 本项目使用[LGPLv3](LICENSE)许可
-

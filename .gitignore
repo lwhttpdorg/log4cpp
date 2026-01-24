@@ -39,7 +39,7 @@
 
 # CMake
 cmake-build-*
-build*
+build/
 
 # pkg
 obj-*
