@@ -30,7 +30,7 @@ jobs:
         run: >
           cmake -B build
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DBUILD_LOG4CPP_TEST=ON
+          -DENABLE_LOG4CPP_UNIT_TEST=ON
           -DENABLE_ASAN=ON
           -S ${{ github.workspace }}
 

@@ -505,25 +505,25 @@ proxy object has changed
 MingW64:
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
 MSVC:
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
 #### 4.1.2. Linux
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_ASAN=ON
 ```
 
 Options:
 
 * `DBUILD_LOG4CPP_DEMO=ON`: Build demo, default `OFF` (not build)
-* `DBUILD_LOG4CPP_TEST=ON`: Build test programs , default `OFF` (not build)
+* `DENABLE_LOG4CPP_UNIT_TEST=ON`: Build test programs , default `OFF` (not build)
 * `DENABLE_ASAN=ON`: Enable AddressSanitizer, default `OFF` (not enabled)
 
 ### 4.2. Build

@@ -61,6 +61,10 @@ endif ()
 
 target_link_libraries(log4cpp PRIVATE nlohmann_json::nlohmann_json)
 
+if (ENABLE_LOG4CPP_COVERAGE)
+    target_link_libraries(log4cpp PRIVATE code_coverage)
+endif()
+
 # Output dirs
 set_target_properties(log4cpp PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib

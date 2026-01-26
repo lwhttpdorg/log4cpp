@@ -18,8 +18,9 @@ endif ()
 
 # Options
 option(BUILD_LOG4CPP_DEMO "Build demo application" OFF)
-option(BUILD_LOG4CPP_TEST "Build test applications" OFF)
+option(ENABLE_LOG4CPP_UNIT_TEST "Enable log4cpp unit tests" OFF)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(ENABLE_LOG4CPP_COVERAGE "Enable log4cpp code coverage (GNU only)" OFF)
 
 # nlohmann_json
 find_package(nlohmann_json 3.0 REQUIRED)
@@ -50,6 +51,13 @@ function(apply_asan_to_target tgt)
     endif ()
 endfunction()
 
+if (ENABLE_LOG4CPP_COVERAGE)
+    # Code coverage target for GNU builds
+    add_library(code_coverage INTERFACE)
+    target_compile_options(code_coverage INTERFACE --coverage -O0 -g)
+    target_link_options(code_coverage INTERFACE --coverage)
+endif ()
+
 # Library
 add_subdirectory(src)
 
@@ -59,7 +67,7 @@ if (BUILD_LOG4CPP_DEMO)
 endif ()
 
 # Tests
-if (BUILD_LOG4CPP_TEST)
+if (ENABLE_LOG4CPP_UNIT_TEST)
     enable_testing()
     add_subdirectory(test)
 endif ()

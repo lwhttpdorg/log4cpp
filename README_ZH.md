@@ -492,25 +492,25 @@ _注: `log4cpp::logger_manager::get_logger()`返回的`std::shared_ptr`可能不
 MingW64:
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
 MSVC:
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
 #### 4.1.2. Linux
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DBUILD_LOG4CPP_TEST=ON -DENABLE_ASAN=ON
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_ASAN=ON
 ```
 
 选项:
 
 * `-DBUILD_LOG4CPP_DEMO=ON`: 编译demo, 默认`OFF`不编译
-* `-DBUILD_LOG4CPP_TEST=ON`: 编译测试, 默认`OFF`不开启
+* `-DENABLE_LOG4CPP_UNIT_TEST=ON`: 编译测试, 默认`OFF`不开启
 * `-DENABLE_ASAN=ON`: 开启地址检测, 默认`OFF`不开启
 
 ### 4.2. 构建
