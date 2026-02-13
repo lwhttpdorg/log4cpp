@@ -167,21 +167,15 @@ namespace log4cpp {
                 return;
             }
             catch (const std::exception &e) {
-                log4cpp::common::log4c_debug(
-                    stderr, "Failed to load configuration '%s': %s. Falling back to built-in default configuration.\n",
-                    config_file_path.c_str(), e.what());
+                log4cpp::common::log4c_debug(stderr,
+                                             "Error loading config '%s': %s. Falling back to default configuration.\n",
+                                             config_file_path.c_str(), e.what());
             }
         }
-        else {
-            if (ec) {
-                log4cpp::common::log4c_debug(
-                    stderr,
-                    "Failed to check existence/access for config '%s': %s (code=%d). Using default configuration.\n",
-                    config_file_path.c_str(), ec.message().c_str(), static_cast<int>(ec.value()));
-            }
-            else {
-                // file does not exist — will use default configuration
-            }
+        else if (ec) {
+            log4cpp::common::log4c_debug(
+                stderr, "Cannot determine existence of config file '%s': %s. Falling back to default configuration.\n",
+                config_file_path.c_str(), ec.message().c_str());
         }
 
         this->config = std::make_unique<config::log4cpp>();
