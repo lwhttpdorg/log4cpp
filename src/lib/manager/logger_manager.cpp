@@ -159,8 +159,8 @@ namespace log4cpp {
      */
     void logger_manager::auto_load_config() {
         std::filesystem::path fsp(config_file_path);
-
-        if (exists(fsp)) {
+        std::error_code ec;
+        if (std::filesystem::exists(fsp, ec)) {
             try {
                 std::unique_lock writer_lock(config_rw_lock);
                 load_config(config_file_path);
@@ -168,8 +168,19 @@ namespace log4cpp {
             }
             catch (const std::exception &e) {
                 log4cpp::common::log4c_debug(
-                    stderr, "Failed to load the configuration file automatically, using default configuration. [%s]\n",
-                    e.what());
+                    stderr, "Failed to load configuration '%s': %s. Falling back to built-in default configuration.\n",
+                    config_file_path.c_str(), e.what());
+            }
+        }
+        else {
+            if (ec) {
+                log4cpp::common::log4c_debug(
+                    stderr,
+                    "Failed to check existence/access for config '%s': %s (code=%d). Using default configuration.\n",
+                    config_file_path.c_str(), ec.message().c_str(), static_cast<int>(ec.value()));
+            }
+            else {
+                // file does not exist — will use default configuration
             }
         }
 
@@ -194,21 +205,15 @@ namespace log4cpp {
      * @throws std::runtime_error If the file cannot be opened.
      */
     void logger_manager::load_config(const std::string &file_path) {
-        if (std::filesystem::exists(file_path)) {
-            std::ifstream ifs(file_path);
-            if (!ifs.is_open()) {
-                throw std::runtime_error("cannot open config file: " + file_path);
-            }
-            nlohmann::json j;
-            ifs >> j;
+        std::ifstream ifs(file_path);
+        if (!ifs.is_open()) {
+            throw std::runtime_error("cannot open config file: " + file_path + ": " + std::strerror(errno));
+        }
+        nlohmann::json j;
+        ifs >> j;
 
-            config = std::make_unique<config::log4cpp>(j.get<config::log4cpp>());
-            config_file_path = file_path;
-        }
-        else {
-            throw std::filesystem::filesystem_error("Config file " + file_path + " open failed!",
-                                                    std::make_error_code(std::io_errc::stream));
-        }
+        config = std::make_unique<config::log4cpp>(j.get<config::log4cpp>());
+        config_file_path = file_path;
     }
 #ifndef _WIN32
     /**

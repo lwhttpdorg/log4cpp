@@ -1,5 +1,5 @@
 # Define the version once to ensure consistency
-%define _version 4.0.4
+%define _version 4.0.5
 
 Name:           liblog4cpp
 Version:        %{_version}
@@ -61,7 +61,7 @@ developing applications that use %{name}.
 %{_libdir}/pkgconfig/log4cpp.pc
 
 %changelog
-* Mon Jan 19 2026 Developer <developer@log4cpp.org> - 4.0.4-1
+* Mon Jan 19 2026 Developer <developer@log4cpp.org> - 4.0.5-1
 - Initial native RPM release
 - Internalized nlohmann-json dependency to hide implementation details
 - Unified include path to /usr/include/log4cpp for standard API usage

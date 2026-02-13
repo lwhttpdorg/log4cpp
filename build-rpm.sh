@@ -46,7 +46,7 @@ rpmdev-setuptree
 
 echo "==> Creating source tarball..."
 cd ..
-tar -czf ~/rpmbuild/SOURCES/liblog4cpp-4.0.4.tar.gz log4cpp/
+tar -czf ~/rpmbuild/SOURCES/liblog4cpp-4.0.5.tar.gz log4cpp/
 
 echo "==> Copying spec file..."
 cp log4cpp/liblog4cpp.spec ~/rpmbuild/SPECS/

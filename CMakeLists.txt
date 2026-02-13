@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(log4cpp VERSION 4.0.4 LANGUAGES CXX)
+project(log4cpp VERSION 4.0.5 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 

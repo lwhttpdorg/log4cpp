@@ -77,7 +77,7 @@ project(log4cpp-demo)
 add_executable(demo main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.4)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.5)
 FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(demo log4cpp)
 ```
@@ -550,7 +550,7 @@ DEB_BUILD_OPTIONS="noddebs" dpkg-buildpackage -us -uc -b -j$(nproc)
 
 ```shell
 rpmdev-setuptree
-tar -czf ~/rpmbuild/SOURCES/liblog4cpp-4.0.4.tar.gz log4cpp/
+tar -czf ~/rpmbuild/SOURCES/liblog4cpp-4.0.5.tar.gz log4cpp/
 cp log4cpp/liblog4cpp.spec rpmbuild/SPECS/
 rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 ```

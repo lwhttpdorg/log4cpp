@@ -1,6 +1,5 @@
-liblog4cpp (4.0.4) unstable; urgency=low
+liblog4cpp (4.0.5) stable; urgency=low
 
-  * Initial native release.
-  * Added pkg-config support.
+  * Fix: Avoid exceptions from std::filesystem::exists when checking config file access
 
- -- developer <developer@log4cpp.org>  Mon, 19 Jan 2026 14:30:00 +0800
+ -- developer <developer@log4cpp.org>  Fri, 13 Feb 2026 12:00:00 +0800
