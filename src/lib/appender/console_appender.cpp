@@ -1,6 +1,6 @@
 #include <mutex>
 
-#if defined(__linux__)
+#ifdef __linux__
 
 #include <unistd.h>
 
@@ -41,7 +41,7 @@ namespace log4cpp::appender {
     }
 
     void console_appender::log(const char *msg, size_t msg_len) {
-        std::lock_guard lock_guard(this->lock);
+        std::scoped_lock fd_lock(this->lock);
 #ifdef _MSC_VER
         (void)_write(this->file_no, msg, static_cast<unsigned int>(msg_len));
 #else

@@ -16,7 +16,7 @@
 
 #endif
 
-#if defined(__linux__)
+#ifdef __linux__
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -35,7 +35,7 @@ namespace log4cpp::appender {
 #ifdef _WIN32
                 (void)_mkdir(path.c_str());
 #endif
-#if defined(__linux__)
+#ifdef __linux__
                 mkdir(path.c_str(), 0755);
 #endif
             }
@@ -73,7 +73,7 @@ namespace log4cpp::appender {
     }
 
     void file_appender::log(const char *msg, size_t msg_len) {
-        std::lock_guard lock_guard(this->lock);
+        std::scoped_lock fd_lock(this->lock);
 #ifdef _MSC_VER
         (void)_write(this->fd, msg, static_cast<unsigned int>(msg_len));
 #else

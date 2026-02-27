@@ -17,7 +17,7 @@ dependencies=(
 echo -e "⏳ ${YELLOW}>>> [1/4] Checking for required dependencies...${NC}"
 missing_deps=()
 for dep in "${dependencies[@]}"; do
-    if ! dpkg -s "$dep" &>/dev/null; then
+    if ! command -v "$dep" &>/dev/null; then
         missing_deps+=("$dep")
     fi
 done

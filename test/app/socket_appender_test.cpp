@@ -15,7 +15,7 @@
 
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
 #endif

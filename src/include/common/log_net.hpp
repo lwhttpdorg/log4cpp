@@ -2,7 +2,7 @@
 
 #include <string>
 
-#if defined(_WIN32)
+#ifdef _WIN32
 #include <WinSock2.h>
 #include <windows.h>
 #endif
@@ -36,7 +36,7 @@ namespace log4cpp::common {
         closesocket(fd);
     }
 #endif
-#if defined(__linux__)
+#ifdef __linux__
     constexpr int INVALID_FD = -1;
     using socket_fd = int;
     constexpr int IN_PROGRESS = EINPROGRESS;

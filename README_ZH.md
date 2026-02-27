@@ -532,7 +532,7 @@ ctest -C Debug --test-dir build --output-on-failure
 或者输出详细信息:
 
 ```shell
-ctest -C Debug --test-dir build --verbose
+ctest -C Debug --test-dir build --verbose -j $(nproc)
 ```
 
 ### 4.4. 构建RPM/DEB

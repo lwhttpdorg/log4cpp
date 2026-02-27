@@ -543,7 +543,7 @@ ctest -C Debug --test-dir build --output-on-failure
 Or enable more verbose output from tests:
 
 ```shell
-ctest -C Debug --test-dir build --verbose
+ctest -C Debug --test-dir build --verbose -j $(nproc)
 ```
 
 ### 4.4. Build RPM/DEB

@@ -1,13 +1,13 @@
 #include <stdexcept>
 
-#if defined(__linux__)
+#ifdef __linux__
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
 #endif
 
-#if defined(_WIN32)
+#ifdef _WIN32
 #include <WS2tcpip.h>
 #include <ws2ipdef.h>
 #endif

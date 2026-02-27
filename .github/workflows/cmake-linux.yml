@@ -38,4 +38,4 @@ jobs:
         run: cmake --build build -j $(nproc)
 
       - name: Test
-        run: ctest --build-config ${{ matrix.build_type }} --test-dir build --output-on-failure
+        run: ctest --build-config ${{ matrix.build_type }} --test-dir build --output-on-failure -j $(nproc)

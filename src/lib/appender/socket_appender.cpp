@@ -1,4 +1,4 @@
-#if defined(_WIN32)
+#ifdef _WIN32
 // clang-format off
 #include <winsock2.h>
 #include <windows.h>
@@ -198,7 +198,7 @@ namespace log4cpp::appender {
     socket_appender::~socket_appender() {
         if (config::socket_appender::protocol::TCP == this->proto) {
             {
-                std::lock_guard lock_guard(this->reconnect_mutex);
+                std::scoped_lock reconnect_lock(this->reconnect_mutex);
                 this->stop_reconnect.store(true);
                 reconnect_cv.notify_one();
 #ifdef _DEBUG

@@ -43,6 +43,7 @@ Checks: >-
   performance-enum-size,
 
   portability-*,
+  -portability-avoid-pragma-once,
 
   readability-*,
   -readability-braces-around-statements,
