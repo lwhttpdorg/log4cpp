@@ -43,3 +43,6 @@ build/
 
 # pkg
 obj-*
+
+# clang-tidy
+code-analysis.log
