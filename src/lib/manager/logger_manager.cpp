@@ -33,7 +33,7 @@ namespace log4cpp {
      * @enum EVENT_TYPE
      * @brief Defines the event types for the non-Windows event loop.
      */
-    enum EVENT_TYPE { EVT_HOT_RELOAD = 1, EVT_SHUTDOWN = 2 };
+    enum EVENT_TYPE : uint8_t { EVT_HOT_RELOAD = 1, EVT_SHUTDOWN = 2 };
 
     /// @brief A flag to ensure thread-safe initialization of the logger_manager singleton.
     std::once_flag logger_manager::init_flag{};

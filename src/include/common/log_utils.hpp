@@ -36,7 +36,7 @@ namespace log4cpp::common {
      * @param replace: the string to replace
      * @return The length after replace
      */
-    size_t log4c_replace(char *original, size_t length, const char *target, const char *replace);
+    size_t log4c_replace_in_place(char *original, size_t length, const char *target, const char *replace);
 
     /**
      * Replace the first occurrence of str_old with str_new in target

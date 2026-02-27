@@ -13,7 +13,7 @@
 namespace log4cpp::appender {
     constexpr std::chrono::seconds send_timeout = std::chrono::seconds(1);
 
-    enum class connection_fsm_state { DISCONNECTED, IN_PROGRESS, ESTABLISHED };
+    enum class connection_fsm_state : uint8_t { DISCONNECTED, IN_PROGRESS, ESTABLISHED };
 
     void to_string(connection_fsm_state state, std::string &str);
     void from_string(const std::string &str, connection_fsm_state &state);

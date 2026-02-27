@@ -70,6 +70,6 @@ namespace log4cpp {
         log_level level_;
         mutable std::shared_mutex appenders_mtx;
         /* The log appenders. */
-        std::set<std::shared_ptr<appender::log_appender>> appenders{};
+        std::set<std::shared_ptr<appender::log_appender>> appenders;
     };
 } // namespace log4cpp

@@ -75,9 +75,9 @@ echo -e "${GREEN}--------------------------------------------------\n${NC}"
 
 # If any count is non-zero, print in RED. Otherwise, print in GREEN.
 if [ "$errors" -gt 0 ] || [ "$warnings" -gt 0 ] || [ "$notes" -gt 0 ]; then
-    echo -e "☹️ ${RED}STATUS: Code analysis failed.${NC}"
+    echo -e "☹️ ${RED}STATUS: code analysis NOT PASSED.${NC}"
     echo -e "${YELLOW}Check '${ANALYSIS_REPORT}' for details.${NC}"
 else
-    echo -e "✔️ ${GREEN}STATUS: Code analysis passed.${NC}"
+    echo -e "✔️ ${GREEN}STATUS: code analysis PASSED.${NC}"
 fi
 

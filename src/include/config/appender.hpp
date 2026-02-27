@@ -12,7 +12,7 @@ namespace log4cpp::config {
     class console_appender {
     public:
         /* The out stream, "stdout" or "stderr" */
-        std::string out_stream{};
+        std::string out_stream;
 
         friend bool operator==(const console_appender &lhs, const console_appender &rhs) {
             return lhs.out_stream == rhs.out_stream;
@@ -52,8 +52,8 @@ namespace log4cpp::config {
 
     class socket_appender {
     public:
-        enum class protocol { TCP, UDP };
-        std::string host{};
+        enum class protocol : uint8_t { TCP, UDP };
+        std::string host;
         unsigned short port{0};
         protocol proto{protocol::TCP};
         common::prefer_stack prefer{common::prefer_stack::AUTO};

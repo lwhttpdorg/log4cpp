@@ -1,5 +1,9 @@
-#include "config/log4cpp.hpp"
+#if __cplusplus >= 202002L
+#include <format>
+#endif
+
 #include "config/appender.hpp"
+#include "config/log4cpp.hpp"
 #include "exception/config_exception.hpp"
 
 namespace log4cpp::config {
@@ -84,6 +88,7 @@ namespace log4cpp::config {
     void to_json(nlohmann::json &j, const log4cpp &config) {
         j = nlohmann::json{{"appenders", config.appenders}};
         std::vector<logger> cfg_loggers;
+        cfg_loggers.reserve(config.loggers.size());
         for (const auto &[name, log]: config.loggers) {
             cfg_loggers.push_back(log);
         }
@@ -163,7 +168,13 @@ namespace log4cpp::config {
                     }
                 }
                 if (!exists) {
+#if __cplusplus >= 202002L
+                    throw invalid_config_exception(
+                        std::format("logger '{}' references undefined appender '{}'", name, ref));
+#else
+                    // NOLINTNEXTLINE(performance-inefficient-string-concatenation)
                     throw invalid_config_exception("logger '" + name + "' references undefined appender '" + ref + "'");
+#endif
                 }
             }
         }

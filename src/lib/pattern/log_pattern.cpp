@@ -59,7 +59,7 @@ namespace log4cpp::pattern {
     const char *LOG_MESSAGE = "${msg}";
 
     // Internal enum to determine hour format.
-    enum class HOUR_BASE { HOUR_NONE, HOUR_12, HOUR_24 };
+    enum class HOUR_BASE : uint8_t { HOUR_NONE, HOUR_12, HOUR_24 };
 
     // Formats date-related placeholders (year, month, day).
     void format_day(char *buf, size_t len, const std::string &pattern, const tm &now_tm) {
@@ -67,35 +67,35 @@ namespace log4cpp::pattern {
         if (pattern.find(SHORT_YEAR) != std::string::npos) {
             char year[7];
             common::log4c_scnprintf(year, sizeof(year), "%d", now_tm.tm_year % 100);
-            common::log4c_replace(buf, len, SHORT_YEAR, year);
+            common::log4c_replace_in_place(buf, len, SHORT_YEAR, year);
         }
         if (pattern.find(FULL_YEAR) != std::string::npos) {
             char year[7];
             common::log4c_scnprintf(year, sizeof(year), "%04d", 1900 + now_tm.tm_year);
-            common::log4c_replace(buf, len, FULL_YEAR, year);
+            common::log4c_replace_in_place(buf, len, FULL_YEAR, year);
         }
         if (pattern.find(SHORT_MONTH) != std::string::npos) {
             char month[3];
             common::log4c_scnprintf(month, sizeof(month), "%d", now_tm.tm_mon + 1);
-            common::log4c_replace(buf, len, SHORT_MONTH, month);
+            common::log4c_replace_in_place(buf, len, SHORT_MONTH, month);
         }
         if (pattern.find(FULL_MONTH) != std::string::npos) {
             char month[3];
             common::log4c_scnprintf(month, sizeof(month), "%02d", now_tm.tm_mon + 1);
-            common::log4c_replace(buf, len, FULL_MONTH, month);
+            common::log4c_replace_in_place(buf, len, FULL_MONTH, month);
         }
         if (pattern.find(ABBR_MONTH) != std::string::npos) {
-            common::log4c_replace(buf, len, ABBR_MONTH, MONTH_ABBR_NAME[now_tm.tm_mon]);
+            common::log4c_replace_in_place(buf, len, ABBR_MONTH, MONTH_ABBR_NAME[now_tm.tm_mon]);
         }
         if (pattern.find(SHORT_DAY) != std::string::npos) {
             char day[3];
             common::log4c_scnprintf(day, sizeof(day), "%d", now_tm.tm_mday);
-            common::log4c_replace(buf, len, SHORT_DAY, day);
+            common::log4c_replace_in_place(buf, len, SHORT_DAY, day);
         }
         if (pattern.find(FULL_DAY) != std::string::npos) {
             char day[3];
             common::log4c_scnprintf(day, sizeof(day), "%02d", now_tm.tm_mday);
-            common::log4c_replace(buf, len, FULL_DAY, day);
+            common::log4c_replace_in_place(buf, len, FULL_DAY, day);
         }
     }
 
@@ -188,11 +188,11 @@ namespace log4cpp::pattern {
                 common::log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, " PM");
             }
         }
-        size_t replace_len = pattern_end - pattern_start;
-        char replace_str[32];
-        strncpy(replace_str, pattern.c_str() + pattern_start, replace_len);
-        replace_str[replace_len] = '\0';
-        common::log4c_replace(buf, len, replace_str, time_str);
+        size_t placeholder_len = pattern_end - pattern_start;
+        char placeholder[32];
+        strncpy(placeholder, pattern.c_str() + pattern_start, placeholder_len);
+        placeholder[placeholder_len] = '\0';
+        common::log4c_replace_in_place(buf, len, placeholder, time_str);
     }
 
     // Formats both date and time placeholders.
@@ -217,14 +217,12 @@ namespace log4cpp::pattern {
                 const std::string width_str = match[1].str();
                 width = std::stoul(width_str);
             }
-            if (LOGGER_NAME_MAX_LEN < width) {
-                width = LOGGER_NAME_MAX_LEN;
-            }
+            width = std::min<size_t>(LOGGER_NAME_MAX_LEN, width);
             char logger_name[LOGGER_NAME_MAX_LEN];
             common::log4c_scnprintf(logger_name, sizeof(logger_name), "%-*.*s", width, width, name);
 
             const std::string full_match_str = match[0];
-            common::log4c_replace(buf, len, full_match_str.c_str(), logger_name);
+            common::log4c_replace_in_place(buf, len, full_match_str.c_str(), logger_name);
         }
 
         // Replace `${...TN}` with the thread name or ID.
@@ -234,9 +232,7 @@ namespace log4cpp::pattern {
                 const std::string width_str = match[1].str();
                 width = std::stoul(width_str);
             }
-            if (THREAD_NAME_MAX_LEN < width) {
-                width = THREAD_NAME_MAX_LEN;
-            }
+            width = std::min<size_t>(THREAD_NAME_MAX_LEN, width);
             char _name[THREAD_NAME_MAX_LEN];
             const unsigned long tid = get_thread_name_id(_name, sizeof(_name));
             char thread_name[THREAD_NAME_MAX_LEN];
@@ -247,7 +243,7 @@ namespace log4cpp::pattern {
                 common::log4c_scnprintf(thread_name, sizeof(thread_name), "T%0*lu", width, tid);
             }
             const std::string full_match_str = match[0];
-            common::log4c_replace(buf, len, full_match_str.c_str(), thread_name);
+            common::log4c_replace_in_place(buf, len, full_match_str.c_str(), thread_name);
         }
 
         // Replace `${...TH}` with the thread ID.
@@ -257,10 +253,7 @@ namespace log4cpp::pattern {
                 const std::string width_str = match[1].str();
                 width = std::stoul(width_str);
             }
-            if (THREAD_ID_WIDTH_MAX < width) {
-                width = THREAD_ID_WIDTH_MAX;
-            }
-
+            width = std::min<size_t>(THREAD_ID_WIDTH_MAX, width);
             char thread_name[THREAD_NAME_MAX_LEN];
             const unsigned long tid = get_thread_name_id(thread_name, sizeof(thread_name));
 
@@ -268,7 +261,7 @@ namespace log4cpp::pattern {
             thread_id[0] = '\0';
             common::log4c_scnprintf(thread_id, sizeof(thread_id), "T%0*lu", width, tid);
             const std::string full_match_str = match[0];
-            common::log4c_replace(buf, len, full_match_str.c_str(), thread_id);
+            common::log4c_replace_in_place(buf, len, full_match_str.c_str(), thread_id);
         }
         // replace ${L} with log level, log level fixed length is 5, align left, fill with space
 
@@ -278,12 +271,12 @@ namespace log4cpp::pattern {
             std::string level_str;
             to_string(level, level_str);
             common::log4c_scnprintf(log_level, sizeof(log_level), "%-5s", level_str.c_str());
-            common::log4c_replace(buf, len, LOG_LEVEL, log_level);
+            common::log4c_replace_in_place(buf, len, LOG_LEVEL, log_level);
         }
 
         // Replace `${msg}` with the final log message.
         if (_pattern.find(LOG_MESSAGE) != std::string::npos) {
-            common::log4c_replace(buf, len, LOG_MESSAGE, msg);
+            common::log4c_replace_in_place(buf, len, LOG_MESSAGE, msg);
         }
         return 0;
     }

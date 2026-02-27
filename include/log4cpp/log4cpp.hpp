@@ -36,7 +36,7 @@ namespace log4cpp {
      * @enum log_level
      * @brief Defines the severity levels for log messages.
      */
-    enum class log_level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
+    enum class log_level : uint8_t { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
 
     /**
      * @brief Converts a log_level enum to its string representation.

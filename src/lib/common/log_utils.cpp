@@ -151,7 +151,7 @@ namespace log4cpp::common {
      * @param replace The string to replace `target` with.
      * @return The new length of the modified string in the buffer.
      */
-    size_t log4c_replace(char *original, size_t length, const char *target, const char *replace) {
+    size_t log4c_replace_in_place(char *original, size_t length, const char *target, const char *replace) {
         size_t target_len = strlen(target);
         size_t replace_len = strlen(replace);
         size_t origin_len = strlen(original);
@@ -168,7 +168,7 @@ namespace log4cpp::common {
         // There is not enough size after the replacement position to accommodate the string to be replaced.
         if (pos + replace_len > original + length - 1) {
             size_t copy_len = original + length - pos - 1;
-            memcpy(pos, replace, copy_len);
+            std::copy(replace, replace + copy_len, pos);
             original[length - 1] = '\0';
             new_len = length - 1;
         }
@@ -190,7 +190,7 @@ namespace log4cpp::common {
             else {
                 new_len = origin_len;
             }
-            memcpy(pos, replace, replace_len);
+            std::copy(replace, replace + replace_len, pos);
         }
         return new_len;
     }

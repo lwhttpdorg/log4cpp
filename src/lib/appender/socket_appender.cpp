@@ -59,7 +59,7 @@ namespace log4cpp::appender {
         try {
             addr = common::net_addr::resolve(this->host, this->ip_stack);
         }
-        catch (const common::host_resolve_exception &) {
+        catch (const common::host_resolve_exception &) { // NOLINT(bugprone-empty-catch)
             // Failed to resolve host, retry later
         }
         catch (const std::invalid_argument &) {

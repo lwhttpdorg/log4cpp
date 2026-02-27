@@ -38,7 +38,7 @@ namespace log4cpp::common {
 #endif
 #if defined(__linux__)
     constexpr int INVALID_FD = -1;
-    typedef int socket_fd;
+    using socket_fd = int;
     constexpr int IN_PROGRESS = EINPROGRESS;
 
     inline void close_socket(socket_fd fd) {
@@ -54,8 +54,8 @@ namespace log4cpp::common {
 #endif
     }
 
-    enum class net_family { NET_IPv4, NET_IPv6 };
-    enum class prefer_stack { IPv4, IPv6, AUTO };
+    enum class net_family : uint8_t { NET_IPv4, NET_IPv6 };
+    enum class prefer_stack : uint8_t { IPv4, IPv6, AUTO };
 
     void to_string(prefer_stack prefer, std::string &str);
 
@@ -100,7 +100,7 @@ namespace log4cpp::common {
 
     class sock_addr {
     public:
-        net_addr addr{};
+        net_addr addr;
         unsigned short port{0};
 
         sock_addr() {
