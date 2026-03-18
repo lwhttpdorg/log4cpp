@@ -55,7 +55,9 @@ namespace log4cpp::appender {
         this->fd = open(cfg.file_path.c_str(), openFlags, mode);
 #endif
         if (this->fd == -1) {
-            std::string what("Can not open log file: ");
+            std::string what("Can not open log file '");
+            what.append(cfg.file_path);
+            what.append("': ");
             what.append(strerror(errno));
             what.append("(" + std::to_string(errno) + ")");
             throw std::runtime_error(what);

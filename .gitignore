@@ -46,3 +46,11 @@ obj-*
 
 # clang-tidy
 code-analysis.log
+debian/.debhelper/
+debian/liblog4cpp.*
+debian/liblog4cpp/
+debian/liblog4cpp-dev.*
+debian/liblog4cpp-dev/
+debian/tmp/
+debian/debhelper-build-stamp
+debian/files
