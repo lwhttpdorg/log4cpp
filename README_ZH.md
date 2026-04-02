@@ -77,7 +77,7 @@ project(log4cpp-demo)
 add_executable(demo main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.5)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.6)
 FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(demo log4cpp)
 ```
@@ -550,10 +550,13 @@ DEB_BUILD_OPTIONS="noddebs" dpkg-buildpackage -us -uc -b -j$(nproc)
 
 ```shell
 rpmdev-setuptree
-tar -czf ~/rpmbuild/SOURCES/liblog4cpp-4.0.5.tar.gz log4cpp/
-cp log4cpp/liblog4cpp.spec rpmbuild/SPECS/
+VERSION=$(sed -n 's/^project(log4cpp VERSION \([0-9.]*\).*/\1/p' log4cpp/CMakeLists.txt)
+tar -czf ~/rpmbuild/SOURCES/liblog4cpp-${VERSION}.tar.gz log4cpp/
+sed "s/@VERSION@/${VERSION}/g" log4cpp/liblog4cpp.spec.in > ~/rpmbuild/SPECS/liblog4cpp.spec
 rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 ```
+
+源码包与 spec 中的版本由 `liblog4cpp.spec.in` 经 `@VERSION@` 替换得到，应与 `CMakeLists.txt` 中 `project(log4cpp VERSION …)` 一致（亦可直接用 `build-rpm.sh`）。
 
 #### 4.4.2. 使用构建脚本
 

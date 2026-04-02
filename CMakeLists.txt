@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(log4cpp VERSION 4.0.5 LANGUAGES CXX)
+# Single source of truth for release version (also used by packaging scripts).
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" _log4cpp_version_raw)
+string(STRIP "${_log4cpp_version_raw}" _log4cpp_version)
+
+project(log4cpp VERSION ${_log4cpp_version} LANGUAGES CXX)
 
 include(GNUInstallDirs)
 

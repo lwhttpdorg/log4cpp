@@ -1,4 +1,4 @@
-liblog4cpp (4.0.5) stable; urgency=low
+liblog4cpp (4.0.6) stable; urgency=low
 
   * Fix: Avoid exceptions from std::filesystem::exists when checking config file access
 

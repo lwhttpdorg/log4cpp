@@ -44,12 +44,15 @@ fi
 echo "==> Setting up rpmbuild tree..."
 rpmdev-setuptree
 
-echo "==> Creating source tarball..."
-cd ..
-tar -czf ~/rpmbuild/SOURCES/liblog4cpp-4.0.5.tar.gz log4cpp/
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERSION="$(tr -d '\r\n' < "${SCRIPT_DIR}/VERSION")"
 
-echo "==> Copying spec file..."
-cp log4cpp/liblog4cpp.spec ~/rpmbuild/SPECS/
+echo "==> Creating source tarball (version ${VERSION})..."
+cd ..
+tar -czf "${HOME}/rpmbuild/SOURCES/liblog4cpp-${VERSION}.tar.gz" log4cpp/
+
+echo "==> Writing spec with VERSION from ${SCRIPT_DIR}/VERSION..."
+sed "s/^%define _version .*/%define _version ${VERSION}/" log4cpp/liblog4cpp.spec > "${HOME}/rpmbuild/SPECS/liblog4cpp.spec"
 
 echo "==> Building RPM package..."
 rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
