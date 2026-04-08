@@ -1,12 +1,77 @@
 #!/bin/bash
 set -e
 
-if [[ "$1" == "clean" ]]; then
-    echo "==> Removing entire rpmbuild directory..."
-    rm -rf ~/rpmbuild
-    echo "==> Clean completed."
+usage() {
+    echo "Usage: $0 [clean] [--arch <ARCH>]"
+    echo
+    echo "Options:"
+    echo "  clean          Clean rpmbuild directory"
+    echo "  --arch <ARCH>  Cross-compile for the specified architecture"
+    echo "                 Supported: aarch64, armhf, mips, mips64"
+    echo
+    echo "Examples:"
+    echo "  $0                    # native build"
+    echo "  $0 --arch aarch64    # cross-compile for aarch64"
+    echo "  $0 clean             # clean build artifacts"
     exit 0
-fi
+}
+
+resolve_arch() {
+    local arch="$1"
+    case "$arch" in
+        aarch64|arm64)
+            RPM_TARGET_ARCH="aarch64"
+            CMAKE_TOOLCHAIN="cross/aarch64-linux-gnu.cmake"
+            CROSS_COMPILER_PREFIX="aarch64-linux-gnu"
+            ;;
+        armhf|arm)
+            RPM_TARGET_ARCH="armv7hl"
+            CMAKE_TOOLCHAIN="cross/arm-linux-gnueabihf.cmake"
+            CROSS_COMPILER_PREFIX="arm-linux-gnueabihf"
+            ;;
+        mips)
+            RPM_TARGET_ARCH="mips"
+            CMAKE_TOOLCHAIN="cross/mips-linux-gnu.cmake"
+            CROSS_COMPILER_PREFIX="mips-linux-gnu"
+            ;;
+        mips64)
+            RPM_TARGET_ARCH="mips64"
+            CMAKE_TOOLCHAIN="cross/mips64-linux-gnuabi64.cmake"
+            CROSS_COMPILER_PREFIX="mips64-linux-gnuabi64"
+            ;;
+        *)
+            echo "Error: unsupported architecture '$arch'"
+            echo "Supported: aarch64, armhf, mips, mips64"
+            exit 1
+            ;;
+    esac
+}
+
+CROSS_BUILD=0
+TARGET_ARCH=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        clean)
+            echo "==> Removing entire rpmbuild directory..."
+            rm -rf ~/rpmbuild
+            echo "==> Clean completed."
+            exit 0
+            ;;
+        --arch|-a)
+            CROSS_BUILD=1
+            TARGET_ARCH="$2"
+            shift 2
+            ;;
+        --help|-h)
+            usage
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            ;;
+    esac
+done
 
 # Required dependencies
 REQUIRED_PKGS=(
@@ -16,6 +81,10 @@ REQUIRED_PKGS=(
     gcc-c++
     json-devel
 )
+
+if [[ "$CROSS_BUILD" -eq 1 ]]; then
+    resolve_arch "$TARGET_ARCH"
+fi
 
 echo "==> Checking required dependencies..."
 
@@ -55,6 +124,17 @@ echo "==> Writing spec with VERSION from ${SCRIPT_DIR}/VERSION..."
 sed "s/^%define _version .*/%define _version ${VERSION}/" log4cpp/liblog4cpp.spec > "${HOME}/rpmbuild/SPECS/liblog4cpp.spec"
 
 echo "==> Building RPM package..."
-rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
+
+if [[ "$CROSS_BUILD" -eq 1 ]]; then
+    echo "==> Cross-compiling for ${RPM_TARGET_ARCH} (toolchain: ${CMAKE_TOOLCHAIN})"
+    export CC="${CROSS_COMPILER_PREFIX}-gcc"
+    export CXX="${CROSS_COMPILER_PREFIX}-g++"
+    rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec \
+        --target "${RPM_TARGET_ARCH}" \
+        --define "__cmake_in_source_build 1" \
+        --define "_cmake_extra_args -DCMAKE_TOOLCHAIN_FILE=${SCRIPT_DIR}/${CMAKE_TOOLCHAIN}"
+else
+    rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
+fi
 
 echo "==> RPM build completed successfully."

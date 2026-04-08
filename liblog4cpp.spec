@@ -35,7 +35,8 @@ developing applications that use %{name}.
 
 %build
 # Standard CMake macro that handles build types and library paths (e.g., /usr/lib64)
-%cmake -DPROJECT_VERSION=%{version}
+# _cmake_extra_args is optionally set by build-rpm.sh for cross-compilation
+%cmake -DPROJECT_VERSION=%{version} %{?_cmake_extra_args}
 %cmake_build
 
 %install

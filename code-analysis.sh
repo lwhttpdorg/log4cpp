@@ -79,5 +79,6 @@ if [ "$errors" -gt 0 ] || [ "$warnings" -gt 0 ] || [ "$notes" -gt 0 ]; then
     echo -e "${YELLOW}Check '${ANALYSIS_REPORT}' for details.${NC}"
 else
     echo -e "✔️ ${GREEN}STATUS: code analysis PASSED.${NC}"
+    rm ${ANALYSIS_REPORT}
 fi
 

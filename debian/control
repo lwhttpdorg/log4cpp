@@ -8,11 +8,13 @@ Homepage: https://github.com/lwhttpdorg/log4cpp
 
 Package: liblog4cpp
 Architecture: any
+Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: a log4j-style c++ logging library
 
 Package: liblog4cpp-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: liblog4cpp (= ${binary:Version}), nlohmann-json3-dev (>= 3.0.0), ${misc:Depends}
 Description: development files for log4cpp

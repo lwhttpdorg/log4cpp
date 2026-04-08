@@ -1,4 +1,6 @@
-# encoding=UTF-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import os
 
 def fina_all_code_file(base: str):
