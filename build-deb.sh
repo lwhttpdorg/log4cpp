@@ -50,19 +50,15 @@ resolve_arch() {
 
 CROSS_BUILD=0
 TARGET_ARCH=""
+DO_CLEAN=0
+DEB_HOST_ARCH="$(dpkg-architecture -qDEB_HOST_ARCH)"
 
-# Parse arguments
+# Parse all arguments first
 while [[ $# -gt 0 ]]; do
     case "$1" in
         clean)
-            echo "==> Running fakeroot debian/rules clean..."
-            fakeroot debian/rules clean
-
-            echo "==> Removing generated .deb files..."
-            find .. -maxdepth 1 -type f -name "*.deb" -delete
-
-            echo "==> Clean completed."
-            exit 0
+            DO_CLEAN=1
+            shift
             ;;
         --arch|-a)
             CROSS_BUILD=1
@@ -79,6 +75,27 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+BUILD_OPTIONS="noddebs nocheck terse"
+
+# Resolve cross-compilation settings (needed before clean and build)
+if [[ "$CROSS_BUILD" -eq 1 ]]; then
+    resolve_arch "$TARGET_ARCH"
+    export CC="${CROSS_COMPILER_PREFIX}-gcc"
+    export CXX="${CROSS_COMPILER_PREFIX}-g++"
+    export CMAKE_TOOLCHAIN_FILE="$(pwd)/${CMAKE_TOOLCHAIN}"
+    export DEB_BUILD_PROFILES="cross"
+    echo "==> Cross-compiling for ${DEB_HOST_ARCH} (toolchain: ${CMAKE_TOOLCHAIN})"
+fi
+
+#  Clean previous build artifacts
+echo "===> Clean"
+DEB_BUILD_OPTIONS=${BUILD_OPTIONS} dpkg-architecture -a"${DEB_HOST_ARCH}" -c fakeroot debian/rules clean
+find .. -maxdepth 1 -type f -name "*_${DEB_HOST_ARCH}.deb" -delete
+
+if [[ "$DO_CLEAN" -eq 1 ]]; then
+    exit 0
+fi
+
 # Required dependencies (common)
 REQUIRED_PKGS=(
     dpkg-dev
@@ -88,7 +105,6 @@ REQUIRED_PKGS=(
 )
 
 if [[ "$CROSS_BUILD" -eq 1 ]]; then
-    resolve_arch "$TARGET_ARCH"
     REQUIRED_PKGS+=("gcc-${CROSS_COMPILER_PREFIX}" "g++-${CROSS_COMPILER_PREFIX}")
 fi
 
@@ -116,20 +132,8 @@ else
     echo "All required dependencies are installed."
 fi
 
-echo "==> Cleaning previous build..."
-fakeroot debian/rules clean
-
 echo "==> Building the .deb package..."
-
-if [[ "$CROSS_BUILD" -eq 1 ]]; then
-    echo "==> Cross-compiling for ${DEB_HOST_ARCH} (toolchain: ${CMAKE_TOOLCHAIN})"
-    export CMAKE_TOOLCHAIN_FILE="$(pwd)/${CMAKE_TOOLCHAIN}"
-    export CC="${CROSS_COMPILER_PREFIX}-gcc"
-    export CXX="${CROSS_COMPILER_PREFIX}-g++"
-    DEB_BUILD_OPTIONS="noddebs nocheck" dpkg-buildpackage -us -uc -b -j"$(nproc)" -a"${DEB_HOST_ARCH}"
-else
-    DEB_BUILD_OPTIONS="noddebs" dpkg-buildpackage -us -uc -b -j"$(nproc)"
-fi
+DEB_BUILD_OPTIONS=${BUILD_OPTIONS} dpkg-buildpackage -a"${DEB_HOST_ARCH}" -us -uc -b -j"$(nproc)"
 
 echo "==> Removing unnecessary build files..."
 find .. -maxdepth 1 -type f \( -name "*.buildinfo" -o -name "*.changes" \) -delete

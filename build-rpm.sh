@@ -49,14 +49,14 @@ resolve_arch() {
 
 CROSS_BUILD=0
 TARGET_ARCH=""
+DO_CLEAN=0
+RPM_TARGET_ARCH=$(uname -m)
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         clean)
-            echo "==> Removing entire rpmbuild directory..."
-            rm -rf ~/rpmbuild
-            echo "==> Clean completed."
-            exit 0
+            DO_CLEAN=1
+            shift
             ;;
         --arch|-a)
             CROSS_BUILD=1
@@ -73,6 +73,20 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Resolve architecture settings (needed before dependency check)
+if [[ "$CROSS_BUILD" -eq 1 ]]; then
+    resolve_arch "$TARGET_ARCH"
+fi
+
+echo "===> Clean"
+rm -rf ~/rpmbuild/BUILD/* ~/rpmbuild/BUILDROOT/*
+find ~/rpmbuild/RPMS -name "*${RPM_TARGET_ARCH}.rpm" -delete 2>/dev/null || true
+
+if [[ "$DO_CLEAN" -eq 1 ]]; then
+    echo "==> Clean completed."
+    exit 0
+fi
+
 # Required dependencies
 REQUIRED_PKGS=(
     rpm-build
@@ -83,7 +97,8 @@ REQUIRED_PKGS=(
 )
 
 if [[ "$CROSS_BUILD" -eq 1 ]]; then
-    resolve_arch "$TARGET_ARCH"
+    # Add cross-compiler packages to dependency check
+    REQUIRED_PKGS+=("gcc-${CROSS_COMPILER_PREFIX}" "gcc-c++-${CROSS_COMPILER_PREFIX}")
 fi
 
 echo "==> Checking required dependencies..."
@@ -131,10 +146,11 @@ if [[ "$CROSS_BUILD" -eq 1 ]]; then
     export CXX="${CROSS_COMPILER_PREFIX}-g++"
     rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec \
         --target "${RPM_TARGET_ARCH}" \
+            --define "_smp_mflags -j$(nproc)" \
         --define "__cmake_in_source_build 1" \
         --define "_cmake_extra_args -DCMAKE_TOOLCHAIN_FILE=${SCRIPT_DIR}/${CMAKE_TOOLCHAIN}"
 else
-    rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
+    rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec --define "_smp_mflags -j$(nproc)"
 fi
 
 echo "==> RPM build completed successfully."

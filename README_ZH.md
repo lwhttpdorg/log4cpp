@@ -492,31 +492,49 @@ _注: `log4cpp::logger_manager::get_logger()`返回的`std::shared_ptr`可能不
 MingW64:
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
 MSVC:
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
 #### 4.1.2. Linux
 
+原生构建:
+
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_ASAN=ON
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_ASAN=ON
+```
+
+交叉编译(以ARM64为例):
+
+```shell
+cmake -S . -B cmake-build-arm64 -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
 ```
 
 选项:
 
-* `-DBUILD_LOG4CPP_DEMO=ON`: 编译demo, 默认`OFF`不编译
-* `-DENABLE_LOG4CPP_UNIT_TEST=ON`: 编译测试, 默认`OFF`不开启
-* `-DENABLE_ASAN=ON`: 开启地址检测, 默认`OFF`不开启
+* `-DCMAKE_BUILD_TYPE=Debug`: 构建类型，可选 `Debug` 或 `Release`，默认 `Release`
+* `-DBUILD_LOG4CPP_DEMO=ON`: 编译 demo，默认 `OFF`
+* `-DENABLE_LOG4CPP_UNIT_TEST=ON`: 编译测试程序，默认 `OFF`
+* `-DENABLE_ASAN=ON`: 启用 AddressSanitizer，仅在本机编译时生效
+* `-DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake`: 指定交叉编译所使用的 toolchain 文件
 
 ### 4.2. 构建
 
+原生构建:
+
 ```shell
-cmake --build build -j $(nproc)
+cmake --build cmake-build-debug -j $(nproc)
+```
+
+交叉编译构建(以ARM64为例):
+
+```shell
+cmake --build cmake-build-arm64 -j $(nproc)
 ```
 
 ### 4.3. 测试
@@ -526,13 +544,13 @@ cmake --build build -j $(nproc)
 如果你的代码修改了现有功能, 请确保测试用例覆盖到你的修改
 
 ```shell
-ctest -C Debug --test-dir build --output-on-failure
+ctest -C Debug --test-dir cmake-build-debug --output-on-failure
 ```
 
 或者输出详细信息:
 
 ```shell
-ctest -C Debug --test-dir build --verbose -j $(nproc)
+ctest -C Debug --test-dir cmake-build-debug --verbose -j $(nproc)
 ```
 
 ### 4.4. 构建RPM/DEB

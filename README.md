@@ -505,31 +505,49 @@ proxy object has changed
 MingW64:
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
 MSVC:
 
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
 #### 4.1.2. Linux
 
+Native Build:
+
 ```shell
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_ASAN=ON
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_ASAN=ON
+```
+
+Cross-Compilation configuration(e.g., for ARM64):
+
+```shell
+cmake -S . -B cmake-build-arm64 -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
 ```
 
 Options:
 
-* `DBUILD_LOG4CPP_DEMO=ON`: Build demo, default `OFF` (not build)
-* `DENABLE_LOG4CPP_UNIT_TEST=ON`: Build test programs , default `OFF` (not build)
-* `DENABLE_ASAN=ON`: Enable AddressSanitizer, default `OFF` (not enabled)
+* `-DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake`: Use the specified toolchain file for cross-compilation
+* `-DCMAKE_BUILD_TYPE=Debug`: Build type, can be Debug or Release, default is `Release`
+* `-DBUILD_LOG4CPP_DEMO=ON`: Build demo, default `OFF` (not build)
+* `-DENABLE_LOG4CPP_UNIT_TEST=ON`: Build test programs , default `OFF` (not build)
+* `-DENABLE_ASAN=ON`: Enable AddressSanitizer, default `OFF` (not enabled)
 
 ### 4.2. Build
 
+Native Build:
+
 ```shell
-cmake --build build -j $(nproc)
+cmake --build cmake-build-debug -j $(nproc)
+```
+
+Cross-Compilation build(e.g., for ARM64):
+
+```shell
+cmake --build cmake-build-arm64 -j $(nproc)
 ```
 
 ### 4.3. Testing
@@ -537,13 +555,13 @@ cmake --build build -j $(nproc)
 This project uses [Google Test](https://github.com/google/googletest) for unit testing
 
 ```shell
-ctest -C Debug --test-dir build --output-on-failure
+ctest -C Debug --test-dir cmake-build-debug --output-on-failure
 ```
 
 Or enable more verbose output from tests:
 
 ```shell
-ctest -C Debug --test-dir build --verbose -j $(nproc)
+ctest -C Debug --test-dir cmake-build-debug --verbose -j $(nproc)
 ```
 
 ### 4.4. Build RPM/DEB
