@@ -580,6 +580,8 @@ rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 
 本项目提供了构建脚本`build-rpm.sh`和`build-deb.sh`, 用于构建 RPM 和 DEB 软件包
 
+基于Debian的发行版:
+
 ```shell
 # build DEB
 ./build-deb.sh
@@ -587,12 +589,19 @@ rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 ./build-deb.sh clean
 ```
 
+基于RPM的发行版:
+
 ```shell
 # build RPM
 ./build-rpm.sh
 # clean
 ./build-rpm.sh clean
 ```
+
+选项:
+
+- `clean`: 清理构建产物，包括生成的tar包、spec文件和构建的包
+- `-a, --arch <ARCH>`: 指定包的目标架构，如`amd64`、`arm64`，默认为主机架构
 
 ### 4.5. ASAN
 

@@ -591,6 +591,8 @@ The tarball name and spec `Version` come from `liblog4cpp.spec.in` after substit
 
 This project provides a build script `build-rpm.sh` and `build-deb.sh` to build RPM and DEB packages
 
+For Debian-based:
+
 ```shell
 # build DEB
 ./build-deb.sh
@@ -598,12 +600,19 @@ This project provides a build script `build-rpm.sh` and `build-deb.sh` to build 
 ./build-deb.sh clean
 ```
 
+For RPM-based:
+
 ```shell
 # build RPM
 ./build-rpm.sh
 # clean
 ./build-rpm.sh clean
 ```
+
+Options:
+
+* `clean`: Clean build artifacts, including generated tarball, spec file, and built packages
+* `-a, --arch <ARCH>`: Specify the target architecture for the package, e.g., `amd64`, `arm64`, default is the host architecture
 
 ### 4.5. ASAN
 
