@@ -34,6 +34,14 @@ developing applications that use %{name}.
 %setup -q -n log4cpp
 
 %build
+# For cross-compilation, strip host-specific hardening specs that the
+# cross toolchain does not ship.
+%if "%{_target_cpu}" != "%{_build_cpu}"
+export CFLAGS="-O2 -g"
+export CXXFLAGS="-O2 -g"
+export LDFLAGS=""
+%endif
+
 # Standard CMake macro that handles build types and library paths (e.g., /usr/lib64)
 # _cmake_extra_args is optionally set by build-rpm.sh for cross-compilation
 %cmake -DPROJECT_VERSION=%{version} %{?_cmake_extra_args}
