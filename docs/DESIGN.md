@@ -24,7 +24,7 @@ graph TB
     subgraph "Client Application"
         A[User Code]
     end
-    
+
     subgraph "log4cpp Library"
         B[Public API<br/>log4cpp.hpp]
         C[Logger Manager<br/>logger_manager]
@@ -32,18 +32,18 @@ graph TB
         E[Core Logger<br/>core_logger]
         F[Pattern Engine<br/>log_pattern]
     end
-    
+
     subgraph "Appenders"
         G[Console Appender]
         H[File Appender]
         I[Socket Appender]
     end
-    
+
     subgraph "Configuration"
         J[Config Parser<br/>JSON]
         K[Hot Reload<br/>Signal Handler]
     end
-    
+
     A --> B
     B --> C
     C --> D
@@ -90,54 +90,60 @@ classDiagram
         +debug(fmt, ...)
         +trace(fmt, ...)
     }
-    
+
     class logger_proxy {
         -mtx: shared_mutex
         -real_logger: shared_ptr~logger~
         -hot_reload_flag: unsigned int
         +get_target() shared_ptr~logger~
         +set_target(target)
+        +log(level, fmt, args) override
+        +info(fmt, ...) override
     }
-    
+
     class core_logger {
         -name_: string
         -level_: log_level
         -appenders_mtx: shared_mutex
         -appenders: set~shared_ptr~log_appender~~
+        +log(level, fmt, args) override
         +add_appender(appender)
     }
-    
+
     class log_appender {
         <<interface>>
         +log(msg, msg_len) = 0
     }
-    
+
     class console_appender {
         -file_no: int
         -lock: log_lock
+        +log(msg, msg_len) override
     }
-    
+
     class file_appender {
         -fd: int
         -lock: log_lock
+        +log(msg, msg_len) override
     }
-    
+
     class socket_appender {
         -host: string
         -port: unsigned short
         -proto: protocol
         -sock_fd: socket_fd
         -reconnect_thread: thread
+        +log(msg, msg_len) override
     }
-    
-    logger <|-- logger_proxy
-    logger <|-- core_logger
-    log_appender <|-- console_appender
-    log_appender <|-- file_appender
-    log_appender <|-- socket_appender
-    
-    logger_proxy --> logger : "real_logger"
-    core_logger --> log_appender : "appenders"
+
+    logger <|-- logger_proxy : Implementation
+    logger <|-- core_logger : Implementation
+	logger_proxy o-- logger : Delegates
+    log_appender <|-- console_appender : Implementation
+    log_appender <|-- file_appender : Implementation
+    log_appender <|-- socket_appender : Implementation
+
+    core_logger "1" *-- "n" log_appender : Composition
 ```
 
 ### 3.2. Core Classes
@@ -149,15 +155,15 @@ classDiagram
 class logger {
 public:
     virtual ~logger() = default;
-    
+
     virtual std::string get_name() const = 0;
     virtual void set_name(const std::string &name) = 0;
-    
+
     virtual log_level get_level() const = 0;
     virtual void set_level(log_level level) = 0;
-    
+
     virtual void log(log_level _level, const char *fmt, va_list args) = 0;
-    
+
     // Convenience methods
     virtual void fatal(const char *fmt, ...) const = 0;
     virtual void error(const char *fmt, ...) const = 0;
@@ -179,10 +185,10 @@ private:
     mutable std::shared_mutex mtx;
     std::shared_ptr<logger> real_logger;
     unsigned int hot_reload_flag{0};
-    
+
 public:
     explicit logger_proxy(std::shared_ptr<logger> target_logger);
-    
+
     std::shared_ptr<logger> get_target();
     void set_target(std::shared_ptr<logger> target);  // Atomic swap
 };
@@ -198,7 +204,7 @@ private:
     log_level level_;
     mutable std::shared_mutex appenders_mtx;
     std::set<std::shared_ptr<appender::log_appender>> appenders;
-    
+
 public:
     void add_appender(const std::shared_ptr<appender::log_appender> &appender);
     void log(log_level _level, const char *fmt, va_list args) const override;
@@ -217,20 +223,20 @@ classDiagram
         <<interface>>
         +log(msg, msg_len) = 0
     }
-    
+
     class console_appender {
         -file_no: int
         -lock: log_lock
         +log(msg, msg_len)
     }
-    
+
     class file_appender {
         -fd: int
         -lock: log_lock
         +log(msg, msg_len)
         +~file_appender()
     }
-    
+
     class socket_appender {
         -host: string
         -port: unsigned short
@@ -243,7 +249,7 @@ classDiagram
         +log(msg, msg_len)
         +~socket_appender()
     }
-    
+
     log_appender <|.. console_appender
     log_appender <|.. file_appender
     log_appender <|.. socket_appender
@@ -261,7 +267,7 @@ class console_appender : public log_appender {
 private:
     int file_no = -1;
     common::log_lock lock;
-    
+
 public:
     explicit console_appender(const config::console_appender &cfg);
     void log(const char *msg, size_t msg_len) override;
@@ -278,7 +284,7 @@ class file_appender : public log_appender {
 private:
     int fd{-1};
     common::log_lock lock;
-    
+
 public:
     explicit file_appender(const config::file_appender &cfg);
     void log(const char *msg, size_t msg_len) override;
@@ -298,16 +304,16 @@ private:
     unsigned short port{0};
     config::socket_appender::protocol proto;
     common::prefer_stack ip_stack;
-    
+
     std::shared_mutex connection_rw_lock;
     common::socket_fd sock_fd;
     connection_fsm_state connection_state;
-    
+
     std::mutex reconnect_mutex;
     std::condition_variable reconnect_cv;
     std::atomic<bool> stop_reconnect{false};
     std::thread reconnect_thread;
-    
+
     // Exponential backoff: 1s to 24h
     static constexpr auto RECONNECT_INITIAL_DELAY = 1s;
     static constexpr auto RECONNECT_MAX_DELAY = 24h;
@@ -327,34 +333,34 @@ classDiagram
         -appenders: log_appender
         -loggers: unordered_map~string, logger~
     }
-    
+
     class log_appender {
         -console: optional~console_appender~
         -file: optional~file_appender~
         -socket: optional~socket_appender~
     }
-    
+
     class logger {
         -name: string
         -level: optional~log_level~
         -appender: unsigned char
     }
-    
+
     class console_appender {
         -out_stream: string
     }
-    
+
     class file_appender {
         -file_path: string
     }
-    
+
     class socket_appender {
         -host: string
         -port: unsigned short
         -proto: protocol
         -prefer: prefer_stack
     }
-    
+
     log4cpp --> log_appender
     log4cpp --> logger
     log_appender --> console_appender
@@ -421,10 +427,10 @@ The `log_pattern` class formats log messages using placeholders:
 class log_pattern {
 private:
     static std::string _pattern;
-    
+
 public:
     static void set_pattern(const std::string &pattern);
-    static size_t format(char *buf, size_t buf_len, const char *name, 
+    static size_t format(char *buf, size_t buf_len, const char *name,
                         log_level level, const char *fmt, ...);
 };
 ```
@@ -460,13 +466,13 @@ classDiagram
         -config_file_path: string
         -hot_reload_thread: thread
     }
-    
+
     class supervisor {
         -static get_logger_manager()$ logger_manager&
         -static enable_config_hot_loading() bool
         -static serialize() string
     }
-    
+
     supervisor --> logger_manager : "static instance"
 ```
 
@@ -494,22 +500,22 @@ sequenceDiagram
     participant Old as core_logger (old)
     participant New as core_logger (new)
     participant Manager as logger_manager
-    
+
     Note over Client: Client holds shared_ptr to logger_proxy
     Client->>Proxy: logger->info("msg")
     Proxy->>Old: forward to real_logger
     Old-->>Proxy: output log
-    
+
     Note over Manager: Config file changed
     Manager->>Manager: load new config
     Manager->>Manager: create new core_logger
-    
+
     loop For each logger
         Manager->>Proxy: set_target(new_core_logger)
     end
-    
+
     Note over Proxy: real_logger swapped atomically
-    
+
     Client->>Proxy: logger->info("msg")
     Proxy->>New: forward to new real_logger
     New-->>Proxy: output log
@@ -534,27 +540,27 @@ sequenceDiagram
     participant Old as core_logger (old)
     participant New as core_logger (new)
     participant Manager as logger_manager
-    
+
     Note over Client: 1. Client holds shared_ptr to proxy
     Note over Manager: 2. Manager holds weak_ptr to old
-    
+
     Client->>Proxy: logger->info("msg")
     Proxy->>Old: forward (holds shared_ptr)
     Old-->>Proxy: output log
-    
+
     Note over Manager: 3. Config changed, create new
     Manager->>Manager: create new core_logger
-    
+
     Note over Manager: 4. Swap - old still alive!
     Manager->>Proxy: set_target(new)
-    
+
     Note over Old: Still referenced by in-flight calls
     Note over New: Now receiving new calls
-    
+
     Client->>Proxy: logger->info("msg")
     Proxy->>New: forward to new real_logger
     New-->>Proxy: output log
-    
+
     Note over Old: Eventually released when<br/>no more references exist
 ```
 
@@ -609,16 +615,16 @@ graph TB
     subgraph "Read-Heavy Workloads"
         A[Logger Operations log debug info]
     end
-    
+
     subgraph "Write-Heavy Workloads"
         B[Configuration set_pattern add_appender]
         C[Hot Reload set_target]
     end
-    
+
     D[shared_mutex] --> A
     D[shared_mutex] --> B
     D[shared_mutex] --> C
-    
+
     style A fill:#90EE90
     style B fill:#FFB6C1
     style C fill:#FFB6C1
@@ -668,20 +674,20 @@ graph TD
     subgraph "Project Root"
         A[CMakeLists.txt]
     end
-    
+
     subgraph "Source"
         B[src/CMakeLists.txt]
     end
-    
+
     subgraph "Headers"
         C[include/log4cpp/]
         D[src/include/]
     end
-    
+
     subgraph "Tests"
         E[test/CMakeLists.txt]
     end
-    
+
     A --> B
     A --> E
     B --> C
@@ -706,15 +712,15 @@ graph TD
 int main() {
     // Load configuration
     log4cpp::supervisor::get_logger_manager().load_config("./log4cpp.json");
-    
+
     // Get logger
     auto logger = log4cpp::supervisor::get_logger_manager().get_logger("myapp");
-    
+
     // Log messages
     logger->info("Application started");
     logger->debug("Processing request: %s", request_id);
     logger->error("Failed to connect to database");
-    
+
     return 0;
 }
 ```
@@ -725,12 +731,12 @@ int main() {
 class MyClass {
 private:
     std::shared_ptr<log4cpp::logger> logger_;
-    
+
 public:
     MyClass() {
         logger_ = log4cpp::supervisor::get_logger_manager().get_logger("MyClass");
     }
-    
+
     void process() {
         logger_->info("Processing in MyClass");
     }
@@ -747,11 +753,11 @@ public:
 class my_appender : public log4cpp::appender::log_appender {
 public:
     explicit my_appender(const config::my_appender &cfg) : config_(cfg) {}
-    
+
     void log(const char *msg, size_t msg_len) override {
         // Custom implementation
     }
-    
+
 private:
     config::my_appender config_;
 };
