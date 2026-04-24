@@ -209,10 +209,14 @@ unsigned int tcp_log_server_loop(const std::shared_ptr<server_status> &status, l
             size_t pos = 0;
             while (true) {
                 size_t nl = pending.find('\n', pos);
-                if (nl == std::string::npos) break;
+                if (nl == std::string::npos) {
+                    break;
+                }
 
                 std::string line = pending.substr(pos, nl - pos);
-                if (!line.empty() && line.back() == '\r') line.pop_back();
+                if (!line.empty() && line.back() == '\r') {
+                    line.pop_back();
+                }
 
                 ++actual_log_count;
                 printf("[tcp_socket_appender_test] [%u]: %s\n", actual_log_count, line.c_str());
@@ -275,8 +279,8 @@ TEST_F(socket_appender_test, tcp_socket_appender_test) {
 
     log->trace("this is a trace");
     log->debug("this is a debug");
-    log->info("this is a info");
-    log->warn("this is an warning");
+    log->info("this is an info");
+    log->warn("this is a warning");
     log->error("this is an error");
     log->fatal("this is a fatal");
 
@@ -407,8 +411,8 @@ TEST_F(socket_appender_test, udp_socket_appender_test) {
 
     log->trace("this is a trace");
     log->debug("this is a debug");
-    log->info("this is a info");
-    log->warn("this is an warning");
+    log->info("this is an info");
+    log->warn("this is a warning");
     log->error("this is an error");
     log->fatal("this is a fatal");
 

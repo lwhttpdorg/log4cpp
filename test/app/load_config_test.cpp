@@ -104,8 +104,12 @@ namespace log4cpp {
 } // namespace log4cpp
 
 bool logger_less(const log4cpp::config::logger &a, const log4cpp::config::logger &b) {
-    if (a.name != b.name) return a.name < b.name;
-    if (a.level != b.level) return a.level < b.level;
+    if (a.name != b.name) {
+        return a.name < b.name;
+    }
+    if (a.level != b.level) {
+        return a.level < b.level;
+    }
     return a.appender < b.appender;
 }
 

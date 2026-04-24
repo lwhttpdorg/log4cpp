@@ -42,7 +42,7 @@
 
 ## 1. What is log4cpp?
 
-log4cpp is a C++ logging library inspired by log4j
+log4cpp is a C++ logging library inspired by log4j.
 
 Features:
 
@@ -87,7 +87,7 @@ FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(demo log4cpp)
 ```
 
-Or using `pkg-config`(The log4cpp deb/rpm package has already been installed):
+Or using `pkg-config` (the log4cpp deb/rpm package has already been installed):
 
 ```cmake
 cmake_minimum_required(VERSION 3.11)
@@ -126,7 +126,7 @@ log_mgr.load_config(config_file);
 
 #### 3.1.4. Get Logger
 
-Get the configured logger by name
+Get the configured logger by name:
 
 ```c++
 std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger(const std::string &name = "root");
@@ -158,7 +158,7 @@ Or directly:
 void log(log_level level, const char *fmt, ...);
 ```
 
-The log level `log_level` level is defined as follows:
+The log level `log_level` is defined as follows:
 
 ```c++
 namespace log4cpp {
@@ -241,8 +241,8 @@ void thread_routine() {
     for (int i = 0; i < 10; ++i) {
         log->trace("this is a trace");
         log->debug("this is a debug");
-        log->info("this is a info");
-        log->warn("this is an warning");
+        log->info("this is an info");
+        log->warn("this is a warning");
         log->error("this is an error");
         log->fatal("this is a fatal");
     }
@@ -262,8 +262,8 @@ int main() {
     for (int i = 0; i < 10; ++i) {
         log->trace("this is a trace");
         log->debug("this is a debug");
-        log->info("this is a info");
-        log->warn("this is an warning");
+        log->info("this is an info");
+        log->warn("this is a warning");
         log->error("this is an error");
         log->fatal("this is a fatal");
     }
@@ -283,10 +283,10 @@ root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
 hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 hello  : 2025-11-13 23:32:02:475 [main  ] [FATAL] -- this is a fatal
-root   : 2025-11-13 23:32:02:475 [child   ] [INFO ] -- this is a info
-hello  : 2025-11-13 23:32:02:475 [main  ] [INFO ] -- this is a info
-root   : 2025-11-13 23:32:02:475 [child   ] [WARN ] -- this is an warning
-hello  : 2025-11-13 23:32:02:475 [main  ] [WARN ] -- this is an warning
+root   : 2025-11-13 23:32:02:475 [child   ] [INFO ] -- this is info
+hello  : 2025-11-13 23:32:02:475 [main  ] [INFO ] -- this is info
+root   : 2025-11-13 23:32:02:475 [child   ] [WARN ] -- this is a warning
+hello  : 2025-11-13 23:32:02:475 [main  ] [WARN ] -- this is a warning
 root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
 hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
@@ -340,8 +340,7 @@ Note: The default log-pattern is `"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}
 
 ##### 3.2.1.2. Appender
 
-There are four types of appenders: Console Appender(`console`), File Appender(`file`), Socket Appender(`socket`, default
-is TCP)
+There are three types of appenders: Console Appender (`console`), File Appender (`file`), Socket Appender (`socket`, default is TCP)
 
 A simple configuration file example:
 
@@ -384,7 +383,7 @@ Description:
 
 ###### 3.2.1.2.2. File Appender
 
-The File Appender's function is to output logs to a specified file. Typical configuration is as follows:
+The File Appender outputs logs to a specified file. Typical configuration is as follows:
 
 ```json
 {
@@ -398,7 +397,7 @@ The File Appender's function is to output logs to a specified file. Typical conf
 
 Description:
 
-* `file-path`: output file name
+* `file-path`: Output file name
 
 #### 3.2.2. Socket appender
 
@@ -472,8 +471,7 @@ __The default logger must be defined with name `root`__
 
 ### 3.3. Hot Configuration Reload
 
-Configuration hot reloading allows changes to the configuration file to take effect without restarting the process (
-Linux system only)
+Configuration hot reloading allows changes to the configuration file to take effect without restarting the process (Linux only)
 
 _Note: The configuration file path and name cannot be changed; the path and name used at startup will be reloaded._
 
@@ -489,12 +487,9 @@ After modifying the configuration file, send a signal to your process (default i
 kill -SIGHUP <PID>
 ```
 
-The `SIGHUP` signal will trigger log4cpp to reload the configuration file using the cached path and filename, and
-recreate internal objects. The `std::shared_ptr<log4cpp::logger>` previously obtained via
-`log4cpp::logger_manager::get_logger()` will not become invalid and can continue to be used
+The `SIGHUP` signal triggers log4cpp to reload the configuration file using the cached path and filename, and recreate internal objects. The `std::shared_ptr<log4cpp::logger>` previously obtained via `log4cpp::logger_manager::get_logger()` will not become invalid and can continue to be used.
 
-_Note: The `std::shared_ptr` returned by `log4cpp::logger_manager::get_logger()` may not change, even if its internal
-proxy object has changed
+_Note: The `std::shared_ptr` returned by `log4cpp::logger_manager::get_logger()` may not change, even if its internal proxy object has changed._
 
 ## 4. Building
 
@@ -522,7 +517,7 @@ Native Build:
 cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_ASAN=ON
 ```
 
-Cross-Compilation configuration(e.g., for ARM64):
+Cross-compilation configuration (e.g., for ARM64):
 
 ```shell
 cmake -S . -B cmake-build-arm64 -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
@@ -532,8 +527,8 @@ Options:
 
 * `-DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake`: Use the specified toolchain file for cross-compilation
 * `-DCMAKE_BUILD_TYPE=Debug`: Build type, can be Debug or Release, default is `Release`
-* `-DBUILD_LOG4CPP_DEMO=ON`: Build demo, default `OFF` (not build)
-* `-DENABLE_LOG4CPP_UNIT_TEST=ON`: Build test programs , default `OFF` (not build)
+* `-DBUILD_LOG4CPP_DEMO=ON`: Build demo, default `OFF` (not built)
+* `-DENABLE_LOG4CPP_UNIT_TEST=ON`: Build test programs, default `OFF` (not built)
 * `-DENABLE_ASAN=ON`: Enable AddressSanitizer, default `OFF` (not enabled)
 
 ### 4.2. Build
@@ -544,7 +539,7 @@ Native Build:
 cmake --build cmake-build-debug -j $(nproc)
 ```
 
-Cross-Compilation build(e.g., for ARM64):
+Cross-compilation build (e.g., for ARM64):
 
 ```shell
 cmake --build cmake-build-arm64 -j $(nproc)
@@ -552,7 +547,7 @@ cmake --build cmake-build-arm64 -j $(nproc)
 
 ### 4.3. Testing
 
-This project uses [Google Test](https://github.com/google/googletest) for unit testing
+This project uses [Google Test](https://github.com/google/googletest) for unit testing.
 
 ```shell
 ctest -C Debug --test-dir cmake-build-debug --output-on-failure
@@ -589,9 +584,9 @@ The tarball name and spec `Version` come from `liblog4cpp.spec.in` after substit
 
 #### 4.4.2. Using build script
 
-This project provides a build script `build-rpm.sh` and `build-deb.sh` to build RPM and DEB packages
+This project provides build scripts `build-rpm.sh` and `build-deb.sh` to build RPM and DEB packages.
 
-For Debian-based:
+For Debian-based systems:
 
 ```shell
 # build DEB
@@ -600,7 +595,7 @@ For Debian-based:
 ./build-deb.sh clean
 ```
 
-For RPM-based:
+For RPM-based systems:
 
 ```shell
 # build RPM
@@ -612,12 +607,11 @@ For RPM-based:
 Options:
 
 * `clean`: Clean build artifacts, including generated tarball, spec file, and built packages
-* `-a, --arch <ARCH>`: Specify the target architecture for the package, e.g., `amd64`, `arm64`, default is the host architecture
+* `-a, --arch <ARCH>`: Specify the target architecture for the package, e.g., `amd64`, `arm64`; default is the host architecture
 
 ### 4.5. ASAN
 
-If your code modifies existing functionality, please ensure that ASAN detection passes. Code that has not passed ASAN
-detection will not be merged
+If your code modifies existing functionality, please ensure that ASAN detection passes. Code that has not passed ASAN detection will not be merged.
 
 ## 5. License
 

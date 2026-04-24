@@ -233,8 +233,8 @@ void thread_routine() {
     for (int i = 0; i < 10; ++i) {
         log->trace("this is a trace");
         log->debug("this is a debug");
-        log->info("this is a info");
-        log->warn("this is an warning");
+        log->info("this is an info");
+        log->warn("this is a warning");
         log->error("this is an error");
         log->fatal("this is a fatal");
     }
@@ -254,8 +254,8 @@ int main() {
     for (int i = 0; i < 10; ++i) {
         log->trace("this is a trace");
         log->debug("this is a debug");
-        log->info("this is a info");
-        log->warn("this is an warning");
+        log->info("this is an info");
+        log->warn("this is a warning");
         log->error("this is an error");
         log->fatal("this is a fatal");
     }
@@ -275,10 +275,10 @@ root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
 hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 hello  : 2025-11-13 23:32:02:475 [main  ] [FATAL] -- this is a fatal
-root   : 2025-11-13 23:32:02:475 [child   ] [INFO ] -- this is a info
-hello  : 2025-11-13 23:32:02:475 [main  ] [INFO ] -- this is a info
-root   : 2025-11-13 23:32:02:475 [child   ] [WARN ] -- this is an warning
-hello  : 2025-11-13 23:32:02:475 [main  ] [WARN ] -- this is an warning
+root   : 2025-11-13 23:32:02:475 [child   ] [INFO ] -- this is an info
+hello  : 2025-11-13 23:32:02:475 [main  ] [INFO ] -- this is an info
+root   : 2025-11-13 23:32:02:475 [child   ] [WARN ] -- this is a warning
+hello  : 2025-11-13 23:32:02:475 [main  ] [WARN ] -- this is a warning
 root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
 hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal

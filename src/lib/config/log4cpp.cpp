@@ -48,13 +48,19 @@ namespace log4cpp::config {
         for (const auto &entry: APPENDER_TABLE) {
             switch (entry.type) {
                 case APPENDER_TYPE::CONSOLE:
-                    if (config.console) j[entry.name] = *config.console;
+                    if (config.console) {
+                        j[entry.name] = *config.console;
+                    }
                     break;
                 case APPENDER_TYPE::FILE:
-                    if (config.file) j[entry.name] = *config.file;
+                    if (config.file) {
+                        j[entry.name] = *config.file;
+                    }
                     break;
                 case APPENDER_TYPE::SOCKET:
-                    if (config.socket) j[entry.name] = *config.socket;
+                    if (config.socket) {
+                        j[entry.name] = *config.socket;
+                    }
                     break;
                 default:
                     break;
@@ -64,7 +70,9 @@ namespace log4cpp::config {
 
     void from_json(const nlohmann::json &j, log_appender &config) {
         for (const auto &entry: APPENDER_TABLE) {
-            if (!j.contains(entry.name)) continue;
+            if (!j.contains(entry.name)) {
+                continue;
+            }
             switch (entry.type) {
                 case APPENDER_TYPE::CONSOLE:
                     config.console = j.at(entry.name).get<console_appender>();
@@ -102,9 +110,13 @@ namespace log4cpp::config {
         /* Validate required fields */
         /* "log-pattern" is optional */
         /* "appenders" is mandatory */
-        if (!j.contains("appenders")) throw invalid_config_exception("missing required field 'appenders'");
+        if (!j.contains("appenders")) {
+            throw invalid_config_exception("missing required field 'appenders'");
+        }
         /* "loggers" is mandatory */
-        if (!j.contains("loggers")) throw invalid_config_exception("missing required field 'loggers'");
+        if (!j.contains("loggers")) {
+            throw invalid_config_exception("missing required field 'loggers'");
+        }
 
         // parse required fields
         if (j.contains("log-pattern")) {
@@ -118,7 +130,9 @@ namespace log4cpp::config {
         j.at("appenders").get_to(config.appenders);
 
         // "appenders" must define at least one appender
-        if (config.appenders.empty()) throw invalid_config_exception("no appenders defined");
+        if (config.appenders.empty()) {
+            throw invalid_config_exception("no appenders defined");
+        }
 
         // parse optional loggers
         std::vector<logger> cfg_loggers;
