@@ -512,7 +512,7 @@ cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON
 交叉编译(以ARM64为例):
 
 ```shell
-cmake -S . -B cmake-build-arm64 -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
+cmake -S . -B cmake-build-debug -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
 ```
 
 选项:
@@ -525,16 +525,8 @@ cmake -S . -B cmake-build-arm64 -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.c
 
 ### 4.2. 构建
 
-原生构建:
-
 ```shell
 cmake --build cmake-build-debug -j $(nproc)
-```
-
-交叉编译构建(以ARM64为例):
-
-```shell
-cmake --build cmake-build-arm64 -j $(nproc)
 ```
 
 ### 4.3. 测试

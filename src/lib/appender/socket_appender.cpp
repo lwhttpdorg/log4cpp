@@ -9,6 +9,7 @@
 #ifdef __linux__
 
 #include <arpa/inet.h>
+#include <cstring>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>

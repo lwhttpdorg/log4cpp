@@ -520,7 +520,7 @@ cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON
 Cross-compilation configuration (e.g., for ARM64):
 
 ```shell
-cmake -S . -B cmake-build-arm64 -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
+cmake -S . -B cmake-build-build -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
 ```
 
 Options:
@@ -533,16 +533,8 @@ Options:
 
 ### 4.2. Build
 
-Native Build:
-
 ```shell
 cmake --build cmake-build-debug -j $(nproc)
-```
-
-Cross-compilation build (e.g., for ARM64):
-
-```shell
-cmake --build cmake-build-arm64 -j $(nproc)
 ```
 
 ### 4.3. Testing

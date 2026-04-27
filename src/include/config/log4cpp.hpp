@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <optional>
 #include <unordered_map>
 
@@ -42,9 +43,9 @@ namespace log4cpp::config {
         }
     };
 
-    void to_json(nlohmann::json &j, const log_appender &config);
+    void to_json(::log4cpp::json_value &j, const log_appender &config);
 
-    void from_json(const nlohmann::json &j, log_appender &config);
+    void from_json(const ::log4cpp::json_value &j, log_appender &config);
 
     class log4cpp {
     public:
@@ -64,7 +65,7 @@ namespace log4cpp::config {
         static log4cpp deserialize(const std::string &json);
     };
 
-    void to_json(nlohmann::json &j, const log4cpp &config);
+    void to_json(::log4cpp::json_value &j, const log4cpp &config);
 
-    void from_json(const nlohmann::json &j, log4cpp &config);
+    void from_json(const ::log4cpp::json_value &j, log4cpp &config);
 } // namespace log4cpp::config

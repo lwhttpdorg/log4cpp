@@ -1,4 +1,6 @@
+#include <cstring>
 #include <fcntl.h>
+#include <filesystem>
 #include <stdexcept>
 
 #ifdef _MSC_VER

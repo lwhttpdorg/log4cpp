@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <utility>
@@ -8,7 +9,7 @@
 #include <unordered_set>
 #endif
 
-#include <nlohmann/json.hpp>
+#include "common/json.hpp"
 
 #include <log4cpp/log4cpp.hpp>
 #include <log4cpp/logger.hpp>
@@ -203,10 +204,11 @@ namespace log4cpp {
         if (!ifs.is_open()) {
             throw std::runtime_error("cannot open config file: " + file_path + ": " + std::strerror(errno));
         }
-        nlohmann::json j;
+        json_value j;
         ifs >> j;
 
-        config = std::make_unique<config::log4cpp>(j.get<config::log4cpp>());
+        config = std::make_unique<config::log4cpp>();
+        from_json(j, *config);
         config_file_path = file_path;
     }
 #ifndef _WIN32
@@ -220,6 +222,7 @@ namespace log4cpp {
         uint64_t event;
 
         while (evt_loop_run.load()) {
+            // NOLINTNEXTLINE(clang-analyzer-unix.BlockInCriticalSection)
             ssize_t s = read(evt_fd, &event, sizeof(uint64_t));
             if (s == sizeof(uint64_t)) {
                 switch (event) {

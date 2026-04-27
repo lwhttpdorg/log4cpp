@@ -200,7 +200,7 @@ namespace log4cpp {
          * @param file_path The path to the configuration file.
          * @throw std::runtime_error if the file cannot be opened.
          * @throw std::filesystem::filesystem_error if the file does not exist.
-         * @throw nlohmann::json::parse_error if the JSON is invalid.
+         * @throw log4cpp::json::parse_error if the JSON is invalid.
          */
         void load_config(const std::string &file_path);
 

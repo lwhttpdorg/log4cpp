@@ -1,3 +1,4 @@
+#include <cstring>
 #include <stdexcept>
 
 #ifdef __linux__
@@ -276,8 +277,8 @@ namespace log4cpp::common {
      * @param j The JSON object to write to.
      * @param addr The net_addr object to serialize.
      */
-    void to_json(nlohmann::json &j, const net_addr &addr) {
-        j = addr.to_string();
+    void to_json(::log4cpp::json_value &j, const net_addr &addr) {
+        j = json_value(addr.to_string());
     }
 
     /**
@@ -285,7 +286,7 @@ namespace log4cpp::common {
      * @param j The JSON object to read from.
      * @param addr The net_addr object to populate.
      */
-    void from_json(const nlohmann::json &j, net_addr &addr) {
+    void from_json(const ::log4cpp::json_value &j, net_addr &addr) {
         const std::string s = j.get<std::string>();
         addr = net_addr(s);
     }

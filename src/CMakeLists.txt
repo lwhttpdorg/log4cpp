@@ -59,8 +59,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     )
 endif ()
 
-target_link_libraries(log4cpp PRIVATE nlohmann_json::nlohmann_json)
-
 if (ENABLE_LOG4CPP_COVERAGE)
     target_link_libraries(log4cpp PRIVATE code_coverage)
 endif()

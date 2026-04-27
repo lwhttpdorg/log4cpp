@@ -23,7 +23,7 @@ typedef SSIZE_T ssize_t;
 
 #include "log_utils.hpp"
 
-#include <nlohmann/json.hpp>
+#include "common/json.hpp"
 
 namespace log4cpp::common {
 #ifdef _WIN32
@@ -94,9 +94,9 @@ namespace log4cpp::common {
         static net_addr resolve(const std::string &host, prefer_stack prefer = prefer_stack::AUTO);
     };
 
-    void to_json(nlohmann::json &j, const net_addr &addr);
+    void to_json(::log4cpp::json_value &j, const net_addr &addr);
 
-    void from_json(const nlohmann::json &j, net_addr &addr);
+    void from_json(const ::log4cpp::json_value &j, net_addr &addr);
 
     class sock_addr {
     public:

@@ -3,7 +3,7 @@
 #include <optional>
 #include <string>
 
-#include <nlohmann/json.hpp>
+#include "common/json.hpp"
 
 #include <log4cpp/log4cpp.hpp>
 
@@ -26,7 +26,7 @@ namespace log4cpp::config {
         }
     };
 
-    void to_json(nlohmann::json &j, const logger &config);
+    void to_json(::log4cpp::json_value &j, const logger &config);
 
-    void from_json(const nlohmann::json &j, logger &config);
+    void from_json(const ::log4cpp::json_value &j, logger &config);
 } // namespace log4cpp::config

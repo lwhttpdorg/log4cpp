@@ -26,9 +26,6 @@ option(ENABLE_LOG4CPP_UNIT_TEST "Enable log4cpp unit tests" OFF)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_LOG4CPP_COVERAGE "Enable log4cpp code coverage (GNU only)" OFF)
 
-# nlohmann_json
-find_package(nlohmann_json 3.0 REQUIRED)
-
 # Helper: apply ASAN to a target (GNU/Clang only)
 function(apply_asan_to_target tgt)
     if (ENABLE_ASAN)

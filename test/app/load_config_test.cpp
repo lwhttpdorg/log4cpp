@@ -5,40 +5,43 @@
 #include <windows.h>
 #endif
 
+#include <algorithm>
 #include <common/log_utils.hpp>
 #include <filesystem>
 #include <fstream>
 
-#include "nlohmann/json.hpp"
+#include "common/json.hpp"
 
 #include "log4cpp/log4cpp.hpp"
 
 #include "common/log_net.hpp"
 #include "config/log4cpp.hpp"
 
-void log_pattern_check(const nlohmann::json &expected_json, const std::string &log_pattern) {
-    const std::string expected = expected_json.at("log-pattern");
+using json = log4cpp::json_value;
+
+void log_pattern_check(const json &expected_json, const std::string &log_pattern) {
+    const std::string expected = expected_json.at("log-pattern").get<std::string>();
     EXPECT_EQ(log_pattern, expected);
 }
 
-void console_appender_check(const nlohmann::json &console_appender, const log4cpp::config::console_appender &cfg) {
-    const std::string expected = console_appender.at("out-stream");
+void console_appender_check(const json &console_appender, const log4cpp::config::console_appender &cfg) {
+    const std::string expected = console_appender.at("out-stream").get<std::string>();
     EXPECT_EQ(cfg.out_stream, expected);
 }
 
-void file_appender_check(const nlohmann::json &file_appender, const log4cpp::config::file_appender &cfg) {
-    const std::string expected = file_appender.at("file-path");
+void file_appender_check(const json &file_appender, const log4cpp::config::file_appender &cfg) {
+    const std::string expected = file_appender.at("file-path").get<std::string>();
     EXPECT_EQ(cfg.file_path, expected);
 }
 
-void socket_appender_check(const nlohmann::json &tcp_appender, const log4cpp::config::socket_appender &cfg) {
-    const std::string expected_host = tcp_appender.at("host");
+void socket_appender_check(const json &tcp_appender, const log4cpp::config::socket_appender &cfg) {
+    const std::string expected_host = tcp_appender.at("host").get<std::string>();
     EXPECT_EQ(cfg.host, expected_host);
 
-    unsigned short expected_port = tcp_appender.at("port");
+    unsigned short expected_port = tcp_appender.at("port").get<unsigned short>();
     EXPECT_EQ(cfg.port, expected_port);
 
-    std::string expected_proto_str = tcp_appender.at("protocol");
+    std::string expected_proto_str = tcp_appender.at("protocol").get<std::string>();
     std::string proto_str;
     if (cfg.proto == log4cpp::config::socket_appender::protocol::TCP) {
         proto_str = "tcp";
@@ -50,7 +53,7 @@ void socket_appender_check(const nlohmann::json &tcp_appender, const log4cpp::co
     expected_proto_str = log4cpp::common::to_upper(expected_proto_str);
     EXPECT_EQ(proto_str, expected_proto_str);
 
-    std::string expected_prefer_stack = tcp_appender.at("prefer-stack");
+    std::string expected_prefer_stack = tcp_appender.at("prefer-stack").get<std::string>();
     expected_prefer_stack = log4cpp::common::to_lower(expected_prefer_stack);
     std::string actual_prefer_stack;
     if (cfg.prefer == log4cpp::common::prefer_stack::IPv4) {
@@ -65,43 +68,36 @@ void socket_appender_check(const nlohmann::json &tcp_appender, const log4cpp::co
     EXPECT_EQ(actual_prefer_stack, expected_prefer_stack);
 }
 
-void appenders_check(const nlohmann::json &appenders_json, const log4cpp::config::log_appender &appenders_cfg) {
-    const nlohmann::json &appenders = appenders_json.at("appenders");
+void appenders_check(const json &appenders_json, const log4cpp::config::log_appender &appenders_cfg) {
+    const json &appenders = appenders_json.at("appenders");
     // Console Appender
     ASSERT_EQ(true == appenders.contains("console"), appenders_cfg.console.has_value());
     const log4cpp::config::console_appender &console_appender_cfg = appenders_cfg.console.value();
-    const nlohmann::json &console_appender = appenders.at("console");
+    const json &console_appender = appenders.at("console");
     console_appender_check(console_appender, console_appender_cfg);
 
     // File Appender
     ASSERT_EQ(true == appenders.contains("file"), appenders_cfg.file.has_value());
     const log4cpp::config::file_appender &file_appender_cfg = appenders_cfg.file.value();
-    const nlohmann::json &file_appender = appenders.at("file");
+    const json &file_appender = appenders.at("file");
     file_appender_check(file_appender, file_appender_cfg);
 
     // Socket Appender
     ASSERT_EQ(true == appenders.contains("socket"), appenders_cfg.socket.has_value());
     const log4cpp::config::socket_appender &socket_appender_cfg = appenders_cfg.socket.value();
-    const nlohmann::json &socket_appender = appenders.at("socket");
+    const json &socket_appender = appenders.at("socket");
     socket_appender_check(socket_appender, socket_appender_cfg);
 }
 
-namespace log4cpp {
-    void from_json(const nlohmann::json &json, log4cpp::config::logger &obj) {
-        obj.name = json.at("name");
-        log4cpp::log_level level;
-        from_string(json.at("level"), level);
-        obj.level = level;
-        std::vector<std::string> appenders = json.at("appenders");
-        unsigned char appenders_flag = log4cpp::config::appender_name_to_flag(appenders);
-        obj.appender = appenders_flag;
-    }
-
-    void to_json(nlohmann::json &json, const log4cpp::config::logger &obj) {
-        std::vector<std::string> appenders = log4cpp::config::appender_flag_to_name(obj.appender);
-        json = nlohmann::json{{{"name", obj.name}, {"level", obj.level.value()}, {"appenders", appenders}}};
-    }
-} // namespace log4cpp
+void from_json_logger(const json &j, log4cpp::config::logger &obj) {
+    obj.name = j.at("name").get<std::string>();
+    log4cpp::log_level level;
+    from_string(j.at("level").get<std::string>(), level);
+    obj.level = level;
+    std::vector<std::string> appenders = j.at("appenders").get<std::vector<std::string>>();
+    unsigned char appenders_flag = log4cpp::config::appender_name_to_flag(appenders);
+    obj.appender = appenders_flag;
+}
 
 bool logger_less(const log4cpp::config::logger &a, const log4cpp::config::logger &b) {
     if (a.name != b.name) {
@@ -117,27 +113,33 @@ bool logger_equal(const log4cpp::config::logger &a, const log4cpp::config::logge
     return a.name == b.name && a.level == b.level && a.appender == b.appender;
 }
 
-void logger_check(const nlohmann::json &expected_json, std::vector<log4cpp::config::logger> &actual_loggers) {
+void logger_check(const json &expected_json, std::vector<log4cpp::config::logger> &actual_loggers) {
     EXPECT_EQ(actual_loggers.empty(), true != expected_json.contains("loggers"));
     if (actual_loggers.empty()) {
         return;
     }
-    const nlohmann::json &loggers_json = expected_json.at("loggers");
-    std::vector<log4cpp::config::logger> expected_loggers = loggers_json.get<std::vector<log4cpp::config::logger>>();
+    const json &loggers_json = expected_json.at("loggers");
+    auto loggers_arr = loggers_json.get<log4cpp::json_array>();
+    std::vector<log4cpp::config::logger> expected_loggers;
+    for (const auto &elem: loggers_arr) {
+        log4cpp::config::logger l;
+        from_json_logger(elem, l);
+        expected_loggers.push_back(l);
+    }
     std::sort(actual_loggers.begin(), actual_loggers.end(), logger_less);
     std::sort(expected_loggers.begin(), expected_loggers.end(), logger_less);
     bool is_equal = std::equal(expected_loggers.begin(), expected_loggers.end(), actual_loggers.begin(), logger_equal);
     EXPECT_EQ(is_equal, true);
 }
 
-void parse_json(const std::string &file, nlohmann::json &out) {
+void parse_json(const std::string &file, json &out) {
     std::ifstream ifs(file);
     ASSERT_TRUE(ifs.is_open()) << "cannot open " << file;
-    out = nlohmann::json::parse(ifs);
+    out = json::parse(ifs);
     ifs.close();
 }
 
-void configuration_check(const nlohmann::json &expected_json, const log4cpp::config::log4cpp *config) {
+void configuration_check(const json &expected_json, const log4cpp::config::log4cpp *config) {
     // Logger pattern
     const std::string &log_pattern = config->log_pattern.value();
     log_pattern_check(expected_json, log_pattern);
@@ -162,7 +164,7 @@ TEST(load_config_test, auto_load_config) {
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     ASSERT_NE(nullptr, config);
 
-    nlohmann::json expected_json;
+    json expected_json;
     parse_json("log4cpp.json", expected_json);
     configuration_check(expected_json, config);
 }
@@ -174,7 +176,7 @@ TEST(load_config_test, load_config_test_1) {
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     ASSERT_NE(nullptr, config);
 
-    nlohmann::json expected_json;
+    json expected_json;
     parse_json(config_file, expected_json);
     configuration_check(expected_json, config);
 }
@@ -186,7 +188,7 @@ TEST(load_config_test, load_config_test_2) {
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
     ASSERT_NE(nullptr, config);
 
-    nlohmann::json expected_json;
+    json expected_json;
     parse_json(config_file, expected_json);
     configuration_check(expected_json, config);
 }

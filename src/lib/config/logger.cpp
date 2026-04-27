@@ -6,22 +6,26 @@
 #include "exception/config_exception.hpp"
 
 namespace log4cpp::config {
-    void to_json(nlohmann::json &j, const logger &config) {
+    void to_json(json_value &j, const logger &config) {
         std::vector<std::string> appenders;
         for (const auto &entry: APPENDER_TABLE) {
             if (config.appender & static_cast<unsigned char>(entry.type)) {
                 appenders.emplace_back(entry.name);
             }
         }
-        j = nlohmann::json{{"name", config.name}, {"appenders", appenders}};
+        json_array arr;
+        for (const auto &a: appenders) {
+            arr.emplace_back(json_value(a));
+        }
+        j = json_value{{"name", config.name}, {"appenders", json_value(std::move(arr))}};
         if (config.level.has_value()) {
             std::string str;
             to_string(config.level.value(), str);
-            j["level"] = str;
+            j["level"] = json_value(str);
         }
     }
 
-    void from_json(const nlohmann::json &j, logger &config) {
+    void from_json(const json_value &j, logger &config) {
         // Name is mandatory
         if (!j.contains("name")) {
             throw invalid_config_exception("Logger name is missing");
@@ -42,9 +46,7 @@ namespace log4cpp::config {
 
         // Appender is optional
         if (j.contains("appenders")) {
-            std::vector<std::string> appenders;
-            j.at("appenders").get_to(appenders);
-
+            std::vector<std::string> appenders = j.at("appenders").get<std::vector<std::string>>();
             config.appender = appender_name_to_flag(appenders);
         }
         else {

@@ -43,23 +43,29 @@ namespace log4cpp::config {
         return flag;
     }
 
-    void to_json(nlohmann::json &j, const log_appender &config) {
-        j = nlohmann::json{};
+    void to_json(json_value &j, const log_appender &config) {
+        j = json_value{};
         for (const auto &entry: APPENDER_TABLE) {
             switch (entry.type) {
                 case APPENDER_TYPE::CONSOLE:
                     if (config.console) {
-                        j[entry.name] = *config.console;
+                        json_value cj;
+                        to_json(cj, *config.console);
+                        j[entry.name] = cj;
                     }
                     break;
                 case APPENDER_TYPE::FILE:
                     if (config.file) {
-                        j[entry.name] = *config.file;
+                        json_value fj;
+                        to_json(fj, *config.file);
+                        j[entry.name] = fj;
                     }
                     break;
                 case APPENDER_TYPE::SOCKET:
                     if (config.socket) {
-                        j[entry.name] = *config.socket;
+                        json_value sj;
+                        to_json(sj, *config.socket);
+                        j[entry.name] = sj;
                     }
                     break;
                 default:
@@ -68,21 +74,30 @@ namespace log4cpp::config {
         }
     }
 
-    void from_json(const nlohmann::json &j, log_appender &config) {
+    void from_json(const json_value &j, log_appender &config) {
         for (const auto &entry: APPENDER_TABLE) {
             if (!j.contains(entry.name)) {
                 continue;
             }
             switch (entry.type) {
-                case APPENDER_TYPE::CONSOLE:
-                    config.console = j.at(entry.name).get<console_appender>();
+                case APPENDER_TYPE::CONSOLE: {
+                    console_appender ca;
+                    from_json(j.at(entry.name), ca);
+                    config.console = ca;
                     break;
-                case APPENDER_TYPE::FILE:
-                    config.file = j.at(entry.name).get<file_appender>();
+                }
+                case APPENDER_TYPE::FILE: {
+                    file_appender fa;
+                    from_json(j.at(entry.name), fa);
+                    config.file = fa;
                     break;
-                case APPENDER_TYPE::SOCKET:
-                    config.socket = j.at(entry.name).get<socket_appender>();
+                }
+                case APPENDER_TYPE::SOCKET: {
+                    socket_appender sa;
+                    from_json(j.at(entry.name), sa);
+                    config.socket = sa;
                     break;
+                }
                 default:
                     break;
             }
@@ -93,20 +108,23 @@ namespace log4cpp::config {
     // log4cpp
     // =========================================================
 
-    void to_json(nlohmann::json &j, const log4cpp &config) {
-        j = nlohmann::json{{"appenders", config.appenders}};
-        std::vector<logger> cfg_loggers;
-        cfg_loggers.reserve(config.loggers.size());
+    void to_json(json_value &j, const log4cpp &config) {
+        json_value appenders_j;
+        to_json(appenders_j, config.appenders);
+        j = json_value{{"appenders", appenders_j}};
+        json_array cfg_loggers_arr;
         for (const auto &[name, log]: config.loggers) {
-            cfg_loggers.push_back(log);
+            json_value lj;
+            to_json(lj, log);
+            cfg_loggers_arr.push_back(lj);
         }
-        j["loggers"] = cfg_loggers;
+        j["loggers"] = json_value(std::move(cfg_loggers_arr));
         if (config.log_pattern.has_value()) {
-            j["log-pattern"] = config.log_pattern.value();
+            j["log-pattern"] = json_value(config.log_pattern.value());
         }
     }
 
-    void from_json(const nlohmann::json &j, log4cpp &config) {
+    void from_json(const json_value &j, log4cpp &config) {
         /* Validate required fields */
         /* "log-pattern" is optional */
         /* "appenders" is mandatory */
@@ -127,7 +145,7 @@ namespace log4cpp::config {
         else {
             config.log_pattern = std::nullopt;
         }
-        j.at("appenders").get_to(config.appenders);
+        from_json(j.at("appenders"), config.appenders);
 
         // "appenders" must define at least one appender
         if (config.appenders.empty()) {
@@ -135,8 +153,13 @@ namespace log4cpp::config {
         }
 
         // parse optional loggers
+        const auto &loggers_arr = j.at("loggers").get<json_array>();
         std::vector<logger> cfg_loggers;
-        j.at("loggers").get_to(cfg_loggers);
+        for (const auto &elem: loggers_arr) {
+            logger l;
+            from_json(elem, l);
+            cfg_loggers.push_back(l);
+        }
         for (auto &cfg_logger: cfg_loggers) {
             config.loggers.emplace(cfg_logger.name, cfg_logger);
         }
@@ -195,13 +218,15 @@ namespace log4cpp::config {
     }
 
     std::string log4cpp::serialize(const log4cpp &cfg) {
-        nlohmann::json j;
+        json_value j;
         to_json(j, cfg);
         return j.dump();
     }
 
-    log4cpp log4cpp::deserialize(const std::string &json) {
-        nlohmann::json j = nlohmann::json::parse(json);
-        return j.get<log4cpp>();
+    log4cpp log4cpp::deserialize(const std::string &json_str) {
+        json_value j = json_value::parse(json_str);
+        log4cpp cfg;
+        from_json(j, cfg);
+        return cfg;
     }
 } // namespace log4cpp::config

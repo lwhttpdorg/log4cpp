@@ -1,7 +1,6 @@
 #pragma once
 
-#include <nlohmann/json.hpp>
-
+#include "common/json.hpp"
 #include "common/log_net.hpp"
 
 namespace log4cpp::config {
@@ -22,9 +21,9 @@ namespace log4cpp::config {
         }
     };
 
-    void to_json(nlohmann::json &j, const console_appender &config);
+    void to_json(::log4cpp::json_value &j, const console_appender &config);
 
-    void from_json(const nlohmann::json &j, console_appender &config);
+    void from_json(const ::log4cpp::json_value &j, console_appender &config);
 
     // =========================================================
     // file appender
@@ -42,9 +41,9 @@ namespace log4cpp::config {
         }
     };
 
-    void to_json(nlohmann::json &j, const file_appender &config);
+    void to_json(::log4cpp::json_value &j, const file_appender &config);
 
-    void from_json(const nlohmann::json &j, file_appender &config);
+    void from_json(const ::log4cpp::json_value &j, file_appender &config);
 
     // =========================================================
     // socket appender
@@ -66,6 +65,6 @@ namespace log4cpp::config {
         }
     };
 
-    void to_json(nlohmann::json &j, const socket_appender &config);
-    void from_json(const nlohmann::json &j, socket_appender &config);
+    void to_json(::log4cpp::json_value &j, const socket_appender &config);
+    void from_json(const ::log4cpp::json_value &j, socket_appender &config);
 } // namespace log4cpp::config

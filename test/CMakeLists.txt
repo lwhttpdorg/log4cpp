@@ -82,11 +82,6 @@ foreach (test_name IN LISTS TEST_TARGETS)
     # Link against GoogleTest, main library, and common includes
     target_link_libraries(${test_name} PRIVATE GTest::gtest_main log4cpp test_includes)
 
-    # Only load_config_tests and serialize_test need nlohmann_json
-    if (test_name STREQUAL "load_config_tests" OR test_name STREQUAL "serialize_test")
-        target_link_libraries(${test_name} PRIVATE nlohmann_json::nlohmann_json)
-    endif ()
-
     if (WIN32)
         target_link_libraries(${test_name} PRIVATE ws2_32)
     endif ()

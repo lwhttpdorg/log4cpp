@@ -1,6 +1,7 @@
 #include <filesystem>
 #include <fstream>
-#include "nlohmann/json.hpp"
+
+#include "common/json.hpp"
 
 #include "log4cpp/log4cpp.hpp"
 
@@ -10,10 +11,10 @@
 
 namespace fs = std::filesystem;
 
-void parse_json(const std::string &config_file, nlohmann::json &expected_json) {
+void parse_json(const std::string &config_file, log4cpp::json_value &expected_json) {
     std::ifstream ifs(config_file);
     ASSERT_TRUE(ifs.is_open());
-    expected_json = nlohmann::json::parse(ifs);
+    expected_json = log4cpp::json_value::parse(ifs);
     ifs.close();
 }
 
