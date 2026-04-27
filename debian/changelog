@@ -1,5 +1,6 @@
-liblog4cpp (4.0.6) stable; urgency=low
+liblog4cpp (4.1.0) stable; urgency=low
 
-  * Fix: Avoid exceptions from std::filesystem::exists when checking config file access
+  * Remove nlohmann_json external dependency
+  * Add built-in JSON parser (log4cpp::json_value) with OOP design
 
  -- developer <developer@log4cpp.org>  Fri, 13 Feb 2026 12:00:00 +0800

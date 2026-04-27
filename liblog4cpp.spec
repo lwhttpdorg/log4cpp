@@ -1,5 +1,5 @@
 # Must match the first line of ../VERSION (build-rpm.sh overwrites this when building).
-%define _version 4.0.6
+%define _version 4.1.0
 
 Name:           liblog4cpp
 Version:        %{_version}
@@ -12,10 +12,9 @@ Vendor:         log4cpp.org
 # Source tarball expected in ~/rpmbuild/SOURCES/
 Source0:        %{name}-%{version}.tar.gz
 
-# Build-time dependencies: nlohmann-json is required only for compilation
+# Build-time dependencies
 BuildRequires:  cmake
 BuildRequires:  gcc-c++
-BuildRequires:  json-devel >= 3.0.0
 
 %description
 A log4j-style C++ logging library.
@@ -70,7 +69,7 @@ export LDFLAGS=""
 %{_libdir}/pkgconfig/log4cpp.pc
 
 %changelog
-* Mon Jan 19 2026 Developer <developer@log4cpp.org> - 4.0.6-1
-- Initial native RPM release
-- Internalized nlohmann-json dependency to hide implementation details
-- Unified include path to /usr/include/log4cpp for standard API usage
+* Mon Apr 27 2026 Developer <developer@log4cpp.org> - 4.1.0-1
+- Remove nlohmann-json external dependency; use built-in JSON parser
+- Add log4cpp::json_value with OOP polymorphic design
+- Separate JSON declaration (.hpp) and implementation (.cpp)

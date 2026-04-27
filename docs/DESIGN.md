@@ -697,7 +697,6 @@ graph TD
 ### 11.2. Dependencies
 
 - **Required**: CMake 3.11+, C++17 compiler
-- **External**: nlohmann-json >= 3.0
 - **Platform**: Linux (hot reload), Windows/macOS (basic)
 
 ---

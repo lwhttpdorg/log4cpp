@@ -58,17 +58,10 @@ Features:
 
 1. C++ compiler supporting C++17 or later
 2. CMake 3.11 or later
-3. nlohmann-json >= 3.0
 
 ## 3. Usage
 
 ### 3.1. Quick Start
-
-To install nlohmann-json on Ubuntu/Debian:
-
-```shell
-sudo apt install nlohmann-json3-dev
-```
 
 #### 3.1.1. Create a CMake Project
 

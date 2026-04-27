@@ -101,7 +101,6 @@ REQUIRED_PKGS=(
     dpkg-dev
     fakeroot
     debhelper
-    nlohmann-json3-dev
 )
 
 if [[ "$CROSS_BUILD" -eq 1 ]]; then
