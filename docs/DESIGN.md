@@ -1,5 +1,6 @@
 # log4cpp Design Document
 
+
 <!-- TOC -->
 - [1. Overview](#1.-overview)
   - [1.1. Key Features](#1.1.-key-features)

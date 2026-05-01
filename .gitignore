@@ -55,3 +55,7 @@ debian/liblog4cpp-dev/
 debian/tmp/
 debian/debhelper-build-stamp
 debian/files
+
+# Meson
+/subprojects/*
+!/subprojects/*.wrap
