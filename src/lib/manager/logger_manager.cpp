@@ -13,7 +13,7 @@
 
 #include <log4cpp/log4cpp.hpp>
 #include <log4cpp/logger.hpp>
-#include <logger/core_logger.hpp>
+#include <logger/real_logger.hpp>
 
 #include "appender/console_appender.hpp"
 #include "config/log4cpp.hpp"
@@ -296,7 +296,6 @@ namespace log4cpp {
                 appenders_changed = true;
             }
         }
-        set_log_pattern();
         build_appender();
         update_logger(old_cfg.loggers, appenders_changed);
     }
@@ -406,7 +405,6 @@ namespace log4cpp {
             if (nullptr == instance.config) {
                 instance.auto_load_config();
             }
-            instance.set_log_pattern();
             instance.build_appender();
         });
         return instance.get_or_create_logger(name);
@@ -494,16 +492,6 @@ namespace log4cpp {
         loggers.erase(name);
     }
 
-    /// @brief Sets the global log pattern based on the configuration.
-    void logger_manager::set_log_pattern() const {
-        if (config->log_pattern.has_value()) {
-            pattern::log_pattern::set_pattern(config->log_pattern.value());
-        }
-        else {
-            pattern::log_pattern::set_pattern(DEFAULT_LOG_PATTERN);
-        }
-    }
-
     /**
      * @brief Builds all Appenders that are referenced in the configuration.
      *
@@ -545,9 +533,9 @@ namespace log4cpp {
     }
 
     /**
-     * @brief Builds a concrete core_logger instance based on the given configuration.
+     * @brief Builds a concrete real_logger instance based on the given configuration.
      * @param log_cfg The configuration for this logger.
-     * @return A shared pointer to the newly created core_logger.
+     * @return A shared pointer to the newly created real_logger.
      */
     std::shared_ptr<logger> logger_manager::build_logger(const config::logger &log_cfg) const {
         std::shared_ptr<appender::log_appender> temp_appenders[3];
@@ -557,7 +545,9 @@ namespace log4cpp {
         temp_appenders[1] = this->file_appender_ptr;
         temp_appenders[2] = this->socket_appender_ptr;
 
-        auto new_logger = std::make_shared<core_logger>(log_cfg.name, log_cfg.level.value());
+        const std::string &pattern_str =
+            config->log_pattern.has_value() ? config->log_pattern.value() : DEFAULT_LOG_PATTERN;
+        auto new_logger = std::make_shared<real_logger>(log_cfg.name, log_cfg.level.value(), pattern_str);
         if (log_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) {
             new_logger->add_appender(temp_appenders[0]);
         }

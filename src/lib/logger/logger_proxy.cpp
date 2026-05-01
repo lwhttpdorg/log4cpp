@@ -5,51 +5,49 @@
 #include <log4cpp/logger.hpp>
 
 namespace log4cpp {
-    constexpr unsigned int PROXY_HOT_RELOADED = 1;
-
-    logger_proxy::logger_proxy(std::shared_ptr<logger> target_logger) : real_logger(std::move(target_logger)) {
-        if (!real_logger) {
-            throw std::invalid_argument("logger_proxy: real_logger (delegated logger) must not be null");
+    logger_proxy::logger_proxy(std::shared_ptr<logger> target_logger) : target_(std::move(target_logger)) {
+        if (!target_) {
+            throw std::invalid_argument("logger_proxy: target_ (delegated logger) must not be null");
         }
     }
 
     [[nodiscard]] std::string logger_proxy::get_name() const {
         std::shared_lock lock(mtx);
-        if (!real_logger) {
+        if (!target_) {
             return {};
         }
-        return real_logger->get_name();
+        return target_->get_name();
     }
 
     void logger_proxy::set_name(const std::string &name) {
         std::unique_lock lock(mtx);
-        if (!real_logger) {
+        if (!target_) {
             return;
         }
-        real_logger->set_name(name);
+        target_->set_name(name);
     }
 
     [[nodiscard]] log_level logger_proxy::get_level() const {
         std::shared_lock lock(mtx);
-        if (!real_logger) {
+        if (!target_) {
             return {};
         }
-        return real_logger->get_level();
+        return target_->get_level();
     }
 
     void logger_proxy::set_level(log_level level) {
         std::unique_lock lock(mtx);
-        if (!real_logger) {
+        if (!target_) {
             return;
         }
-        real_logger->set_level(level);
+        target_->set_level(level);
     }
 
     void logger_proxy::log(log_level _level, const char *__restrict fmt, va_list args) const {
         std::shared_ptr<logger> logger_ptr;
         {
             std::shared_lock lock(mtx);
-            logger_ptr = real_logger;
+            logger_ptr = target_;
         }
         if (logger_ptr) {
             logger_ptr->log(_level, fmt, args);
@@ -60,7 +58,7 @@ namespace log4cpp {
         std::shared_ptr<logger> logger_ptr;
         {
             std::shared_lock lock(mtx);
-            logger_ptr = real_logger;
+            logger_ptr = target_;
         }
         if (logger_ptr) {
             va_list args;
@@ -74,7 +72,7 @@ namespace log4cpp {
         std::shared_ptr<logger> logger_ptr;
         {
             std::shared_lock lock(mtx);
-            logger_ptr = real_logger;
+            logger_ptr = target_;
         }
         if (logger_ptr) {
             va_list args;
@@ -88,7 +86,7 @@ namespace log4cpp {
         std::shared_ptr<logger> logger_ptr;
         {
             std::shared_lock lock(mtx);
-            logger_ptr = real_logger;
+            logger_ptr = target_;
         }
         if (logger_ptr) {
             va_list args;
@@ -102,7 +100,7 @@ namespace log4cpp {
         std::shared_ptr<logger> logger_ptr;
         {
             std::shared_lock lock(mtx);
-            logger_ptr = real_logger;
+            logger_ptr = target_;
         }
         if (logger_ptr) {
             va_list args;
@@ -116,7 +114,7 @@ namespace log4cpp {
         std::shared_ptr<logger> logger_ptr;
         {
             std::shared_lock lock(mtx);
-            logger_ptr = real_logger;
+            logger_ptr = target_;
         }
         if (logger_ptr) {
             va_list args;
@@ -130,7 +128,7 @@ namespace log4cpp {
         std::shared_ptr<logger> logger_ptr;
         {
             std::shared_lock lock(mtx);
-            logger_ptr = real_logger;
+            logger_ptr = target_;
         }
         if (logger_ptr) {
             va_list args;
@@ -142,24 +140,11 @@ namespace log4cpp {
 
     std::shared_ptr<logger> logger_proxy::get_target() {
         std::shared_lock lock(mtx);
-        return real_logger;
+        return target_;
     }
 
     void logger_proxy::set_target(std::shared_ptr<logger> target) {
         std::unique_lock lock(mtx);
-        real_logger = std::move(target);
-        hot_reload_flag = PROXY_HOT_RELOADED;
-    }
-
-    void logger_proxy::set_hot_reload_flag() {
-        hot_reload_flag |= PROXY_HOT_RELOADED;
-    }
-
-    void logger_proxy::reset_hot_reload_flag() {
-        hot_reload_flag &= ~PROXY_HOT_RELOADED;
-    }
-
-    bool logger_proxy::hot_reload_flag_is_set() const {
-        return (hot_reload_flag & PROXY_HOT_RELOADED) != 0;
+        target_ = std::move(target);
     }
 } // namespace log4cpp

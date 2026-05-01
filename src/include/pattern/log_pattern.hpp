@@ -24,7 +24,9 @@ namespace log4cpp::pattern {
 
     class log_pattern {
     public:
-        static void set_pattern(const std::string &pattern);
+        explicit log_pattern(const std::string &pattern = DEFAULT_LOG_PATTERN);
+
+        void set_pattern(const std::string &pattern);
 
         /**
          * Format the log message
@@ -36,8 +38,8 @@ namespace log4cpp::pattern {
          * @param args: The arguments
          * @return The length of the formatted message
          */
-        static size_t format(char *__restrict buf, size_t buf_len, const char *name, log_level level, const char *fmt,
-                             va_list args);
+        size_t format(char *__restrict buf, size_t buf_len, const char *name, log_level level, const char *fmt,
+                      va_list args) const;
 
         /**
          * Format the log message
@@ -49,12 +51,12 @@ namespace log4cpp::pattern {
          * @param ... The arguments
          * @return The length of the formatted message
          */
-        static size_t format(char *__restrict buf, size_t buf_len, const char *name, log_level level, const char *fmt,
-                             ...);
+        size_t format(char *__restrict buf, size_t buf_len, const char *name, log_level level, const char *fmt,
+                      ...) const;
 
     private:
         // The pattern to format the log message
-        static std::string _pattern;
+        std::string _pattern;
         /**
          * Format the log message
          * @param buf: The buffer to store the formatted message
@@ -62,8 +64,7 @@ namespace log4cpp::pattern {
          * @param name: The logger name
          * @param level: The log level
          * @param msg: The log message
-         * @return The length of the formatted message
          */
-        static size_t format_with_pattern(char *buf, size_t len, const char *name, log_level level, const char *msg);
+        void format_with_pattern(char *buf, size_t len, const char *name, log_level level, const char *msg) const;
     };
 } // namespace log4cpp::pattern

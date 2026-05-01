@@ -399,7 +399,7 @@ namespace log4cpp::appender {
             if (connection_fsm_state::ESTABLISHED != this->connection_state) {
                 return;
             }
-            ssize_t sent = send(this->sock_fd, msg, static_cast<int>(msg_len), 0);
+            ssize_t sent = send(this->sock_fd, msg, msg_len, 0);
             if (sent < 0) {
                 // Connection lost, notify reconnect thread
                 r_lock.unlock();
@@ -425,7 +425,7 @@ namespace log4cpp::appender {
         }
         else {
             // For UDP, just ignore the error
-            (void)send(this->sock_fd, msg, static_cast<int>(msg_len), 0);
+            (void)send(this->sock_fd, msg, msg_len, 0);
         }
     }
 } // namespace log4cpp::appender

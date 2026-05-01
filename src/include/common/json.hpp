@@ -2,11 +2,11 @@
 
 #include <cstdint>
 #include <initializer_list>
-#include <map>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -24,7 +24,7 @@ namespace log4cpp {
 
     class json_value;
     using json_array = std::vector<json_value>;
-    using json_object = std::map<std::string, json_value>;
+    using json_object = std::unordered_map<std::string, json_value>;
 
     // ===================== Internal node hierarchy =====================
 

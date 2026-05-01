@@ -39,6 +39,7 @@
 
 # CMake
 cmake-build-*
+cmake-lint/
 build/
 
 # pkg

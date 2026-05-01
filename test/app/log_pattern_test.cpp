@@ -13,14 +13,14 @@
 
 TEST(log_pattern_tests, full_format_test) {
     const std::string pattern = "${5NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}";
-    log4cpp::pattern::log_pattern::set_pattern(pattern);
+    log4cpp::pattern::log_pattern formatter(pattern);
     char actual[1024];
     tm now_tm{};
     unsigned short ms;
     log4cpp::log_level level = log4cpp::log_level::INFO;
     const char *LOGGER_NAME = "log_pattern_tests";
     log4cpp::common::get_time_now(now_tm, ms);
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), LOGGER_NAME, level, "hello");
+    formatter.format(actual, sizeof(actual), LOGGER_NAME, level, "hello");
     char expected[1024];
     char th_name[16];
     char thread_name[16];
@@ -395,14 +395,14 @@ TEST(log_pattern_tests, time_milliseconds_format_test) {
 
 TEST(log_pattern_tests, thread_id_format_test) {
     const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${msg}";
-    log4cpp::pattern::log_pattern::set_pattern(pattern);
+    log4cpp::pattern::log_pattern formatter(pattern);
     char actual[1024];
     tm now_tm{};
     unsigned short ms;
     log4cpp::log_level level = log4cpp::log_level::INFO;
     log4cpp::common::get_time_now(now_tm, ms);
 
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, "hello");
+    formatter.format(actual, sizeof(actual), "TEST", level, "hello");
     char expected[1024];
     size_t len = log4cpp::common::log4c_scnprintf(expected, sizeof(expected), "%04d-%02d-%02d %02d:%02d:%02d:%03d",
                                                   now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
@@ -426,7 +426,7 @@ TEST(log_pattern_tests, thread_id_format_test) {
     LOG4C_EXPECT_STR_EQ(actual + offset, expected + offset, "Thread id format mismatch");
     // Set thread name
     log4cpp::set_thread_name("test");
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, "hello");
+    formatter.format(actual, sizeof(actual), "TEST", level, "hello");
     tid = log4cpp::get_thread_name_id(th_name, sizeof(th_name));
     len = day_time;
     if ('\0' == th_name[0]) {
@@ -445,50 +445,43 @@ TEST(log_pattern_tests, thread_id_format_test) {
     LOG4C_EXPECT_STR_EQ(actual + offset, expected + offset, "Thread name or id format mismatch");
 }
 
-TEST(log_pattern_tests, log_level_format_test) {
+struct log_level_format_param {
+    log4cpp::log_level level;
+    const char *name;
+};
+
+class log_level_format_test: public ::testing::TestWithParam<log_level_format_param> {};
+
+TEST_P(log_level_format_test, level_format) {
     const std::string pattern = "${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${msg}";
-    log4cpp::pattern::log_pattern::set_pattern(pattern);
+    log4cpp::pattern::log_pattern formatter(pattern);
     char actual[1024];
     const char *message = "hello world!";
-    // The length of " [INFO ] -- hello world!\n" is 29
-    size_t cmp_len = 25;
-    // FATAL
-    log4cpp::log_level level = log4cpp::log_level::FATAL;
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
+    constexpr size_t cmp_len = 25;
+
+    formatter.format(actual, sizeof(actual), "TEST", GetParam().level, message);
     char expected[1024];
     std::string level_str;
-    log4cpp::to_string(level, level_str);
+    log4cpp::to_string(GetParam().level, level_str);
     log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
-    size_t offset = strlen(actual) - cmp_len;
-    LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level FATAL format mismatch");
-    // ERROR
-    level = log4cpp::log_level::ERROR;
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::to_string(level, level_str);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
-    LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level ERROR format mismatch");
-    // WARN
-    level = log4cpp::log_level::WARN;
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::to_string(level, level_str);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
-    LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level WARN format mismatch");
-    // INFO
-    level = log4cpp::log_level::INFO;
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::to_string(level, level_str);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
-    LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level INFO format mismatch");
-    // DEBUG
-    level = log4cpp::log_level::DEBUG;
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::to_string(level, level_str);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
-    LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level DEBUG format mismatch");
-    // TRACE
-    level = log4cpp::log_level::TRACE;
-    log4cpp::pattern::log_pattern::format(actual, sizeof(actual), "TEST", level, message);
-    log4cpp::to_string(level, level_str);
-    log4cpp::common::log4c_scnprintf(expected, sizeof(expected), " [%-5s] -- %s\n", level_str.c_str(), message);
-    LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, "Log level TRACE format mismatch");
+    const size_t offset = std::strlen(actual) - cmp_len;
+    LOG4C_EXPECT_STRN_EQ(actual + offset, expected, cmp_len, GetParam().name);
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    log_pattern_tests, log_level_format_test,
+    ::testing::Values(log_level_format_param{log4cpp::log_level::FATAL, "Log level FATAL format mismatch"},
+                      log_level_format_param{log4cpp::log_level::ERROR, "Log level ERROR format mismatch"},
+                      log_level_format_param{log4cpp::log_level::WARN, "Log level WARN format mismatch"},
+                      log_level_format_param{log4cpp::log_level::INFO, "Log level INFO format mismatch"},
+                      log_level_format_param{log4cpp::log_level::DEBUG, "Log level DEBUG format mismatch"},
+                      log_level_format_param{log4cpp::log_level::TRACE, "Log level TRACE format mismatch"}),
+    [](const ::testing::TestParamInfo<log_level_format_param> &info) {
+        std::string name = info.param.name;
+        for (char &c: name) {
+            if (c == ' ' || c == '-') {
+                c = '_';
+            }
+        }
+        return name;
+    });

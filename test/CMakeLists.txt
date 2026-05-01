@@ -33,6 +33,7 @@ endif ()
 set(TEST_TARGETS
     load_config_tests
     log_pattern_tests
+    log_truncate_tests
     console_appender_tests
     file_appender_tests
     socket_appender_tests
@@ -46,6 +47,7 @@ endif ()
 # Map each test target to its source file
 set(load_config_tests_SRC app/load_config_test.cpp)
 set(log_pattern_tests_SRC app/log_pattern_test.cpp)
+set(log_truncate_tests_SRC app/log_truncate_test.cpp)
 set(console_appender_tests_SRC app/console_appender_test.cpp)
 set(file_appender_tests_SRC app/file_appender_test.cpp)
 set(socket_appender_tests_SRC app/socket_appender_test.cpp)

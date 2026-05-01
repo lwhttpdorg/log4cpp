@@ -1,29 +1,34 @@
 #pragma once
 
+#include <memory>
 #include <set>
 #include <string>
 
 #include <log4cpp/log4cpp.hpp>
 #include <log4cpp/logger.hpp>
 
+#include "pattern/log_pattern.hpp"
+
 namespace log4cpp::appender {
     class log_appender;
 }
 
 namespace log4cpp {
-    class core_logger: public logger {
+    class real_logger: public logger {
     public:
-        core_logger();
+        real_logger();
 
-        explicit core_logger(const std::string &log_name, log_level _level = log_level::WARN);
+        explicit real_logger(const std::string &log_name, log_level _level = log_level::WARN);
 
-        core_logger(const core_logger &other);
+        real_logger(const std::string &log_name, log_level _level, const std::string &pattern);
 
-        core_logger(core_logger &&other) noexcept;
+        real_logger(const real_logger &other);
 
-        core_logger &operator=(const core_logger &other);
+        real_logger(real_logger &&other) noexcept;
 
-        core_logger &operator=(core_logger &&other) noexcept;
+        real_logger &operator=(const real_logger &other);
+
+        real_logger &operator=(real_logger &&other) noexcept;
 
         [[nodiscard]] std::string get_name() const override {
             return name_;
@@ -57,7 +62,7 @@ namespace log4cpp {
 
         void trace(const char *__restrict fmt, ...) const override;
 
-        ~core_logger() override = default;
+        ~real_logger() override = default;
 
         friend class logger_builder;
 
@@ -71,5 +76,7 @@ namespace log4cpp {
         mutable std::shared_mutex appenders_mtx;
         /* The log appenders. */
         std::set<std::shared_ptr<appender::log_appender>> appenders;
+        /* The log pattern formatter. */
+        pattern::log_pattern pattern_;
     };
 } // namespace log4cpp

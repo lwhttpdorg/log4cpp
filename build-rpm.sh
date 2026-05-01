@@ -93,7 +93,6 @@ REQUIRED_PKGS=(
     rpmdevtools
     cmake
     gcc-c++
-    json-devel
 )
 
 if [[ "$CROSS_BUILD" -eq 1 ]]; then

@@ -12,7 +12,7 @@ namespace log4cpp {
      *
      * This class implements the Proxy design pattern. It provides a stable interface
      * to the client, which holds a `shared_ptr` to this proxy. The `logger_manager`
-     * can then atomically swap the underlying `real_logger` when the configuration
+     * can then atomically swap the underlying `target_` when the configuration
      * is hot-reloaded, without invalidating the client's logger instance.
      */
     class logger_proxy: public logger {
@@ -80,19 +80,10 @@ namespace log4cpp {
          */
         void set_target(std::shared_ptr<logger> target);
 
-        /// @brief A flag to indicate that a hot-reload is in progress. (Currently unused).
-        void set_hot_reload_flag();
-        /// @brief Resets the hot-reload flag. (Currently unused).
-        void reset_hot_reload_flag();
-        /// @brief Checks if the hot-reload flag is set. (Currently unused).
-        bool hot_reload_flag_is_set() const;
-
-        /// @brief A read-write mutex to protect access to `real_logger`.
+        /// @brief A read-write mutex to protect access to `target_`.
         /// Logging operations use a shared lock, while `set_target` uses a unique lock.
         mutable std::shared_mutex mtx;
         /// @brief A pointer to the actual logger implementation that does the work.
-        std::shared_ptr<logger> real_logger;
-        /// @brief A flag to signal the hot-reload state.
-        unsigned int hot_reload_flag{0};
+        std::shared_ptr<logger> target_;
     };
 } // namespace log4cpp

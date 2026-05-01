@@ -16,6 +16,7 @@
 
 #include "common/log_net.hpp"
 #include "config/log4cpp.hpp"
+#include "exception/config_exception.hpp"
 
 using json = log4cpp::json_value;
 
@@ -191,4 +192,37 @@ TEST(load_config_test, load_config_test_2) {
     json expected_json;
     parse_json(config_file, expected_json);
     configuration_check(expected_json, config);
+}
+
+TEST(load_config_test, missing_appenders_field) {
+    constexpr const char *bad_json = R"({"loggers":[{"name":"root","level":"INFO","appenders":["console"]}]})";
+    EXPECT_THROW(log4cpp::config::log4cpp::deserialize(bad_json), log4cpp::config::invalid_config_exception);
+}
+
+TEST(load_config_test, missing_loggers_field) {
+    constexpr const char *bad_json = R"({"appenders":{"console":{"out-stream":"stdout"}}})";
+    EXPECT_THROW(log4cpp::config::log4cpp::deserialize(bad_json), log4cpp::config::invalid_config_exception);
+}
+
+TEST(load_config_test, missing_root_logger) {
+    constexpr const char *bad_json =
+        R"({"appenders":{"console":{"out-stream":"stdout"}},"loggers":[{"name":"other","level":"INFO","appenders":["console"]}]})";
+    EXPECT_THROW(log4cpp::config::log4cpp::deserialize(bad_json), log4cpp::config::invalid_config_exception);
+}
+
+TEST(load_config_test, invalid_json_syntax) {
+    constexpr const char *bad_json = "{this is not json";
+    EXPECT_THROW(log4cpp::config::log4cpp::deserialize(bad_json), log4cpp::json_parse_error);
+}
+
+TEST(load_config_test, undefined_appender_reference) {
+    constexpr const char *bad_json =
+        R"({"appenders":{"console":{"out-stream":"stdout"}},"loggers":[{"name":"root","level":"INFO","appenders":["file"]}]})";
+    EXPECT_THROW(log4cpp::config::log4cpp::deserialize(bad_json), log4cpp::config::invalid_config_exception);
+}
+
+TEST(load_config_test, invalid_socket_protocol) {
+    constexpr const char *bad_json =
+        R"({"appenders":{"socket":{"host":"localhost","port":1234,"protocol":"unknown","prefer-stack":"auto"}},"loggers":[{"name":"root","level":"INFO","appenders":["socket"]}]})";
+    EXPECT_THROW(log4cpp::config::log4cpp::deserialize(bad_json), std::invalid_argument);
 }

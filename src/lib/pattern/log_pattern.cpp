@@ -8,8 +8,8 @@
 #include "pattern/log_pattern.hpp"
 
 namespace log4cpp::pattern {
-    // The global log format pattern string.
-    std::string log_pattern::_pattern = DEFAULT_LOG_PATTERN;
+    log_pattern::log_pattern(const std::string &pattern) : _pattern(pattern) {
+    }
 
     void log_pattern::set_pattern(const std::string &pattern) {
         _pattern = pattern;
@@ -202,7 +202,8 @@ namespace log4cpp::pattern {
     }
 
     // Formats all parts of a log message according to the global `_pattern`.
-    size_t log_pattern::format_with_pattern(char *buf, size_t len, const char *name, log_level level, const char *msg) {
+    void log_pattern::format_with_pattern(char *buf, size_t len, const char *name, log_level level,
+                                          const char *msg) const {
         tm now_tm{};
         unsigned short ms;
         common::get_time_now(now_tm, ms);
@@ -278,12 +279,11 @@ namespace log4cpp::pattern {
         if (_pattern.find(LOG_MESSAGE) != std::string::npos) {
             common::log4c_replace_in_place(buf, len, LOG_MESSAGE, msg);
         }
-        return 0;
     }
 
     // Public formatting interface (va_list version).
     size_t log_pattern::format(char *buf, size_t buf_len, const char *name, log_level level, const char *fmt,
-                               va_list args) {
+                               va_list args) const {
         char message[LOG_LINE_MAX];
         message[0] = '\0';
         common::log4c_vscnprintf(message, sizeof(message), fmt, args);
@@ -295,7 +295,8 @@ namespace log4cpp::pattern {
     }
 
     // Public formatting interface (variadic version).
-    size_t log_pattern::format(char *buf, size_t buf_len, const char *name, log_level level, const char *fmt, ...) {
+    size_t log_pattern::format(char *buf, size_t buf_len, const char *name, log_level level, const char *fmt,
+                               ...) const {
         char message[LOG_LINE_MAX];
         message[0] = '\0';
         va_list args;

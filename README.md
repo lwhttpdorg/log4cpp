@@ -5,40 +5,38 @@
 ---
 
 <!-- TOC -->
-* [log4cpp](#log4cpp)
-  * [中文版本 | English Version](#中文版本--english-version)
-  * [1. What is log4cpp?](#1-what-is-log4cpp)
-  * [2. Requirements](#2-requirements)
-  * [3. Usage](#3-usage)
-    * [3.1. Quick Start](#31-quick-start)
-      * [3.1.1. Create a CMake Project](#311-create-a-cmake-project)
-      * [3.1.2. Include Header File](#312-include-header-file)
-      * [3.1.3. Load Configuration File (Optional)](#313-load-configuration-file-optional)
-      * [3.1.4. Get Logger](#314-get-logger)
-      * [3.1.5. Output Log](#315-output-log)
-      * [3.1.6. Use in a Class](#316-use-in-a-class)
-      * [3.1.7. Complete Example](#317-complete-example)
-    * [3.2. Advanced Usage](#32-advanced-usage)
-      * [3.2.1. Configuration File](#321-configuration-file)
-        * [3.2.1.1. Log pattern](#3211-log-pattern)
-        * [3.2.1.2. Appender](#3212-appender)
-          * [3.2.1.2.1. Console Appender](#32121-console-appender)
-          * [3.2.1.2.2. File Appender](#32122-file-appender)
-      * [3.2.2. Socket appender](#322-socket-appender)
-      * [3.2.3. Logger](#323-logger)
-    * [3.3. Hot Configuration Reload](#33-hot-configuration-reload)
-  * [4. Building](#4-building)
-    * [4.1. Configuration](#41-configuration)
-      * [4.1.1. Windows](#411-windows)
-      * [4.1.2. Linux](#412-linux)
-    * [4.2. Build](#42-build)
-    * [4.3. Testing](#43-testing)
-    * [4.4. Build RPM/DEB](#44-build-rpmdeb)
-      * [4.4.1. Manual Build](#441-manual-build)
-      * [4.4.2. Using build script](#442-using-build-script)
-    * [4.5. ASAN](#45-asan)
-  * [5. License](#5-license)
-<!-- TOC -->
+- [1. What is log4cpp?](#1.-what-is-log4cpp%3F)
+- [2. Requirements](#2.-requirements)
+- [3. Usage](#3.-usage)
+  - [3.1. Quick Start](#3.1.-quick-start)
+    - [3.1.1. Create a CMake Project](#3.1.1.-create-a-cmake-project)
+    - [3.1.2. Include Header File](#3.1.2.-include-header-file)
+    - [3.1.3. Load Configuration File (Optional)](#3.1.3.-load-configuration-file-%28optional%29)
+    - [3.1.4. Get Logger](#3.1.4.-get-logger)
+    - [3.1.5. Output Log](#3.1.5.-output-log)
+    - [3.1.6. Use in a Class](#3.1.6.-use-in-a-class)
+    - [3.1.7. Complete Example](#3.1.7.-complete-example)
+  - [3.2. Advanced Usage](#3.2.-advanced-usage)
+    - [3.2.1. Configuration File](#3.2.1.-configuration-file)
+      - [3.2.1.1. Log pattern](#3.2.1.1.-log-pattern)
+      - [3.2.1.2. Appender](#3.2.1.2.-appender)
+        - [3.2.1.2.1. Console Appender](#3.2.1.2.1.-console-appender)
+        - [3.2.1.2.2. File Appender](#3.2.1.2.2.-file-appender)
+    - [3.2.2. Socket appender](#3.2.2.-socket-appender)
+    - [3.2.3. Logger](#3.2.3.-logger)
+  - [3.3. Hot Configuration Reload](#3.3.-hot-configuration-reload)
+- [4. Building](#4.-building)
+  - [4.1. Configuration](#4.1.-configuration)
+    - [4.1.1. Windows](#4.1.1.-windows)
+    - [4.1.2. Linux](#4.1.2.-linux)
+  - [4.2. Build](#4.2.-build)
+  - [4.3. Testing](#4.3.-testing)
+  - [4.4. Build RPM/DEB](#4.4.-build-rpm%2Fdeb)
+    - [4.4.1. Manual Build](#4.4.1.-manual-build)
+    - [4.4.2. Using build script](#4.4.2.-using-build-script)
+  - [4.5. ASAN](#4.5.-asan)
+- [5. License](#5.-license)
+<!-- /TOC -->
 
 ## 1. What is log4cpp?
 
@@ -57,7 +55,7 @@ Features:
 ## 2. Requirements
 
 1. C++ compiler supporting C++17 or later
-2. CMake 3.11 or later
+2. CMake 3.10 or later
 
 ## 3. Usage
 
