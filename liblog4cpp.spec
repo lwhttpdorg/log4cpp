@@ -1,5 +1,5 @@
 # Must match the first line of ../VERSION (build-rpm.sh overwrites this when building).
-%define _version 4.1.0
+%define _version 4.1.1
 
 Name:           liblog4cpp
 Version:        %{_version}
@@ -69,7 +69,7 @@ export LDFLAGS=""
 %{_libdir}/pkgconfig/log4cpp.pc
 
 %changelog
-* Mon Apr 27 2026 Developer <developer@log4cpp.org> - 4.1.0-1
+* Mon Apr 27 2026 Developer <developer@log4cpp.org> - 4.1.1-1
 - Remove nlohmann-json external dependency; use built-in JSON parser
 - Add log4cpp::json_value with OOP polymorphic design
 - Separate JSON declaration (.hpp) and implementation (.cpp)

@@ -27,8 +27,10 @@
   - [3.3. 配置热加载](#3.3.-%E9%85%8D%E7%BD%AE%E7%83%AD%E5%8A%A0%E8%BD%BD)
 - [4. 构建](#4.-%E6%9E%84%E5%BB%BA)
   - [4.1. 配置](#4.1.-%E9%85%8D%E7%BD%AE)
-    - [4.1.1. Windows](#4.1.1.-windows)
-    - [4.1.2. Linux](#4.1.2.-linux)
+    - [4.1.1. CMake](#4.1.1.-cmake)
+      - [4.1.1.1. Windows](#4.1.1.1.-windows)
+      - [4.1.1.2. Linux](#4.1.1.2.-linux)
+    - [4.1.2. Meson](#4.1.2.-meson)
   - [4.2. 构建](#4.2.-%E6%9E%84%E5%BB%BA)
   - [4.3. 测试](#4.3.-%E6%B5%8B%E8%AF%95)
   - [4.4. 构建RPM/DEB](#4.4.-%E6%9E%84%E5%BB%BArpm%2Fdeb)
@@ -55,7 +57,8 @@ log4cpp是一个C++日志库, 参照log4j实现
 ## 2. 要求
 
 1. 支持C++17及以上的C++编译器
-2. CMake 3.10及以上版本
+2. CMake 3.10及以上版本 (CMake构建)
+3. Meson 1.1.0及以上版本 (Meson构建)
 
 ## 3. 使用
 
@@ -483,7 +486,9 @@ _注: `log4cpp::logger_manager::get_logger()`返回的`std::shared_ptr`可能不
 
 ### 4.1. 配置
 
-#### 4.1.1. Windows
+#### 4.1.1. CMake
+
+##### 4.1.1.1. Windows
 
 MingW64:
 
@@ -497,7 +502,7 @@ MSVC:
 cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
-#### 4.1.2. Linux
+##### 4.1.1.2. Linux
 
 原生构建:
 
@@ -511,18 +516,48 @@ cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON
 cmake -S . -B cmake-build-debug -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
 ```
 
-选项:
+CMake选项:
 
 * `-DCMAKE_BUILD_TYPE=Debug`: 构建类型，可选 `Debug` 或 `Release`，默认 `Release`
 * `-DBUILD_LOG4CPP_DEMO=ON`: 编译 demo，默认 `OFF`
 * `-DENABLE_LOG4CPP_UNIT_TEST=ON`: 编译测试程序，默认 `OFF`
-* `-DENABLE_ASAN=ON`: 启用 AddressSanitizer，仅在本机编译时生效
+* `-DENABLE_ASAN=ON`: 启用 AddressSanitizer，默认 `OFF`
 * `-DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake`: 指定交叉编译所使用的 toolchain 文件
+
+#### 4.1.2. Meson
+
+原生构建:
+
+```shell
+meson setup build-meson -Dbuild_demo=true -Denable_tests=true -Db_sanitize=address,undefined
+```
+
+交叉编译(以ARM64为例):
+
+```shell
+meson setup build-meson --cross-file cross/aarch64-linux-gnu.ini
+```
+
+Meson选项:
+
+* `--cross-file cross/aarch64-linux-gnu.ini`: 指定交叉编译所使用的文件
+* `-Dbuild_demo=true`: 编译 demo，默认 `false`
+* `-Denable_tests=true`: 编译测试程序，默认 `false`
+* `-Db_sanitize=address,undefined`: 通过 Meson 内置选项启用 AddressSanitizer 和 UBSan
+* `-Denable_coverage=true`: 启用代码覆盖率 (仅GNU)，默认 `false`
 
 ### 4.2. 构建
 
+CMake:
+
 ```shell
 cmake --build cmake-build-debug -j $(nproc)
+```
+
+Meson:
+
+```shell
+meson compile -C build-meson -j $(nproc)
 ```
 
 ### 4.3. 测试
@@ -530,6 +565,8 @@ cmake --build cmake-build-debug -j $(nproc)
 本项目使用Google Test进行单元测试, 测试代码在[test](test)目录下, 欢迎补充测试用例
 
 如果你的代码修改了现有功能, 请确保测试用例覆盖到你的修改
+
+CMake:
 
 ```shell
 ctest -C Debug --test-dir cmake-build-debug --output-on-failure
@@ -539,6 +576,18 @@ ctest -C Debug --test-dir cmake-build-debug --output-on-failure
 
 ```shell
 ctest -C Debug --test-dir cmake-build-debug --verbose -j $(nproc)
+```
+
+Meson:
+
+```shell
+meson test -C build-meson --print-errorlogs
+```
+
+或者输出详细信息:
+
+```shell
+meson test -C build-meson -v
 ```
 
 ### 4.4. 构建RPM/DEB
@@ -594,6 +643,18 @@ rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 ### 4.5. ASAN
 
 如果你的代码修改了现有功能, 请确保ASAN检测通过, 未经ASAN检测通过的代码不会合并
+
+CMake:
+
+```shell
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON -DENABLE_LOG4CPP_UNIT_TEST=ON
+```
+
+Meson (使用内置 `b_sanitize` 选项):
+
+```shell
+meson setup build-meson -Denable_tests=true -Db_sanitize=address,undefined
+```
 
 ## 5. 许可
 

@@ -27,8 +27,10 @@
   - [3.3. Hot Configuration Reload](#3.3.-hot-configuration-reload)
 - [4. Building](#4.-building)
   - [4.1. Configuration](#4.1.-configuration)
-    - [4.1.1. Windows](#4.1.1.-windows)
-    - [4.1.2. Linux](#4.1.2.-linux)
+    - [4.1.1. CMake](#4.1.1.-cmake)
+      - [4.1.1.1. Windows](#4.1.1.1.-windows)
+      - [4.1.1.2. Linux](#4.1.1.2.-linux)
+    - [4.1.2. Meson](#4.1.2.-meson)
   - [4.2. Build](#4.2.-build)
   - [4.3. Testing](#4.3.-testing)
   - [4.4. Build RPM/DEB](#4.4.-build-rpm%2Fdeb)
@@ -55,7 +57,8 @@ Features:
 ## 2. Requirements
 
 1. C++ compiler supporting C++17 or later
-2. CMake 3.10 or later
+2. CMake 3.10 or later (for CMake builds)
+3. Meson 1.1.0 or later (for Meson builds)
 
 ## 3. Usage
 
@@ -486,7 +489,9 @@ _Note: The `std::shared_ptr` returned by `log4cpp::logger_manager::get_logger()`
 
 ### 4.1. Configuration
 
-#### 4.1.1. Windows
+#### 4.1.1. CMake
+
+##### 4.1.1.1. Windows
 
 MingW64:
 
@@ -500,7 +505,7 @@ MSVC:
 cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
 ```
 
-#### 4.1.2. Linux
+##### 4.1.1.2. Linux
 
 Native Build:
 
@@ -511,10 +516,10 @@ cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON
 Cross-compilation configuration (e.g., for ARM64):
 
 ```shell
-cmake -S . -B cmake-build-build -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
+cmake -S . -B cmake-build-debug -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
 ```
 
-Options:
+CMake Options:
 
 * `-DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake`: Use the specified toolchain file for cross-compilation
 * `-DCMAKE_BUILD_TYPE=Debug`: Build type, can be Debug or Release, default is `Release`
@@ -522,15 +527,47 @@ Options:
 * `-DENABLE_LOG4CPP_UNIT_TEST=ON`: Build test programs, default `OFF` (not built)
 * `-DENABLE_ASAN=ON`: Enable AddressSanitizer, default `OFF` (not enabled)
 
+#### 4.1.2. Meson
+
+Native Build:
+
+```shell
+meson setup build-meson -Dbuild_demo=true -Denable_tests=true -Db_sanitize=address,undefined
+```
+
+Cross-compilation configuration (e.g., for ARM64):
+
+```shell
+meson setup build-meson --cross-file cross/aarch64-linux-gnu.ini
+```
+
+Meson Options:
+
+* `--cross-file cross/aarch64-linux-gnu.ini`: Use the specified cross-compilation file
+* `-Dbuild_demo=true`: Build demo, default `false` (not built)
+* `-Denable_tests=true`: Build test programs, default `false` (not built)
+* `-Db_sanitize=address,undefined`: Enable AddressSanitizer and UBSan via Meson's built-in option
+* `-Denable_coverage=true`: Enable code coverage (GNU only), default `false` (not enabled)
+
 ### 4.2. Build
+
+CMake:
 
 ```shell
 cmake --build cmake-build-debug -j $(nproc)
 ```
 
+Meson:
+
+```shell
+meson compile -C build-meson -j $(nproc)
+```
+
 ### 4.3. Testing
 
 This project uses [Google Test](https://github.com/google/googletest) for unit testing.
+
+CMake:
 
 ```shell
 ctest -C Debug --test-dir cmake-build-debug --output-on-failure
@@ -540,6 +577,18 @@ Or enable more verbose output from tests:
 
 ```shell
 ctest -C Debug --test-dir cmake-build-debug --verbose -j $(nproc)
+```
+
+Meson:
+
+```shell
+meson test -C build-meson --print-errorlogs
+```
+
+Or enable more verbose output from tests:
+
+```shell
+meson test -C build-meson -v
 ```
 
 ### 4.4. Build RPM/DEB
@@ -595,6 +644,18 @@ Options:
 ### 4.5. ASAN
 
 If your code modifies existing functionality, please ensure that ASAN detection passes. Code that has not passed ASAN detection will not be merged.
+
+CMake:
+
+```shell
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON -DENABLE_LOG4CPP_UNIT_TEST=ON
+```
+
+Meson (uses the built-in `b_sanitize` option):
+
+```shell
+meson setup build-meson -Denable_tests=true -Db_sanitize=address,undefined
+```
 
 ## 5. License
 
