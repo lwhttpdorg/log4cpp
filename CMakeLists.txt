@@ -73,6 +73,36 @@ if (ENABLE_LOG4CPP_UNIT_TEST)
     add_subdirectory(test)
 endif ()
 
+# pkg-config
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pkgconfig/log4cpp.pc.in ${CMAKE_CURRENT_BINARY_DIR}/log4cpp.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/log4cpp.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+
+# CMake find_package() support
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/log4cppConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/log4cppConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/log4cppConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/log4cpp
+)
+
+install(EXPORT log4cppTargets
+    FILE log4cppTargets.cmake
+    NAMESPACE log4cpp::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/log4cpp
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/log4cppConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/log4cppConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/log4cpp
+)
+
+# Headers
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

@@ -67,6 +67,8 @@ export LDFLAGS=""
 %{_libdir}/liblog4cpp.so
 # 3. Pkg-config metadata file
 %{_libdir}/pkgconfig/log4cpp.pc
+# 4. CMake find_package() support files
+%{_libdir}/cmake/log4cpp/
 
 %changelog
 * Mon Apr 27 2026 Developer <developer@log4cpp.org> - 4.1.1-1

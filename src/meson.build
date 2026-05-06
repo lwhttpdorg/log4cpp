@@ -73,3 +73,5 @@ log4cpp_dep = declare_dependency(
     link_with: log4cpp_lib,
     include_directories: inc_public,
 )
+
+meson.override_dependency('log4cpp', log4cpp_dep)
