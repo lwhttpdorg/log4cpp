@@ -34,6 +34,7 @@ endif ()
 # Includes
 target_include_directories(log4cpp 
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
@@ -69,6 +70,11 @@ set_target_properties(log4cpp PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin
 )
+
+# Namespace alias so FetchContent users can use the same log4cpp::log4cpp target name
+if(NOT TARGET log4cpp::log4cpp)
+    add_library(log4cpp::log4cpp ALIAS log4cpp)
+endif()
 
 # Apply ASAN
 apply_asan_to_target(log4cpp)
