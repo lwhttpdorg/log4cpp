@@ -513,15 +513,15 @@ namespace log4cpp {
         std::shared_ptr<appender::log_appender> new_socket_appender = nullptr;
 
         // Lazily create appenders only if they are defined AND required by a logger.
-        if ((required_appenders_mask & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE))
+        if (((required_appenders_mask & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) != 0)
             && appender_cfg.console.has_value()) {
             new_console_appender = std::make_shared<appender::console_appender>(appender_cfg.console.value());
         }
-        if ((required_appenders_mask & static_cast<unsigned char>(config::APPENDER_TYPE::FILE))
+        if (((required_appenders_mask & static_cast<unsigned char>(config::APPENDER_TYPE::FILE)) != 0)
             && appender_cfg.file.has_value()) {
             new_file_appender = std::make_shared<appender::file_appender>(appender_cfg.file.value());
         }
-        if ((required_appenders_mask & static_cast<unsigned char>(config::APPENDER_TYPE::SOCKET))
+        if (((required_appenders_mask & static_cast<unsigned char>(config::APPENDER_TYPE::SOCKET)) != 0)
             && appender_cfg.socket.has_value()) {
             new_socket_appender = std::make_shared<appender::socket_appender>(appender_cfg.socket.value());
         }
@@ -548,13 +548,13 @@ namespace log4cpp {
         const std::string &pattern_str =
             config->log_pattern.has_value() ? config->log_pattern.value() : DEFAULT_LOG_PATTERN;
         auto new_logger = std::make_shared<real_logger>(log_cfg.name, log_cfg.level.value(), pattern_str);
-        if (log_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) {
+        if ((log_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)) != 0) {
             new_logger->add_appender(temp_appenders[0]);
         }
-        if (log_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::FILE)) {
+        if ((log_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::FILE)) != 0) {
             new_logger->add_appender(temp_appenders[1]);
         }
-        if (log_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::SOCKET)) {
+        if ((log_cfg.appender & static_cast<unsigned char>(config::APPENDER_TYPE::SOCKET)) != 0) {
             new_logger->add_appender(temp_appenders[2]);
         }
         return new_logger;

@@ -54,7 +54,7 @@ echo -e "${BLUE}Note: This may take a while depending on the project size...${NC
 start_time=$(date +%s)
 
 # Execute clang-tidy and capture both stdout and stderr
-run-clang-tidy -p ${LINT_DIR} -header-filter="^${PROJ_DIR}/.*" > ${LINT_REPORT} 2>&1
+run-clang-tidy -p ${LINT_DIR} -quiet -header-filter="^${PROJ_DIR}/.*" > ${LINT_REPORT} 2>&1
 
 # Calculate duration
 end_time=$(date +%s)

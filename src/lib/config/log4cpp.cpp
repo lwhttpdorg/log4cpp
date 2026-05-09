@@ -18,7 +18,7 @@ namespace log4cpp::config {
     std::vector<std::string> appender_flag_to_name(unsigned char flag) {
         std::vector<std::string> result;
         for (const auto &entry: APPENDER_TABLE) {
-            if (flag & static_cast<unsigned char>(entry.type)) {
+            if ((flag & static_cast<unsigned char>(entry.type)) != 0) {
                 result.emplace_back(entry.name);
             }
         }

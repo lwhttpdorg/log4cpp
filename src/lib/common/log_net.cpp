@@ -174,12 +174,12 @@ namespace log4cpp::common {
     class addrinfo_guard {
     public:
         /// @brief Constructs the guard with a pointer to the `addrinfo` result.
-        explicit addrinfo_guard(addrinfo *res) : res_(res) {
+        explicit addrinfo_guard(addrinfo *_addr_info) : addr_info(_addr_info) {
         }
-        /// @brief Destructor, calls `freeaddrinfo()` if `res_` is not null.
+        /// @brief Destructor, calls `freeaddrinfo()` if `addr_info` is not null.
         ~addrinfo_guard() {
-            if (res_) {
-                freeaddrinfo(res_);
+            if (nullptr != addr_info) {
+                freeaddrinfo(addr_info);
             }
         }
         // Delete copy and move constructors/assignment operators to ensure unique ownership.
@@ -190,7 +190,7 @@ namespace log4cpp::common {
 
     private:
         /// @brief Pointer to the `addrinfo` structure.
-        addrinfo *res_;
+        addrinfo *addr_info;
     };
 
     // Helper function to try parsing an IP address without throwing exceptions.

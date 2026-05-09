@@ -9,7 +9,7 @@ namespace log4cpp::config {
     void to_json(json_value &j, const logger &config) {
         std::vector<std::string> appenders;
         for (const auto &entry: APPENDER_TABLE) {
-            if (config.appender & static_cast<unsigned char>(entry.type)) {
+            if ((config.appender & static_cast<unsigned char>(entry.type)) != 0) {
                 appenders.emplace_back(entry.name);
             }
         }

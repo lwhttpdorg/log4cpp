@@ -23,14 +23,10 @@ Checks: >-
   -modernize-avoid-c-arrays,
   -modernize-use-emplace,
   -modernize-use-auto,
-  -modernize-use-nullptr,# it went crazy with three-way comparison operators,
   -modernize-use-trailing-return-type,
   -modernize-return-braced-init-list,
-  -modernize-concat-nested-namespaces,
   -modernize-use-nodiscard,
   -modernize-use-default-member-init,
-  -modernize-type-traits,
-  -modernize-deprecated-headers,
   ,# There's a lot of these and most of them are probably not useful,
   -modernize-pass-by-value,
   
@@ -40,10 +36,8 @@ Checks: >-
   -modernize-use-designated-initializers,
 
   performance-*,
-  performance-enum-size,
 
   portability-*,
-  -portability-avoid-pragma-once,
 
   readability-*,
   -readability-braces-around-statements,
@@ -53,7 +47,6 @@ Checks: >-
   -readability-function-cognitive-complexity,
   -readability-function-size,
   -readability-identifier-length,
-  -readability-implicit-bool-conversion,
   -readability-isolate-declaration,
   -readability-magic-numbers,
   -readability-math-missing-parentheses, #no, 'a + B * C' obeying math rules is not confusing,
@@ -68,6 +61,9 @@ Checks: >-
   
   ,# --- C++20 specific exclusions ---,
   -readability-container-contains,
+
+  misc-unused-using-decls,
+  misc-unused-parameters,
 
   ,# time hogs,
   -bugprone-throw-keyword-missing,
@@ -88,7 +84,11 @@ WarningsAsErrors: >-
   performance-unnecessary-value-param,
   readability-duplicate-include,
 
-HeaderFilterRegex: '.*\.(c|cxx|cpp)$'
+HeaderFilterRegex: '.*\.(h|hpp|hxx|c|cc|cxx|cpp)$'
 FormatStyle:     none
-CheckOptions: []
+CheckOptions:
+  - key:             readability-implicit-bool-conversion.AllowPointerToBool
+    value:           'false'
+  - key:             readability-implicit-bool-conversion.AllowIntegerToBool
+    value:           'false'
 SystemHeaders: false
