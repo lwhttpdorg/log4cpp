@@ -529,13 +529,13 @@ CMake选项:
 原生构建:
 
 ```shell
-meson setup build-meson -Dbuild_demo=true -Denable_tests=true -Db_sanitize=address,undefined
+meson setup meson-build-debug -Dbuild_demo=true -Denable_tests=true -Db_sanitize=address,undefined
 ```
 
 交叉编译(以ARM64为例):
 
 ```shell
-meson setup build-meson --cross-file cross/aarch64-linux-gnu.ini
+meson setup meson-build-debug --cross-file cross/aarch64-linux-gnu.ini
 ```
 
 Meson选项:
@@ -557,7 +557,7 @@ cmake --build cmake-build-debug -j $(nproc)
 Meson:
 
 ```shell
-meson compile -C build-meson -j $(nproc)
+meson compile -C meson-build-debug -j $(nproc)
 ```
 
 ### 4.3. 测试
@@ -581,13 +581,13 @@ ctest -C Debug --test-dir cmake-build-debug --verbose -j $(nproc)
 Meson:
 
 ```shell
-meson test -C build-meson --print-errorlogs
+meson test -C meson-build-debug --print-errorlogs
 ```
 
 或者输出详细信息:
 
 ```shell
-meson test -C build-meson -v
+meson test -C meson-build-debug -v
 ```
 
 ### 4.4. 构建RPM/DEB
@@ -653,7 +653,7 @@ cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON -DENAB
 Meson (使用内置 `b_sanitize` 选项):
 
 ```shell
-meson setup build-meson -Denable_tests=true -Db_sanitize=address,undefined
+meson setup meson-build-debug -Denable_tests=true -Db_sanitize=address,undefined
 ```
 
 ## 5. 许可

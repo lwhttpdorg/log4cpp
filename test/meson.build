@@ -13,17 +13,17 @@ if host_machine.system() == 'windows'
 endif
 
 test_configs = [
-    'config_hot_reload_test_v1.json',
-    'config_hot_reload_test_v2.json',
-    'console_appender_stderr.json',
-    'console_appender_stdout.json',
-    'file_appender_test.json',
+    'test_hot_reload_v1.json',
+    'test_hot_reload_v2.json',
+    'test_console_stderr.json',
+    'test_console_stdout.json',
+    'test_file_appender.json',
     'log4cpp_config_1.json',
     'log4cpp_config_2.json',
     'log4cpp.json',
-    'serialize_test.json',
-    'tcp_socket_appender_test.json',
-    'udp_socket_appender_test.json',
+    'test_serialize.json',
+    'test_tcp_socket.json',
+    'test_udp_socket.json',
 ]
 
 foreach config : test_configs

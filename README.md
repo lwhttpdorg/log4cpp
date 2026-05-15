@@ -532,13 +532,13 @@ CMake Options:
 Native Build:
 
 ```shell
-meson setup build-meson -Dbuild_demo=true -Denable_tests=true -Db_sanitize=address,undefined
+meson setup meson-build-debug -Dbuild_demo=true -Denable_tests=true -Db_sanitize=address,undefined
 ```
 
 Cross-compilation configuration (e.g., for ARM64):
 
 ```shell
-meson setup build-meson --cross-file cross/aarch64-linux-gnu.ini
+meson setup meson-build-debug --cross-file cross/aarch64-linux-gnu.ini
 ```
 
 Meson Options:
@@ -560,7 +560,7 @@ cmake --build cmake-build-debug -j $(nproc)
 Meson:
 
 ```shell
-meson compile -C build-meson -j $(nproc)
+meson compile -C meson-build-debug -j $(nproc)
 ```
 
 ### 4.3. Testing
@@ -582,13 +582,13 @@ ctest -C Debug --test-dir cmake-build-debug --verbose -j $(nproc)
 Meson:
 
 ```shell
-meson test -C build-meson --print-errorlogs
+meson test -C meson-build-debug --print-errorlogs
 ```
 
 Or enable more verbose output from tests:
 
 ```shell
-meson test -C build-meson -v
+meson test -C meson-build-debug -v
 ```
 
 ### 4.4. Build RPM/DEB
@@ -654,7 +654,7 @@ cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON -DENAB
 Meson (uses the built-in `b_sanitize` option):
 
 ```shell
-meson setup build-meson -Denable_tests=true -Db_sanitize=address,undefined
+meson setup meson-build-debug -Denable_tests=true -Db_sanitize=address,undefined
 ```
 
 ## 5. License

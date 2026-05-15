@@ -1,5 +1,5 @@
 # Must match the first line of ../VERSION (build-rpm.sh overwrites this when building).
-%define _version 4.1.1
+%define _version 4.1.2
 
 Name:           liblog4cpp
 Version:        %{_version}
@@ -71,7 +71,6 @@ export LDFLAGS=""
 %{_libdir}/cmake/log4cpp/
 
 %changelog
-* Mon Apr 27 2026 Developer <developer@log4cpp.org> - 4.1.1-1
-- Remove nlohmann-json external dependency; use built-in JSON parser
-- Add log4cpp::json_value with OOP polymorphic design
-- Separate JSON declaration (.hpp) and implementation (.cpp)
+* Mon May 15 2026 Developer <developer@log4cpp.org> - 4.1.2-1
+- Explicitly require C++17 in CMake to avoid compilation issues on strict compilers.
+- Fix static analysis warnings (clang-tidy) for safer singleton and regex initialization.
