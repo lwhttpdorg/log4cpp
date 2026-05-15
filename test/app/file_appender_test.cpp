@@ -26,7 +26,7 @@ void warn_logger() {
 }
 
 void load_configuration() {
-    const std::string config_file = "file_appender_test.json";
+    const std::string config_file = "test_file_appender.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
 }

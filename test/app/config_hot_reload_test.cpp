@@ -25,8 +25,8 @@ void write_config_file(const std::string &file_path, const std::string &json_con
 }
 
 const char *HOT_RELOAD_CONFIG = "config_hot_reload_test.json";
-const char *CONFIG_FILE_v1 = "config_hot_reload_test_v1.json";
-const char *CONFIG_FILE_v2 = "config_hot_reload_test_v2.json";
+const char *CONFIG_FILE_v1 = "test_hot_reload_v1.json";
+const char *CONFIG_FILE_v2 = "test_hot_reload_v2.json";
 const char *LOG_V1_FILE = "log_v1.log";
 const char *LOG_V2_FILE = "log_v2.log";
 class log4cpp_config_hot_reload_test: public testing::Test {

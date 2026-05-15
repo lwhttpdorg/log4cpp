@@ -38,8 +38,10 @@ namespace log4cpp {
 
     /// @brief A flag to ensure thread-safe initialization of the logger_manager singleton.
     std::once_flag logger_manager::init_flag{};
-    /// @brief The unique static instance of the logger_manager.
-    logger_manager logger_manager::instance;
+    logger_manager &logger_manager::get_instance() {
+        static logger_manager instance;
+        return instance;
+    }
 
 #ifndef _WIN32
     /**
@@ -75,7 +77,7 @@ namespace log4cpp {
 #endif
 
     logger_manager &supervisor::get_logger_manager() {
-        return logger_manager::instance;
+        return logger_manager::get_instance();
     }
 
     std::string supervisor::serialize(const config::log4cpp &cfg) {
@@ -402,12 +404,12 @@ namespace log4cpp {
         // 2. Setting the log pattern (set_log_pattern)
         // 3. Building the appenders (build_appender)
         std::call_once(init_flag, [] {
-            if (nullptr == instance.config) {
-                instance.auto_load_config();
+            if (nullptr == get_instance().config) {
+                get_instance().auto_load_config();
             }
-            instance.build_appender();
+            get_instance().build_appender();
         });
-        return instance.get_or_create_logger(name);
+        return get_instance().get_or_create_logger(name);
     }
 
     const config::log4cpp *logger_manager::get_config() const {

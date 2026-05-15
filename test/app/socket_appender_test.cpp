@@ -255,7 +255,7 @@ unsigned int tcp_log_server_loop(const std::shared_ptr<server_status> &status, l
 }
 
 TEST_F(socket_appender_test, tcp_socket_appender_test) {
-    const std::string config_file = "tcp_socket_appender_test.json";
+    const std::string config_file = "test_tcp_socket.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
     const log4cpp::config::log4cpp *config = log_mgr.get_config();
@@ -385,7 +385,7 @@ unsigned int udp_log_server_loop(const std::shared_ptr<server_status> &status, l
 }
 
 TEST_F(socket_appender_test, udp_socket_appender_test) {
-    const std::string config_file = "udp_socket_appender_test.json";
+    const std::string config_file = "test_udp_socket.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
     const log4cpp::config::log4cpp *config = log_mgr.get_config();

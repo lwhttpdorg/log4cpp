@@ -16,7 +16,10 @@ namespace log4cpp::pattern {
     }
 
     // Regex to match the logger name pattern, e.g., ${8NM}. Default width is 8, max is 64.
-    const std::regex LOGGER_NAME_REGEX(R"(\$\{(\d{1,2})?NM\})");
+    const std::regex &get_logger_name_regex() {
+        static const std::regex regex(R"(\$\{(\d{1,2})?NM\})");
+        return regex;
+    }
     // A two-digit representation of a year, e.g., 99 or 03.
     const char *SHORT_YEAR = "${yy}";
     // A full numeric representation of a year (at least 4 digits), with a '-' for BCE years. e.g., 1999, 2003, -0055.
@@ -50,9 +53,15 @@ namespace log4cpp::pattern {
     // Milliseconds with leading zeros (001-999).
     const char *MILLISECOND = "${ms}";
     // Regex to match the thread name pattern, e.g., ${8TN}. If name is empty, use thread ID.
-    const std::regex THREAD_NAME_REGEX(R"(\$\{(\d{1,2})?TN\})");
+    const std::regex &get_thread_name_regex() {
+        static const std::regex regex(R"(\$\{(\d{1,2})?TN\})");
+        return regex;
+    }
     // Regex to match the thread ID pattern, e.g., ${8TH}.
-    const std::regex THREAD_ID_REGEX(R"(\$\{(\d{1,2})?TH\})");
+    const std::regex &get_thread_id_regex() {
+        static const std::regex regex(R"(\$\{(\d{1,2})?TH\})");
+        return regex;
+    }
     // Log level, e.g., FATAL, ERROR, INFO.
     const char *LOG_LEVEL = "${L}";
     // The log message body.
@@ -212,7 +221,7 @@ namespace log4cpp::pattern {
 
         // replace ${\d+NM} with logger name
         // Replace `${...NM}` with the logger name.
-        if (std::smatch match; std::regex_search(_pattern, match, LOGGER_NAME_REGEX)) {
+        if (std::smatch match; std::regex_search(_pattern, match, get_logger_name_regex())) {
             size_t width = LOGGER_NAME_DEFAULT_LEN;
             if (match[1].matched) {
                 const std::string width_str = match[1].str();
@@ -227,7 +236,7 @@ namespace log4cpp::pattern {
         }
 
         // Replace `${...TN}` with the thread name or ID.
-        if (std::smatch match; std::regex_search(_pattern, match, THREAD_NAME_REGEX)) {
+        if (std::smatch match; std::regex_search(_pattern, match, get_thread_name_regex())) {
             size_t width = THREAD_NAME_DEFAULT_LEN;
             if (match[1].matched) {
                 const std::string width_str = match[1].str();
@@ -248,7 +257,7 @@ namespace log4cpp::pattern {
         }
 
         // Replace `${...TH}` with the thread ID.
-        if (std::smatch match; std::regex_search(_pattern, match, THREAD_ID_REGEX)) {
+        if (std::smatch match; std::regex_search(_pattern, match, get_thread_id_regex())) {
             size_t width = THREAD_ID_WIDTH_MAX;
             if (match[1].matched) {
                 const std::string width_str = match[1].str();

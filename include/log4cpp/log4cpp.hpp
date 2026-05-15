@@ -273,8 +273,8 @@ namespace log4cpp {
 
         // A flag to ensure thread-safe initialization of the singleton.
         static std::once_flag init_flag;
-        // The unique static instance of the logger_manager.
-        static logger_manager instance;
+        // Returns the unique static instance of the logger_manager.
+        static logger_manager &get_instance();
         // The path to the current configuration file.
         std::string config_file_path;
 

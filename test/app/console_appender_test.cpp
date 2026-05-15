@@ -16,21 +16,21 @@ void console_appender_logger() {
 }
 
 TEST(console_appender_test, stdout_test) {
-    const std::string config_file = "console_appender_stdout.json";
+    const std::string config_file = "test_console_stdout.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
     console_appender_logger();
 }
 
 TEST(console_appender_test, stderr_test) {
-    const std::string config_file = "console_appender_stderr.json";
+    const std::string config_file = "test_console_stderr.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
     console_appender_logger();
 }
 
 TEST(console_appender_test, multithread_test) {
-    const std::string config_file = "console_appender_stdout.json";
+    const std::string config_file = "test_console_stdout.json";
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
     ASSERT_NO_THROW(log_mgr.load_config(config_file));
     std::thread info_logger_thread(console_appender_logger);

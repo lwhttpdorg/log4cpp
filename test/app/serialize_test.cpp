@@ -23,7 +23,10 @@ TEST(configuration_serialize_test, log4cpp_config_roundtrip_test) {
 
     for (const auto &entry: fs::directory_iterator(fs::current_path())) {
         if (entry.is_regular_file() && entry.path().extension() == ".json") {
-            const std::string filename = entry.path().string();
+            const std::string filename = entry.path().filename().string();
+            if (!filename.starts_with("test_") && !filename.starts_with("log4cpp")) {
+                continue;
+            }
 
             // Load original config
             ASSERT_NO_THROW(log_mgr.load_config(filename));

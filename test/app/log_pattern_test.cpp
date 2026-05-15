@@ -450,6 +450,13 @@ struct log_level_format_param {
     const char *name;
 };
 
+inline std::ostream &operator<<(std::ostream &os, const log_level_format_param &param) {
+    std::string level_str;
+    log4cpp::to_string(param.level, level_str);
+    os << level_str;
+    return os;
+}
+
 class log_level_format_test: public ::testing::TestWithParam<log_level_format_param> {};
 
 TEST_P(log_level_format_test, level_format) {

@@ -59,3 +59,6 @@ debian/files
 # Meson
 /subprojects/*
 !/subprojects/*.wrap
+
+# clang-tidy
+code-lint.log
