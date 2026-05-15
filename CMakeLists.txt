@@ -6,6 +6,9 @@ string(STRIP "${_log4cpp_version_raw}" _log4cpp_version)
 
 project(log4cpp VERSION ${_log4cpp_version} LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 include(GNUInstallDirs)
 
 # Build type

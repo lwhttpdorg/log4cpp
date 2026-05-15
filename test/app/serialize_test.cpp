@@ -11,6 +11,17 @@
 
 namespace fs = std::filesystem;
 
+#if __cplusplus < 202002L
+#include <string_view>
+
+bool starts_with(const std::string &str, const std::string &prefix) {
+    if (str.length() < prefix.length()) {
+        return false;
+    }
+    return std::string_view(str.data(), prefix.length()) == prefix;
+}
+#endif
+
 void parse_json(const std::string &config_file, log4cpp::json_value &expected_json) {
     std::ifstream ifs(config_file);
     ASSERT_TRUE(ifs.is_open());
@@ -24,9 +35,15 @@ TEST(configuration_serialize_test, log4cpp_config_roundtrip_test) {
     for (const auto &entry: fs::directory_iterator(fs::current_path())) {
         if (entry.is_regular_file() && entry.path().extension() == ".json") {
             const std::string filename = entry.path().filename().string();
+#if __cplusplus >= 202002L
             if (!filename.starts_with("test_") && !filename.starts_with("log4cpp")) {
                 continue;
             }
+#else
+            if (!starts_with(filename, "test_") && !starts_with(filename, "log4cpp")) {
+                continue;
+            }
+#endif
 
             // Load original config
             ASSERT_NO_THROW(log_mgr.load_config(filename));
