@@ -63,3 +63,6 @@ debian/files
 
 # clang-tidy
 code-lint.log
+
+# macOS
+.DS_Store
