@@ -5,13 +5,13 @@
 ---
 
 <!-- TOC -->
-- [1. What is log4cpp?](#1-what-is-log4cpp%3F)
+- [1. What is log4cpp?](#1-what-is-log4cpp)
 - [2. Requirements](#2-requirements)
 - [3. Usage](#3-usage)
   - [3.1. Quick Start](#31-quick-start)
     - [3.1.1. Create a CMake Project](#311-create-a-cmake-project)
     - [3.1.2. Include Header File](#312-include-header-file)
-    - [3.1.3. Load Configuration File (Optional)](#313-load-configuration-file-%28optional%29)
+    - [3.1.3. Load Configuration File (Optional)](#313-load-configuration-file-optional)
     - [3.1.4. Get Logger](#314-get-logger)
     - [3.1.5. Output Log](#315-output-log)
     - [3.1.6. Use in a Class](#316-use-in-a-class)
@@ -33,7 +33,7 @@
     - [4.1.2. Meson](#412-meson)
   - [4.2. Build](#42-build)
   - [4.3. Testing](#43-testing)
-  - [4.4. Build RPM/DEB](#44-build-rpm%2Fdeb)
+  - [4.4. Build RPM/DEB](#44-build-rpmdeb)
     - [4.4.1. Manual Build](#441-manual-build)
     - [4.4.2. Using build script](#442-using-build-script)
   - [4.5. ASAN](#45-asan)
