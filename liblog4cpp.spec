@@ -1,5 +1,5 @@
 # Must match the first line of ../VERSION (build-rpm.sh overwrites this when building).
-%define _version 4.1.2
+%define _version 4.1.3
 
 Name:           liblog4cpp
 Version:        %{_version}
@@ -71,6 +71,6 @@ export LDFLAGS=""
 %{_libdir}/cmake/log4cpp/
 
 %changelog
-* Mon May 15 2026 Developer <developer@log4cpp.org> - 4.1.2-1
+* Mon May 15 2026 Developer <developer@log4cpp.org> - 4.1.3-1
 - Explicitly require C++17 in CMake to avoid compilation issues on strict compilers.
 - Fix static analysis warnings (clang-tidy) for safer singleton and regex initialization.
