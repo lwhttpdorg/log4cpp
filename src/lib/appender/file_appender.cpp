@@ -35,10 +35,24 @@ namespace log4cpp::appender {
             std::string path = cfg.file_path.substr(0, pos);
             if (!std::filesystem::exists(path)) {
 #ifdef _WIN32
-                (void)_mkdir(path.c_str());
+                if (_mkdir(path.c_str()) == -1) {
+                    std::string what("Can not create log directory '");
+                    what.append(path);
+                    what.append("': ");
+                    what.append(strerror(errno));
+                    what.append("(" + std::to_string(errno) + ")");
+                    throw std::runtime_error(what);
+                }
 #endif
 #ifdef __linux__
-                mkdir(path.c_str(), 0755);
+                if (mkdir(path.c_str(), 0755) == -1) {
+                    std::string what("Can not create log directory '");
+                    what.append(path);
+                    what.append("': ");
+                    what.append(strerror(errno));
+                    what.append("(" + std::to_string(errno) + ")");
+                    throw std::runtime_error(what);
+                }
 #endif
             }
         }
