@@ -38,7 +38,8 @@
 .vscode
 
 # CMake
-cmake-build-*
+cmake-build-*/
+cmake-build/
 cmake-lint/
 build/
 
