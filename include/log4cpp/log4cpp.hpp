@@ -25,7 +25,7 @@ namespace log4cpp {
     /**
      * @brief Defines the maximum length of a single log message.
      */
-    constexpr unsigned short LOG_LINE_MAX = 512;
+    constexpr unsigned short LOG_LINE_MAX = 1024;
     /**
      * @brief The default log pattern to use if no configuration file is provided.
      */
