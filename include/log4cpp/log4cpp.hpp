@@ -105,42 +105,42 @@ namespace log4cpp {
          * @param fmt The C-style format string.
          * @param ... Variable arguments.
          */
-        virtual void fatal(const char *__restrict fmt, ...) const = 0;
+        virtual void fatal(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
 
         /**
          * @brief Logs a message at the ERROR level.
          * @param fmt The C-style format string.
          * @param ... Variable arguments.
          */
-        virtual void error(const char *__restrict fmt, ...) const = 0;
+        virtual void error(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
 
         /**
          * @brief Logs a message at the WARN level.
          * @param fmt The C-style format string.
          * @param ... Variable arguments.
          */
-        virtual void warn(const char *__restrict fmt, ...) const = 0;
+        virtual void warn(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
 
         /**
          * @brief Logs a message at the INFO level.
          * @param fmt The C-style format string.
          * @param ... Variable arguments.
          */
-        virtual void info(const char *__restrict fmt, ...) const = 0;
+        virtual void info(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
 
         /**
          * @brief Logs a message at the DEBUG level.
          * @param fmt The C-style format string.
          * @param ... Variable arguments.
          */
-        virtual void debug(const char *__restrict fmt, ...) const = 0;
+        virtual void debug(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
 
         /**
          * @brief Logs a message at the TRACE level.
          * @param fmt The C-style format string.
          * @param ... Variable arguments.
          */
-        virtual void trace(const char *__restrict fmt, ...) const = 0;
+        virtual void trace(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
     };
 
     class logger_manager;

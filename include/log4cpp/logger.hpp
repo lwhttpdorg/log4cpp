@@ -54,12 +54,12 @@ namespace log4cpp {
         void log(log_level _level, const char *__restrict fmt, va_list args) const override;
 
         // The following methods are convenience wrappers that forward calls to the real logger.
-        void fatal(const char *__restrict fmt, ...) const override;
-        void error(const char *__restrict fmt, ...) const override;
-        void warn(const char *__restrict fmt, ...) const override;
-        void info(const char *__restrict fmt, ...) const override;
-        void debug(const char *__restrict fmt, ...) const override;
-        void trace(const char *__restrict fmt, ...) const override;
+        void fatal(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
+        void error(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
+        void warn(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
+        void info(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
+        void debug(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
+        void trace(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
 
         ~logger_proxy() override = default;
 
