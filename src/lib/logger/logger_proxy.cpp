@@ -1,8 +1,8 @@
-#include <cstdarg>
-#include <stdexcept>
+#include <cstdarg>   // for va_list
+#include <stdexcept> // for std::invalid_argument
 
-#include <log4cpp/log4cpp.hpp>
-#include <log4cpp/logger.hpp>
+#include "log4cpp/log4cpp.hpp" // for logger_proxy
+#include "log4cpp/logger.hpp"  // for logger
 
 namespace log4cpp {
     logger_proxy::logger_proxy(std::shared_ptr<logger> target_logger) : target_(std::move(target_logger)) {

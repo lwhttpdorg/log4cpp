@@ -1,19 +1,14 @@
-#include <mutex>
+#include <mutex> // for std::scoped_lock
 
-#ifdef __linux__
-
-#include <unistd.h>
-
+#if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
+#include <unistd.h> // for write, STDOUT_FILENO
 #endif
-
-#include "appender/console_appender.hpp"
-
 #ifdef _WIN32
-
-#include <io.h>
-#include <windows.h>
-
+#include <io.h>      // for _write, _fileno
+#include <windows.h> // for Windows API
 #endif
+
+#include "appender/console_appender.hpp" // for console_appender
 
 #ifdef _MSC_VER
 #define STDOUT_FILENO _fileno(stdout)

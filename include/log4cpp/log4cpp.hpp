@@ -1,16 +1,18 @@
 #pragma once
 
-#include <memory>
-#include <mutex>
-#include <shared_mutex>
-#include <string>
-#include <thread>
-#include <unordered_map>
-
+#if defined(__APPLE__) && defined(__MACH__)
+#include <array> // for std::array
+#endif
+#include <memory>        // for std::shared_ptr, std::unique_ptr
+#include <mutex>         // for std::once_flag
+#include <shared_mutex>  // for std::shared_mutex
+#include <string>        // for std::string
+#include <thread>        // for std::thread
+#include <unordered_map> // for std::unordered_map
 #ifndef _WIN32
-#include <atomic>
+#include <atomic>  // for std::atomic
 #include <csignal> // for SIGHUP
-#include <vector>
+#include <vector>  // for std::vector
 #endif
 
 #ifdef _WIN32
@@ -260,9 +262,17 @@ namespace log4cpp {
         // @brief Gets or creates a logger if it doesn't exist. Uses a double-checked locking pattern for thread-safety
         // and efficiency.
         std::shared_ptr<logger_proxy> get_or_create_logger(const std::string &name);
-#ifndef _WIN32
+
+#ifdef __linux__
         // @brief (Non-Windows only) The event file descriptor for inter-thread communication.
         int evt_fd;
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+        // @brief (Non-Windows only) Pipe descriptors for inter-thread communication.
+        std::array<int, 2> evt_fd;
+#endif
+
+#ifndef _WIN32
         // @brief (Non-Windows only) An atomic flag to control the event loop thread's execution.
         std::atomic<bool> evt_loop_run{false};
         // @brief (Non-Windows only) The event loop thread object.

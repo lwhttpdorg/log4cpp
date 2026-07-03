@@ -1,28 +1,25 @@
+#include <atomic>  // for std::atomic
+#include <cstring> // for std::memcpy
+#include <mutex>   // for std::mutex
+
 #ifdef _WIN32
 // clang-format off
-#include <winsock2.h>
-#include <windows.h>
+#include <winsock2.h> // for Windows sockets
+#include <windows.h>  // for Windows API
 // clang-format on
-#include <ws2tcpip.h>
+#include <ws2tcpip.h> // for IPv6 socket helpers
 #endif
 
-#ifdef __linux__
-
-#include <arpa/inet.h>
-#include <cstring>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
+#ifndef _WIN32
+#include <arpa/inet.h>  // for htons
+#include <fcntl.h>      // for fcntl
+#include <netinet/in.h> // for sockaddr_in
+#include <sys/socket.h> // for socket
 #endif
 
-#include <atomic>
-#include <mutex>
-
-#include "appender/socket_appender.hpp"
-
-#include <log4cpp/log4cpp.hpp>
-
-#include "common/log_net.hpp"
+#include "appender/socket_appender.hpp" // for socket_appender
+#include "common/log_net.hpp"           // for net_addr
+#include "log4cpp/log4cpp.hpp"          // for set_thread_name
 
 namespace log4cpp::appender {
     void to_string(const connection_fsm_state state, std::string &str) {
@@ -395,6 +392,15 @@ namespace log4cpp::appender {
 
     void socket_appender::log(const char *msg, size_t msg_len) {
         if (config::socket_appender::protocol::TCP == this->proto) {
+            connection_fsm_state current_state;
+            {
+                std::shared_lock r_lock(this->connection_rw_lock);
+                current_state = this->connection_state;
+            }
+            if (connection_fsm_state::IN_PROGRESS == current_state) {
+                check_conn_status();
+            }
+
             std::shared_lock r_lock(this->connection_rw_lock);
             if (connection_fsm_state::ESTABLISHED != this->connection_state) {
                 return;

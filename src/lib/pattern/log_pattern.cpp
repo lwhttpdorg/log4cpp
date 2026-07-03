@@ -1,11 +1,11 @@
-#include <cstdarg>
-#include <cstring>
-#include <log4cpp/log4cpp.hpp>
-#include <regex>
-#include <string>
+#include <cstdarg> // for va_list
+#include <cstring> // for strlen
+#include <regex>   // for std::regex
+#include <string>  // for std::string
 
-#include "common/log_utils.hpp"
-#include "pattern/log_pattern.hpp"
+#include "common/log_utils.hpp"    // for log4c_scnprintf
+#include "log4cpp/log4cpp.hpp"     // for log_level
+#include "pattern/log_pattern.hpp" // for log_pattern
 
 namespace log4cpp::pattern {
     log_pattern::log_pattern(const std::string &pattern) : _pattern(pattern) {

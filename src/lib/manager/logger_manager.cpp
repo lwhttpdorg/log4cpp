@@ -1,30 +1,30 @@
-#include <cstdio>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <utility>
+#include <cerrno>     // for errno
+#include <cstdio>     // for stdout, stderr
+#include <cstring>    // for std::strerror
+#include <filesystem> // for std::filesystem
+#include <fstream>    // for std::ifstream
+#include <utility>    // for std::move
 
 #ifndef _WIN32
-#include <sys/eventfd.h>
-#include <unordered_set>
+#include <unistd.h>      // for read, write, close, pipe
+#include <unordered_set> // for std::unordered_set
+#ifdef __linux__
+#include <sys/eventfd.h> // for eventfd
 #endif
-
-#include "common/json.hpp"
-
-#include <log4cpp/log4cpp.hpp>
-#include <log4cpp/logger.hpp>
-#include <logger/real_logger.hpp>
-
-#include "appender/console_appender.hpp"
-#include "config/log4cpp.hpp"
-#include "pattern/log_pattern.hpp"
-
+#endif
 #ifdef _WIN32
-#include <io.h>
+#include <io.h> // for Windows file I/O
 #endif
 
-#include <appender/file_appender.hpp>
-#include <appender/socket_appender.hpp>
+#include "appender/console_appender.hpp" // for console_appender
+#include "appender/file_appender.hpp"    // for file_appender
+#include "appender/socket_appender.hpp"  // for socket_appender
+#include "common/json.hpp"               // for json_value
+#include "config/log4cpp.hpp"            // for config::log4cpp
+#include "log4cpp/log4cpp.hpp"           // for logger_manager
+#include "log4cpp/logger.hpp"            // for logger_proxy
+#include "logger/real_logger.hpp"        // for real_logger
+#include "pattern/log_pattern.hpp"       // for set_log_pattern
 
 constexpr const char *DEFAULT_CONFIG_FILE_PATH = "./log4cpp.json";
 
@@ -126,7 +126,12 @@ namespace log4cpp {
     /// @brief Constructor, initializes member variables.
     logger_manager::logger_manager() {
 #ifndef _WIN32
+#ifdef __linux__
         evt_fd = -1;
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+        evt_fd = {-1, -1};
+#endif
         evt_loop_run.store(false);
 #endif
         config_file_path = DEFAULT_CONFIG_FILE_PATH;
@@ -141,16 +146,36 @@ namespace log4cpp {
 #ifndef _WIN32
         if (evt_loop_thread.joinable()) {
             evt_loop_run.store(false);
+#ifdef __linux__
             constexpr uint64_t val = EVT_SHUTDOWN;
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+            constexpr uint8_t val = EVT_SHUTDOWN;
+#endif
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-result"
-            (void)write(evt_fd, &val, sizeof(uint64_t));
+#ifdef __linux__
+            (void)write(evt_fd, &val, sizeof(val));
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+            (void)write(evt_fd[1], &val, sizeof(val));
+#endif
 #pragma GCC diagnostic pop
             evt_loop_thread.join();
         }
+#ifdef __linux__
         if (evt_fd != -1) {
             close(evt_fd);
         }
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+        if (evt_fd[0] != -1) {
+            close(evt_fd[0]);
+        }
+        if (evt_fd[1] != -1) {
+            close(evt_fd[1]);
+        }
+#endif
 #endif
     }
 
@@ -221,12 +246,22 @@ namespace log4cpp {
      */
     void logger_manager::event_loop() {
         set_thread_name("event_loop");
+#ifdef __linux__
         uint64_t event;
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+        uint8_t event;
+#endif
 
         while (evt_loop_run.load()) {
             // NOLINTNEXTLINE(clang-analyzer-unix.BlockInCriticalSection)
-            ssize_t s = read(evt_fd, &event, sizeof(uint64_t));
-            if (s == sizeof(uint64_t)) {
+#ifdef __linux__
+            ssize_t s = read(evt_fd, &event, sizeof(event));
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+            ssize_t s = read(evt_fd[0], &event, sizeof(event));
+#endif
+            if (s == sizeof(event)) {
                 switch (event) {
                     case EVT_HOT_RELOAD:
                         hot_reload_config();
@@ -254,17 +289,40 @@ namespace log4cpp {
 
     /// @brief Sends a hot-reload notification to the event loop thread.
     void logger_manager::notify_config_hot_reload() const {
+#ifdef __linux__
         constexpr uint64_t val = EVT_HOT_RELOAD;
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+        constexpr uint8_t val = EVT_HOT_RELOAD;
+#endif
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-result"
-        (void)write(evt_fd, &val, sizeof(uint64_t));
+#ifdef __linux__
+        (void)write(evt_fd, &val, sizeof(val));
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+        (void)write(evt_fd[1], &val, sizeof(val));
+#endif
 #pragma GCC diagnostic pop
     }
 
     /// @brief Creates and starts the event loop thread.
     void logger_manager::start_hot_reload_thread() {
-        evt_loop_run.store(true);
+        if (evt_loop_run.load()) {
+            return;
+        }
+#ifdef __linux__
         evt_fd = eventfd(0, 0);
+        if (evt_fd == -1) {
+            return;
+        }
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+        if (pipe(evt_fd.data()) == -1) {
+            return;
+        }
+#endif
+        evt_loop_run.store(true);
         evt_loop_thread = std::thread(&logger_manager::event_loop, this);
     }
 

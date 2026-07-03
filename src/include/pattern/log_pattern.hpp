@@ -1,10 +1,10 @@
 #pragma once
 
-#include <array>
-#include <cstddef>
-#include <string>
+#include <array>   // for std::array
+#include <cstddef> // for size_t
+#include <string>  // for std::string
 
-#include <log4cpp/log4cpp.hpp>
+#include "log4cpp/log4cpp.hpp" // for log_level
 
 namespace log4cpp::pattern {
     constexpr unsigned int LOGGER_NAME_DEFAULT_LEN = 6;

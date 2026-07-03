@@ -1,13 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <set>
-#include <string>
+#include <memory> // for std::shared_ptr
+#include <set>    // for std::set
+#include <string> // for std::string
 
-#include <log4cpp/log4cpp.hpp>
-#include <log4cpp/logger.hpp>
-
-#include "pattern/log_pattern.hpp"
+#include "log4cpp/log4cpp.hpp"     // for logger
+#include "log4cpp/logger.hpp"      // for logger_proxy
+#include "pattern/log_pattern.hpp" // for log_pattern
 
 namespace log4cpp::appender {
     class log_appender;

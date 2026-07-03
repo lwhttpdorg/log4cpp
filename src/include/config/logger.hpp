@@ -1,11 +1,10 @@
 #pragma once
 
-#include <optional>
-#include <string>
+#include <optional> // for std::optional
+#include <string>   // for std::string
 
-#include "common/json.hpp"
-
-#include <log4cpp/log4cpp.hpp>
+#include "common/json.hpp"     // for json_value
+#include "log4cpp/log4cpp.hpp" // for log_level
 
 namespace log4cpp::config {
     class logger {

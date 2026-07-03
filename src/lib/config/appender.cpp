@@ -1,6 +1,5 @@
-#include "config/appender.hpp"
-
-#include <common/log_utils.hpp>
+#include "config/appender.hpp"  // for appender configs
+#include "common/log_utils.hpp" // for to_lower
 
 namespace log4cpp::config {
     // =========================================================

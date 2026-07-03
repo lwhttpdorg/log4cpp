@@ -1,29 +1,27 @@
 #pragma once
 
-#include <string>
+#include <string> // for std::string
 
 #ifdef _WIN32
-#include <WinSock2.h>
-#include <windows.h>
+#include <WinSock2.h> // for SOCKET
+#include <windows.h>  // for Windows socket types
 #endif
-
-#ifdef __linux
-
-#include <netdb.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-
+#ifndef _WIN32
+#include <cerrno>       // for EINPROGRESS
+#include <netdb.h>      // for getaddrinfo
+#include <sys/socket.h> // for shutdown
+#include <sys/types.h>  // for socket types
+#include <unistd.h>     // for close
 #endif
 
 #ifdef _MSC_VER
-#include <BaseTsd.h>
+#include <BaseTsd.h> // for SSIZE_T
 typedef SSIZE_T ssize_t;
 #endif
 
-#include "log_utils.hpp"
+#include "log_utils.hpp" // for to_lower
 
-#include "common/json.hpp"
+#include "common/json.hpp" // for json_value
 
 namespace log4cpp::common {
 #ifdef _WIN32
@@ -36,7 +34,7 @@ namespace log4cpp::common {
         closesocket(fd);
     }
 #endif
-#ifdef __linux__
+#ifndef _WIN32
     constexpr int INVALID_FD = -1;
     using socket_fd = int;
     constexpr int IN_PROGRESS = EINPROGRESS;

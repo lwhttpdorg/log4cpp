@@ -1,19 +1,17 @@
-#include <cstring>
-#include <stdexcept>
+#include <cstring>   // for std::memcpy
+#include <stdexcept> // for std::invalid_argument
 
-#ifdef __linux__
-
-#include <arpa/inet.h>
-#include <netinet/in.h>
-
+#ifndef _WIN32
+#include <arpa/inet.h>  // for inet_pton, inet_ntop
+#include <netinet/in.h> // for sockaddr_in
 #endif
 
 #ifdef _WIN32
-#include <WS2tcpip.h>
-#include <ws2ipdef.h>
+#include <WS2tcpip.h> // for InetPton, getaddrinfo
+#include <ws2ipdef.h> // for sockaddr_in6
 #endif
 
-#include "common/log_net.hpp"
+#include "common/log_net.hpp" // for net_addr
 
 namespace log4cpp::common {
 #ifdef _WIN32

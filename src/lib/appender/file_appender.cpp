@@ -1,33 +1,25 @@
-#include <cstring>
-#include <fcntl.h>
-#include <filesystem>
-#include <stdexcept>
+#include <cstring>    // for strerror
+#include <filesystem> // for std::filesystem
+#include <mutex>      // for std::scoped_lock
+#include <stdexcept>  // for std::runtime_error
 
+#include <fcntl.h> // for open flags
 #ifdef _MSC_VER
-#include <windows.h>
+#include <windows.h> // for Windows file constants
 #endif
-
 #ifdef _WIN32
-#include <direct.h>
-#include <io.h>
+#include <direct.h> // for _mkdir
+#include <io.h>     // for _open, _close, _write
 #endif
-
 #ifdef __MINGW32__
-
-#include <sys/stat.h>
-
+#include <sys/stat.h> // for mode constants
+#endif
+#if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
+#include <sys/stat.h> // for mkdir, mode_t
+#include <unistd.h>   // for close, write
 #endif
 
-#ifdef __linux__
-
-#include <sys/stat.h>
-#include <unistd.h>
-
-#endif
-
-#include <mutex>
-
-#include "appender/file_appender.hpp"
+#include "appender/file_appender.hpp" // for file_appender
 
 namespace log4cpp::appender {
     file_appender::file_appender(const config::file_appender &cfg) {
@@ -44,7 +36,7 @@ namespace log4cpp::appender {
                     throw std::runtime_error(what);
                 }
 #endif
-#ifdef __linux__
+#if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
                 if (mkdir(path.c_str(), 0755) == -1) {
                     std::string what("Can not create log directory '");
                     what.append(path);
@@ -61,8 +53,10 @@ namespace log4cpp::appender {
         int mode = _S_IREAD | _S_IWRITE;
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
+#ifdef O_CLOEXEC
         openFlags |= O_CLOEXEC;
+#endif
         mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 #endif
 #ifdef _MSC_VER

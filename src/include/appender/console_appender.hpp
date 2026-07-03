@@ -1,10 +1,8 @@
 #pragma once
 
-#include <common/log_lock.hpp>
-
-#include "appender/console_appender.hpp"
-#include "appender/log_appender.hpp"
-#include "config/appender.hpp"
+#include "appender/log_appender.hpp" // for log_appender
+#include "common/log_lock.hpp"       // for log_lock
+#include "config/appender.hpp"       // for console_appender config
 
 namespace log4cpp::appender {
     class console_appender: public log_appender {

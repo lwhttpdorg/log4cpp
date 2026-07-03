@@ -1,23 +1,25 @@
-#include <algorithm>
-#include <chrono>
-#include <cstdarg>
-#include <cstdio>
-#include <cstring>
-#include <ctime>
+#include <algorithm> // for std::transform
+#include <chrono>    // for std::chrono
+#include <cstdarg>   // for va_list
+#include <cstdint>   // for uint64_t
+#include <cstdio>    // for FILE, fprintf
+#include <cstring>   // for strcspn
+#include <ctime>     // for std::time
 
 #ifdef _MSC_VER
-#include <Windows.h>
-#include <processthreadsapi.h>
-#include <winerror.h>
-#elif defined(__GNUC__)
-
-#include <pthread.h>
-
-#else
-#include <sys/prctl.h>
+#include <Windows.h>           // for GetCurrentThread
+#include <processthreadsapi.h> // for thread descriptions
+#include <winerror.h>          // for SUCCEEDED
+#endif
+#if defined(__APPLE__) && defined(__MACH__)
+#include <pthread.h> // for pthread thread names
+#endif
+#ifdef __linux__
+#include <pthread.h>   // for pthread_setname_np
+#include <sys/prctl.h> // for prctl
 #endif
 
-#include "common/log_utils.hpp"
+#include "common/log_utils.hpp" // for declarations
 
 namespace log4cpp {
     // Platform-specific implementations for thread name management.
@@ -44,10 +46,13 @@ namespace log4cpp {
         }
 #endif
 
-#ifdef __GNUC__
-        unsigned long tid = pthread_self();
+#if defined(__APPLE__) && defined(__MACH__)
+        uint64_t tid64 = 0;
+        pthread_threadid_np(nullptr, &tid64);
+        unsigned long tid = static_cast<unsigned long>(tid64);
         pthread_getname_np(pthread_self(), thread_name, len);
-#elif __linux__
+#endif
+#ifdef __linux__
         unsigned long tid = gettid();
         (void)len;
         prctl(PR_GET_NAME, reinterpret_cast<unsigned long>(thread_name));
@@ -66,14 +71,15 @@ namespace log4cpp {
         MultiByteToWideChar(CP_UTF8, 0, name, -1, &wchar_str[0], size_needed);
         SetThreadDescription(GetCurrentThread(), wchar_str.c_str());
 #endif
-#ifdef __GNUC__
+#if defined(__APPLE__) && defined(__MACH__)
+        char buf[16]; // pthread_setname_np requires a buffer of 16 chars max.
+        common::log4c_scnprintf(buf, sizeof(buf), "%s", name);
+        pthread_setname_np(buf);
+#endif
+#ifdef __linux__
         char buf[16]; // pthread_setname_np requires a buffer of 16 chars max.
         common::log4c_scnprintf(buf, sizeof(buf), "%s", name);
         pthread_setname_np(pthread_self(), buf);
-#elif __linux__
-        char buf[16]; // prctl(PR_SET_NAME) has a limit of 16 bytes.
-        common::log4c_scnprintf(buf, sizeof(buf), "%s", name);
-        prctl(PR_SET_NAME, buf);
 #endif
     }
 } // namespace log4cpp
