@@ -1,9 +1,5 @@
 # log4cpp
 
----
-[中文版本](README_ZH.md) | English Version
----
-
 <!-- TOC -->
 - [1. What is log4cpp?](#1-what-is-log4cpp)
 - [2. Requirements](#2-requirements)
@@ -40,6 +36,11 @@
 - [5. License](#5-license)
 <!-- /TOC -->
 
+---
+[中文版本](README_ZH.md) | English Version
+---
+
+
 ## 1. What is log4cpp?
 
 log4cpp is a C++ logging library inspired by log4j.
@@ -56,7 +57,7 @@ Features:
 
 ## 2. Requirements
 
-1. C++ compiler supporting C++17 or later
+1. C++ compiler supporting C++20 or later
 2. CMake 3.10 or later (for CMake builds)
 3. Meson 1.1.0 or later (for Meson builds)
 
@@ -138,18 +139,32 @@ hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 After getting the logger, you can use the following methods to output the log:
 
 ```shell
-void trace(const char *__restrict fmt, ...);
-void debug(const char *__restrict fmt, ...);
-void info(const char *__restrict fmt, ...);
-void warn(const char *__restrict fmt, ...);
-void error(const char *__restrict fmt, ...);
-void fatal(const char *__restrict fmt, ...);
+void trace(std::string_view msg);
+void debug(std::string_view msg);
+void info(std::string_view msg);
+void warn(std::string_view msg);
+void error(std::string_view msg);
+void fatal(std::string_view msg);
+
+template <class... Args> void trace(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void debug(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void info(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void warn(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void error(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void fatal(std::format_string<Args...> fmt, Args &&...args);
 ```
 
 Or directly:
 
 ```c++
-void log(log_level level, const char *fmt, ...);
+void log(log_level level, std::string_view msg);
+template <class... Args> void log(log_level level, std::format_string<Args...> fmt, Args &&...args);
+```
+
+Formatted log messages use C++20 `std::format` syntax:
+
+```c++
+logger->info("user={}, cost={}ms", user_name, cost_ms);
 ```
 
 The log level `log_level` is defined as follows:
@@ -187,7 +202,7 @@ public:
     }
 
     void func(const std::string &name) const {
-        logger->info("func(%s)", name.c_str());
+        logger->info("func({})", name);
     }
 
 private:
@@ -222,7 +237,7 @@ public:
     }
 
     void func(const std::string &name) const {
-        logger->info("func(%s)", name.c_str());
+        logger->info("func({})", name);
     }
 
 private:
@@ -334,7 +349,8 @@ Note: The default log-pattern is `"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}
 
 ##### 3.2.1.2. Appender
 
-There are three types of appenders: Console Appender (`console`), File Appender (`file`), Socket Appender (`socket`, default is TCP)
+There are three types of appenders: Console Appender (`console`), File Appender (`file`), Socket Appender (`socket`,
+default is TCP)
 
 A simple configuration file example:
 
@@ -465,7 +481,8 @@ __The default logger must be defined with name `root`__
 
 ### 3.3. Hot Configuration Reload
 
-Configuration hot reloading allows changes to the configuration file to take effect without restarting the process (Linux only)
+Configuration hot reloading allows changes to the configuration file to take effect without restarting the process (
+Linux only)
 
 _Note: The configuration file path and name cannot be changed; the path and name used at startup will be reloaded._
 
@@ -481,9 +498,12 @@ After modifying the configuration file, send a signal to your process (default i
 kill -SIGHUP <PID>
 ```
 
-The `SIGHUP` signal triggers log4cpp to reload the configuration file using the cached path and filename, and recreate internal objects. The `std::shared_ptr<log4cpp::logger>` previously obtained via `log4cpp::logger_manager::get_logger()` will not become invalid and can continue to be used.
+The `SIGHUP` signal triggers log4cpp to reload the configuration file using the cached path and filename, and recreate
+internal objects. The `std::shared_ptr<log4cpp::logger>` previously obtained via `log4cpp::logger_manager::get_logger()`
+will not become invalid and can continue to be used.
 
-_Note: The `std::shared_ptr` returned by `log4cpp::logger_manager::get_logger()` may not change, even if its internal proxy object has changed._
+_Note: The `std::shared_ptr` returned by `log4cpp::logger_manager::get_logger()` may not change, even if its internal
+proxy object has changed._
 
 ## 4. Building
 
@@ -612,7 +632,8 @@ sed "s/@VERSION@/${VERSION}/g" log4cpp/liblog4cpp.spec.in > ~/rpmbuild/SPECS/lib
 rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 ```
 
-The tarball name and spec `Version` come from `liblog4cpp.spec.in` after substituting `@VERSION@`; that value should match `project(log4cpp VERSION …)` in `CMakeLists.txt` (see `build-rpm.sh`).
+The tarball name and spec `Version` come from `liblog4cpp.spec.in` after substituting `@VERSION@`; that value should
+match `project(log4cpp VERSION …)` in `CMakeLists.txt` (see `build-rpm.sh`).
 
 #### 4.4.2. Using build script
 
@@ -639,11 +660,13 @@ For RPM-based systems:
 Options:
 
 * `clean`: Clean build artifacts, including generated tarball, spec file, and built packages
-* `-a, --arch <ARCH>`: Specify the target architecture for the package, e.g., `amd64`, `arm64`; default is the host architecture
+* `-a, --arch <ARCH>`: Specify the target architecture for the package, e.g., `amd64`, `arm64`; default is the host
+  architecture
 
 ### 4.5. ASAN
 
-If your code modifies existing functionality, please ensure that ASAN detection passes. Code that has not passed ASAN detection will not be merged.
+If your code modifies existing functionality, please ensure that ASAN detection passes. Code that has not passed ASAN
+detection will not be merged.
 
 CMake:
 

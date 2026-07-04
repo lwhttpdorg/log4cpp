@@ -14,7 +14,7 @@ public:
     }
 
     void func(const std::string &name) const {
-        logger->info("func(%s)", name.c_str());
+        logger->info("func({})", name);
     }
 
 private:

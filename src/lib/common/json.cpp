@@ -138,6 +138,16 @@ namespace log4cpp {
             return std::make_unique<number_node>(int64_t{0});
         }
 
+        array_node::array_node(json_array v) : value_(std::move(v)) {
+        }
+
+        array_node::~array_node() = default;
+
+        object_node::object_node(json_object v) : value_(std::move(v)) {
+        }
+
+        object_node::~object_node() = default;
+
         void number_node::dump(std::ostringstream &oss) const {
             switch (type_) {
                 case integer:
@@ -807,7 +817,6 @@ namespace log4cpp {
         }
         const auto &arr = static_cast<const detail::array_node &>(*node_).value();
         std::vector<std::string> result;
-        result.reserve(arr.size());
         for (const auto &elem: arr) {
             result.push_back(elem.get<std::string>());
         }

@@ -9,7 +9,7 @@ if (MSVC)
 endif ()
 
 # C++ standard scoped to target
-target_compile_features(log4cpp PUBLIC cxx_std_17)
+target_compile_features(log4cpp PUBLIC cxx_std_20)
 
 if (WIN32)
     target_compile_definitions(log4cpp PRIVATE UNICODE _UNICODE)

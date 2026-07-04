@@ -3,6 +3,7 @@
 #include <array>   // for std::array
 #include <cstddef> // for size_t
 #include <string>  // for std::string
+#include <string_view>
 
 #include "log4cpp/log4cpp.hpp" // for log_level
 
@@ -34,25 +35,11 @@ namespace log4cpp::pattern {
          * @param buf_len: The length of the buffer
          * @param name: The logger name
          * @param level: The log level
-         * @param fmt: The format string
-         * @param args: The arguments
+         * @param msg: The already formatted log message
          * @return The length of the formatted message
          */
-        size_t format(char *__restrict buf, size_t buf_len, const char *name, log_level level, const char *fmt,
-                      va_list args) const;
-
-        /**
-         * Format the log message
-         * @param buf: The buffer to store the formatted message
-         * @param buf_len: The length of the buffer
-         * @param name: The logger name
-         * @param level: The log level
-         * @param fmt: The format string
-         * @param ... The arguments
-         * @return The length of the formatted message
-         */
-        size_t format(char *__restrict buf, size_t buf_len, const char *name, log_level level, const char *fmt,
-                      ...) const;
+        size_t format(char *__restrict buf, size_t buf_len, const char *name, log_level level,
+                      std::string_view msg) const;
 
     private:
         // The pattern to format the log message

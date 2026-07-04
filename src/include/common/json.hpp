@@ -140,8 +140,8 @@ namespace log4cpp {
 
         class array_node final: public json_node {
         public:
-            explicit array_node(json_array v) : value_(std::move(v)) {
-            }
+            explicit array_node(json_array v);
+            ~array_node() override;
             [[nodiscard]] const json_array &value() const {
                 return value_;
             }
@@ -162,8 +162,8 @@ namespace log4cpp {
 
         class object_node final: public json_node {
         public:
-            explicit object_node(json_object v) : value_(std::move(v)) {
-            }
+            explicit object_node(json_object v);
+            ~object_node() override;
             [[nodiscard]] const json_object &value() const {
                 return value_;
             }

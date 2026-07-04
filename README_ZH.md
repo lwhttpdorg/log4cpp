@@ -1,9 +1,5 @@
 # log4cpp
 
----
-中文版本 | [English Version](README.md)
----
-
 <!-- TOC -->
 - [1. Log4cpp是什么?](#1-log4cpp%E6%98%AF%E4%BB%80%E4%B9%88)
 - [2. 要求](#2-%E8%A6%81%E6%B1%82)
@@ -40,6 +36,11 @@
 - [5. 许可](#5-%E8%AE%B8%E5%8F%AF)
 <!-- /TOC -->
 
+---
+中文版本 | [English Version](README.md)
+---
+
+
 ## 1. Log4cpp是什么?
 
 log4cpp是一个C++日志库, 参照log4j实现
@@ -56,7 +57,7 @@ log4cpp是一个C++日志库, 参照log4j实现
 
 ## 2. 要求
 
-1. 支持C++17及以上的C++编译器
+1. 支持C++20及以上的C++编译器
 2. CMake 3.10及以上版本 (CMake构建)
 3. Meson 1.1.0及以上版本 (Meson构建)
 
@@ -136,18 +137,32 @@ hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 获取logger后, 可以使用下面的方法输出log:
 
 ```c++
-void trace(const char *__restrict fmt, ...);
-void debug(const char *__restrict fmt, ...);
-void info(const char *__restrict fmt, ...);
-void warn(const char *__restrict fmt, ...);
-void error(const char *__restrict fmt, ...);
-void fatal(const char *__restrict fmt, ...);
+void trace(std::string_view msg);
+void debug(std::string_view msg);
+void info(std::string_view msg);
+void warn(std::string_view msg);
+void error(std::string_view msg);
+void fatal(std::string_view msg);
+
+template <class... Args> void trace(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void debug(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void info(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void warn(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void error(std::format_string<Args...> fmt, Args &&...args);
+template <class... Args> void fatal(std::format_string<Args...> fmt, Args &&...args);
 ```
 
 上面的方法内部调用了下面的方法, 也可以直接调用下面的方法:
 
 ```c++
-void log(log_level level, const char *fmt, ...);
+void log(log_level level, std::string_view msg);
+template <class... Args> void log(log_level level, std::format_string<Args...> fmt, Args &&...args);
+```
+
+格式化日志使用C++20 `std::format`语法:
+
+```c++
+logger->info("user={}, cost={}ms", user_name, cost_ms);
 ```
 
 其中log级别`log_level level`的定义如下:
@@ -184,7 +199,7 @@ public:
     }
 
     void func(const std::string &name) const {
-        logger->info("func(%s)", name.c_str());
+        logger->info("func({})", name);
     }
 
 private:
@@ -219,7 +234,7 @@ public:
     }
 
     void func(const std::string &name) const {
-        logger->info("func(%s)", name.c_str());
+        logger->info("func({})", name);
     }
 
 private:
@@ -611,7 +626,8 @@ sed "s/@VERSION@/${VERSION}/g" log4cpp/liblog4cpp.spec.in > ~/rpmbuild/SPECS/lib
 rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
 ```
 
-源码包与 spec 中的版本由 `liblog4cpp.spec.in` 经 `@VERSION@` 替换得到，应与 `CMakeLists.txt` 中 `project(log4cpp VERSION …)` 一致（亦可直接用 `build-rpm.sh`）。
+源码包与 spec 中的版本由 `liblog4cpp.spec.in` 经 `@VERSION@` 替换得到，应与 `CMakeLists.txt` 中
+`project(log4cpp VERSION …)` 一致（亦可直接用 `build-rpm.sh`）。
 
 #### 4.4.2. 使用构建脚本
 

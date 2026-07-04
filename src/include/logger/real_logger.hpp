@@ -47,19 +47,9 @@ namespace log4cpp {
 
         void add_appender(const std::shared_ptr<appender::log_appender> &appender);
 
-        void log(log_level _level, const char *__restrict fmt, va_list args) const override;
+        using logger::log;
 
-        void fatal(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
-
-        void error(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
-
-        void warn(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
-
-        void info(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
-
-        void debug(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
-
-        void trace(const char *__restrict fmt, ...) const override __attribute__((format(printf, 2, 3)));
+        void log(log_level _level, std::string_view msg) const override;
 
         ~real_logger() override = default;
 

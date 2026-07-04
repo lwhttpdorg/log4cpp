@@ -1,4 +1,3 @@
-#include <cstdarg> // for va_list
 #include <cstring> // for strlen
 #include <regex>   // for std::regex
 #include <string>  // for std::string
@@ -290,29 +289,10 @@ namespace log4cpp::pattern {
         }
     }
 
-    // Public formatting interface (va_list version).
-    size_t log_pattern::format(char *buf, size_t buf_len, const char *name, log_level level, const char *fmt,
-                               va_list args) const {
-        char message[LOG_LINE_MAX];
-        message[0] = '\0';
-        common::log4c_vscnprintf(message, sizeof(message), fmt, args);
-
-        format_with_pattern(buf, buf_len, name, level, message);
-        size_t used_len = strlen(buf);
-        used_len += common::log4c_scnprintf(buf + used_len, buf_len - used_len, "\n");
-        return used_len;
-    }
-
-    // Public formatting interface (variadic version).
-    size_t log_pattern::format(char *buf, size_t buf_len, const char *name, log_level level, const char *fmt,
-                               ...) const {
-        char message[LOG_LINE_MAX];
-        message[0] = '\0';
-        va_list args;
-        va_start(args, fmt);
-        common::log4c_vscnprintf(message, sizeof(message), fmt, args);
-        va_end(args);
-        format_with_pattern(buf, buf_len, name, level, message);
+    size_t log_pattern::format(char *buf, size_t buf_len, const char *name, log_level level,
+                               std::string_view msg) const {
+        const std::string message(msg);
+        format_with_pattern(buf, buf_len, name, level, message.c_str());
         size_t used_len = strlen(buf);
         used_len += common::log4c_scnprintf(buf + used_len, buf_len - used_len, "\n");
         return used_len;

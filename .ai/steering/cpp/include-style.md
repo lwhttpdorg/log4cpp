@@ -1,4 +1,13 @@
 ---
+
+<!-- TOC -->
+- [1. Required Order](#1-required-order)
+- [2. Bracket Style](#2-bracket-style)
+- [3. Include Comments](#3-include-comments)
+- [4. Platform Guards](#4-platform-guards)
+- [5. Example](#5-example)
+<!-- /TOC -->
+
 description: C++ include ordering rules. Read this only when editing C++ source or header files.
 applies_to:
   - "**/*.hpp"

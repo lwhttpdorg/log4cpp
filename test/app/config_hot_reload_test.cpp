@@ -54,12 +54,12 @@ void worker_thread_logging_routine_type1(int id) {
     log4cpp::set_thread_name(("worker_type1_" + std::to_string(id)).c_str());
     const auto logger = log4cpp::logger_manager::get_logger("aaa");
     while (!finished.load()) {
-        logger->trace("Type 1 Thread %d: This is a TRACE log message.", id);
-        logger->debug("Type 1 Thread %d: This is a DEBUG log message.", id);
-        logger->info("Type 1 Thread %d: This is an INFO log message.", id);
-        logger->warn("Type 1 Thread %d: This is a WARN log message.", id);
-        logger->error("Type 1 Thread %d: This is an ERROR log message.", id);
-        logger->fatal("Type 1 Thread %d: This is a FATAL log message.", id);
+        logger->trace("Type 1 Thread {}: This is a TRACE log message.", id);
+        logger->debug("Type 1 Thread {}: This is a DEBUG log message.", id);
+        logger->info("Type 1 Thread {}: This is an INFO log message.", id);
+        logger->warn("Type 1 Thread {}: This is a WARN log message.", id);
+        logger->error("Type 1 Thread {}: This is an ERROR log message.", id);
+        logger->fatal("Type 1 Thread {}: This is a FATAL log message.", id);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
@@ -68,23 +68,23 @@ void worker_thread_logging_routine_type2(int id) {
     log4cpp::set_thread_name(("worker_type2_" + std::to_string(id)).c_str());
     const auto logger = log4cpp::logger_manager::get_logger("bbb");
     while (config_epoch.load() == 0 && !finished.load()) {
-        logger->trace("Type 2 Thread %d: This is a TRACE log message.", id);
-        logger->debug("Type 2 Thread %d: This is a DEBUG log message.", id);
-        logger->info("Type 2 Thread %d: This is an INFO log message.", id);
-        logger->warn("Type 2 Thread %d: This is a WARN log message.", id);
-        logger->error("Type 2 Thread %d: This is an ERROR log message.", id);
-        logger->fatal("Type 2 Thread %d: This is a FATAL log message.", id);
+        logger->trace("Type 2 Thread {}: This is a TRACE log message.", id);
+        logger->debug("Type 2 Thread {}: This is a DEBUG log message.", id);
+        logger->info("Type 2 Thread {}: This is an INFO log message.", id);
+        logger->warn("Type 2 Thread {}: This is a WARN log message.", id);
+        logger->error("Type 2 Thread {}: This is an ERROR log message.", id);
+        logger->fatal("Type 2 Thread {}: This is a FATAL log message.", id);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     // Switch to V2 logging
     while (config_epoch.load() == 2 && !finished.load()) {
-        logger->trace("Type 2 Thread %d: This is a TRACE log message.", id);
-        logger->debug("Type 2 Thread %d: This is a DEBUG log message.", id);
-        logger->info("Type 2 Thread %d: This is an INFO log message.", id);
-        logger->warn("Type 2 Thread %d: This is a WARN log message.", id);
-        logger->error("Type 2 Thread %d: This is an ERROR log message.", id);
-        logger->fatal("Type 2 Thread %d: This is a FATAL log message.", id);
+        logger->trace("Type 2 Thread {}: This is a TRACE log message.", id);
+        logger->debug("Type 2 Thread {}: This is a DEBUG log message.", id);
+        logger->info("Type 2 Thread {}: This is an INFO log message.", id);
+        logger->warn("Type 2 Thread {}: This is a WARN log message.", id);
+        logger->error("Type 2 Thread {}: This is an ERROR log message.", id);
+        logger->fatal("Type 2 Thread {}: This is a FATAL log message.", id);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
@@ -93,8 +93,8 @@ void worker_thread_logging_routine_type3(int id) {
     log4cpp::set_thread_name(("worker_type3_" + std::to_string(id)).c_str());
     while (!finished.load()) {
         const auto logger = log4cpp::logger_manager::get_logger("aaa");
-        logger->error("Type 3 Thread %d: This is an ERROR log message.", id);
-        logger->fatal("Type 3 Thread %d: This is a FATAL log message.", id);
+        logger->error("Type 3 Thread {}: This is an ERROR log message.", id);
+        logger->fatal("Type 3 Thread {}: This is a FATAL log message.", id);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }

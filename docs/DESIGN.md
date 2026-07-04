@@ -52,7 +52,8 @@
 
 ## 1. Overview
 
-**log4cpp** is a C++ logging library inspired by Apache log4j. It provides a flexible, thread-safe logging framework with JSON-based configuration, multiple output appenders, and hot configuration reload capability.
+**log4cpp** is a C++ logging library inspired by Apache log4j. It provides a flexible, thread-safe logging framework
+with JSON-based configuration, multiple output appenders, and hot configuration reload capability.
 
 ### 1.1. Key Features
 
@@ -82,15 +83,15 @@ graph LR
 
 ### 2.2. Component Overview
 
-| Component | Responsibility |
-|-----------|----------------|
-| `logger_manager` | Singleton managing all loggers, configuration loading |
-| `logger_proxy` | Proxy pattern for hot-reload support |
-| `real_logger` | Concrete logging implementation |
-| `log_pattern` | Format log messages with patterns (per-logger instance) |
-| `console_appender` | Output to stdout/stderr |
-| `file_appender` | Output to file |
-| `socket_appender` | Output to remote log server |
+| Component          | Responsibility                                          |
+|--------------------|---------------------------------------------------------|
+| `logger_manager`   | Singleton managing all loggers, configuration loading   |
+| `logger_proxy`     | Proxy pattern for hot-reload support                    |
+| `real_logger`      | Concrete logging implementation                         |
+| `log_pattern`      | Format log messages with patterns (per-logger instance) |
+| `console_appender` | Output to stdout/stderr                                 |
+| `file_appender`    | Output to file                                          |
+| `socket_appender`  | Output to remote log server                             |
 
 ---
 
@@ -106,13 +107,14 @@ classDiagram
         +set_name(name)
         +get_level() log_level
         +set_level(level)
-        +log(level, fmt, args)
-        +fatal(fmt, ...)
-        +error(fmt, ...)
-        +warn(fmt, ...)
-        +info(fmt, ...)
-        +debug(fmt, ...)
-        +trace(fmt, ...)
+        +log(level, msg)
+        +log(level, fmt, args...)
+        +fatal(fmt, args...)
+        +error(fmt, args...)
+        +warn(fmt, args...)
+        +info(fmt, args...)
+        +debug(fmt, args...)
+        +trace(fmt, args...)
     }
 
     class logger_proxy {
@@ -120,8 +122,7 @@ classDiagram
         -target_: shared_ptr~logger~
         +get_target() shared_ptr~logger~
         +set_target(target)
-        +log(level, fmt, args) override
-        +info(fmt, ...) override
+        +log(level, msg) override
     }
 
     class real_logger {
@@ -130,7 +131,7 @@ classDiagram
         -appenders_mtx: shared_mutex
         -appenders: set~shared_ptr~log_appender~~
         -pattern_: log_pattern
-        +log(level, fmt, args) override
+        +log(level, msg) override
         +add_appender(appender)
     }
 
@@ -187,15 +188,34 @@ public:
     virtual log_level get_level() const = 0;
     virtual void set_level(log_level level) = 0;
 
-    virtual void log(log_level _level, const char *fmt, va_list args) const = 0;
+    virtual void log(log_level _level, std::string_view msg) const = 0;
 
-    // Convenience methods
-    virtual void fatal(const char *fmt, ...) const = 0;
-    virtual void error(const char *fmt, ...) const = 0;
-    virtual void warn(const char *fmt, ...) const = 0;
-    virtual void info(const char *fmt, ...) const = 0;
-    virtual void debug(const char *fmt, ...) const = 0;
-    virtual void trace(const char *fmt, ...) const = 0;
+    template <class... Args>
+    void log(log_level _level, std::format_string<Args...> fmt, Args &&...args) const;
+
+    template <class... Args>
+    void fatal(std::format_string<Args...> fmt, Args &&...args) const;
+    void fatal(std::string_view msg) const;
+
+    template <class... Args>
+    void error(std::format_string<Args...> fmt, Args &&...args) const;
+    void error(std::string_view msg) const;
+
+    template <class... Args>
+    void warn(std::format_string<Args...> fmt, Args &&...args) const;
+    void warn(std::string_view msg) const;
+
+    template <class... Args>
+    void info(std::format_string<Args...> fmt, Args &&...args) const;
+    void info(std::string_view msg) const;
+
+    template <class... Args>
+    void debug(std::format_string<Args...> fmt, Args &&...args) const;
+    void debug(std::string_view msg) const;
+
+    template <class... Args>
+    void trace(std::format_string<Args...> fmt, Args &&...args) const;
+    void trace(std::string_view msg) const;
 };
 ```
 
@@ -234,7 +254,7 @@ private:
 
 public:
     void add_appender(const std::shared_ptr<appender::log_appender> &appender);
-    void log(log_level _level, const char *fmt, va_list args) const override;
+    void log(log_level _level, std::string_view msg) const override;
 };
 ```
 
@@ -418,12 +438,19 @@ classDiagram
     {
       "name": "root",
       "level": "INFO",
-      "appenders": ["console", "file", "socket"]
+      "appenders": [
+        "console",
+        "file",
+        "socket"
+      ]
     },
     {
       "name": "myapp",
       "level": "DEBUG",
-      "appenders": ["console", "file"]
+      "appenders": [
+        "console",
+        "file"
+      ]
     }
   ]
 }
@@ -431,7 +458,8 @@ classDiagram
 
 ### 5.3. Appender Reference
 
-Each logger declares which appenders it uses via the `"appenders"` string array. Only appenders defined in the top-level `"appenders"` object may be referenced. Valid names are `console`, `file`, and `socket`.
+Each logger declares which appenders it uses via the `"appenders"` string array. Only appenders defined in the top-level
+`"appenders"` object may be referenced. Valid names are `console`, `file`, and `socket`.
 
 ---
 
@@ -439,7 +467,9 @@ Each logger declares which appenders it uses via the `"appenders"` string array.
 
 ### 6.1. Instance-Based Design
 
-The `log_pattern` class is an **instance-based** formatter. Each `real_logger` owns its own `log_pattern` instance, which is constructed from the logger's configured pattern string. This design eliminates global static state and removes the need for locks around pattern formatting, making hot-reload completely race-free at the pattern level.
+The `log_pattern` class is an **instance-based** formatter. Each `real_logger` owns its own `log_pattern` instance,
+which is constructed from the logger's configured pattern string. This design eliminates global static state and removes
+the need for locks around pattern formatting, making hot-reload completely race-free at the pattern level.
 
 ```cpp
 // filepath: src/include/pattern/log_pattern.hpp
@@ -450,9 +480,7 @@ public:
     void set_pattern(const std::string &pattern);
 
     size_t format(char *__restrict buf, size_t buf_len, const char *name,
-                  log_level level, const char *fmt, va_list args) const;
-    size_t format(char *__restrict buf, size_t buf_len, const char *name,
-                  log_level level, const char *fmt, ...) const;
+                  log_level level, std::string_view msg) const;
 
 private:
     std::string _pattern;
@@ -461,21 +489,23 @@ private:
 };
 ```
 
-During hot-reload, the `logger_manager` creates a **new** `real_logger` with a **new** `log_pattern` instance. The old `real_logger` (and its pattern) remain valid until all in-flight logging calls complete, thanks to `shared_ptr` reference counting.
+During hot-reload, the `logger_manager` creates a **new** `real_logger` with a **new** `log_pattern` instance. The old
+`real_logger` (and its pattern) remain valid until all in-flight logging calls complete, thanks to `shared_ptr`reference
+counting.
 
 ### 6.2. Supported Placeholders
 
-| Token | Description | Example |
-|-------|-------------|---------|
-| `${yyyy}` | 4-digit year | 2026 |
-| `${MM}` | 2-digit month | 04 |
-| `${dd}` | 2-digit day | 24 |
-| `${HH}` | 2-digit hour (24h) | 14 |
-| `${mm}` | 2-digit minute | 30 |
-| `${ss}` | 2-digit second | 45 |
-| `${8TN}` | Thread name (padded to 8) | main    |
-| `${L}` | Log level | INFO |
-| `${msg}` | User message | Operation completed |
+| Token     | Description               | Example             |
+|-----------|---------------------------|---------------------|
+| `${yyyy}` | 4-digit year              | 2026                |
+| `${MM}`   | 2-digit month             | 04                  |
+| `${dd}`   | 2-digit day               | 24                  |
+| `${HH}`   | 2-digit hour (24h)        | 14                  |
+| `${mm}`   | 2-digit minute            | 30                  |
+| `${ss}`   | 2-digit second            | 45                  |
+| `${8TN}`  | Thread name (padded to 8) | main                |
+| `${L}`    | Log level                 | INFO                |
+| `${msg}`  | User message              | Operation completed |
 
 ---
 
@@ -519,7 +549,8 @@ classDiagram
 
 ### 8.1. Key Mechanism: Proxy Pattern
 
-The core of hot configuration reload is the **Proxy Design Pattern**. Clients hold a `shared_ptr<logger_proxy>` which forwards all logging calls to an internal `target_` pointer. When configuration changes:
+The core of hot configuration reload is the **Proxy Design Pattern**. Clients hold a `shared_ptr<logger_proxy>` which
+forwards all logging calls to an internal `target_` pointer. When configuration changes:
 
 ```mermaid
 sequenceDiagram
@@ -553,7 +584,8 @@ sequenceDiagram
 
 1. **Client holds proxy**: Users get `shared_ptr<logger_proxy>` which never changes
 2. **Signal received**: SIGHUP triggers `notify_config_hot_reload()`
-3. **Create new loggers**: Manager creates new `real_logger` instances from updated config, each with its own `log_pattern`
+3. **Create new loggers**: Manager creates new `real_logger` instances from updated config, each with its own
+   `log_pattern`
 4. **Atomic swap**: `logger_proxy::set_target()` replaces `target_` pointer
 5. **Transparent to client**: No code changes needed, proxy forwards to new implementation
 
@@ -611,6 +643,7 @@ void logger_proxy::set_target(std::shared_ptr<logger> target) {
 ```
 
 **Why this works:**
+
 - `shared_ptr` reference counting keeps old object alive
 - Old logger is released only when **all** proxies have been updated
 - In-flight logging calls complete with old configuration
@@ -638,8 +671,8 @@ Because each `real_logger` owns its own `log_pattern` instance, pattern changes 
 - **Signal Handler**: Register SIGHUP handler via `supervisor::enable_config_hot_loading()`
 - **Event Loop**: Background thread using `eventfd` to receive reload signals
 - **Thread Safety**: `std::shared_mutex` protects the `target_` pointer
-  - Logging operations use shared lock (multiple readers)
-  - `set_target()` uses unique lock (single writer)
+    - Logging operations use shared lock (multiple readers)
+    - `set_target()` uses unique lock (single writer)
 
 ---
 
@@ -669,13 +702,13 @@ graph TB
 
 ### 9.2. Locking Strategy
 
-| Component | Lock Type | Purpose |
-|-----------|-----------|---------|
-| `logger_proxy::mtx` | `shared_mutex` | Protect `target_` pointer |
-| `real_logger::appenders_mtx` | `shared_mutex` | Protect appender set |
-| `socket_appender::connection_rw_lock` | `shared_mutex` | Protect socket connection |
-| `console_appender::lock` | `log_lock` | Platform-specific file locking |
-| `file_appender::lock` | `log_lock` | Platform-specific file locking |
+| Component                             | Lock Type      | Purpose                        |
+|---------------------------------------|----------------|--------------------------------|
+| `logger_proxy::mtx`                   | `shared_mutex` | Protect `target_` pointer      |
+| `real_logger::appenders_mtx`          | `shared_mutex` | Protect appender set           |
+| `socket_appender::connection_rw_lock` | `shared_mutex` | Protect socket connection      |
+| `console_appender::lock`              | `log_lock`     | Platform-specific file locking |
+| `file_appender::lock`                 | `log_lock`     | Platform-specific file locking |
 
 ---
 
@@ -733,7 +766,7 @@ graph TD
 
 ### 11.2. Dependencies
 
-- **Required**: CMake 3.10+, C++17 compiler
+- **Required**: CMake 3.10+, C++20 compiler
 - **Platform**: Linux (hot reload), Windows/macOS (basic)
 
 ---
@@ -754,7 +787,7 @@ int main() {
 
     // Log messages
     logger->info("Application started");
-    logger->debug("Processing request: %s", request_id);
+    logger->debug("Processing request: {}", request_id);
     logger->error("Failed to connect to database");
 
     return 0;
@@ -801,7 +834,8 @@ private:
 
 ### 13.2. Custom Pattern Tokens
 
-Extend the `format_with_pattern()` method inside `log_pattern` to support additional tokens. Because `log_pattern` is an instance class, you can also create a derived formatter and inject it via a custom `logger_builder` if needed:
+Extend the `format_with_pattern()` method inside `log_pattern` to support additional tokens. Because `log_pattern` is an
+instance class, you can also create a derived formatter and inject it via a custom `logger_builder` if needed:
 
 ```cpp
 namespace log4cpp::pattern {

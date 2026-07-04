@@ -3,7 +3,7 @@ project(
     'cpp',
     version: files('VERSION'),
     default_options: [
-        'cpp_std=c++17',
+        'cpp_std=c++20',
         'buildtype=release',
         'warning_level=0',
     ],

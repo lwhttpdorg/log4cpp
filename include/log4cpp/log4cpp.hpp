@@ -3,12 +3,15 @@
 #if defined(__APPLE__) && defined(__MACH__)
 #include <array> // for std::array
 #endif
+#include <format>        // for std::format, std::format_string
 #include <memory>        // for std::shared_ptr, std::unique_ptr
 #include <mutex>         // for std::once_flag
 #include <shared_mutex>  // for std::shared_mutex
 #include <string>        // for std::string
+#include <string_view>   // for std::string_view
 #include <thread>        // for std::thread
 #include <unordered_map> // for std::unordered_map
+#include <utility>       // for std::forward
 #ifndef _WIN32
 #include <atomic>  // for std::atomic
 #include <csignal> // for SIGHUP
@@ -94,55 +97,73 @@ namespace log4cpp {
         [[nodiscard]] virtual log_level get_level() const = 0;
         virtual void set_level(log_level level) = 0;
 
-        /**
-         * @brief Logs a formatted message with a specific log level.
-         * @param _level The log level.
-         * @param fmt The C-style format string.
-         * @param args The list of arguments matching the format string.
-         */
-        virtual void log(log_level _level, const char *__restrict fmt, va_list args) const = 0;
+        virtual void log(log_level _level, std::string_view msg) const = 0;
 
-        /**
-         * @brief Logs a message at the FATAL level.
-         * @param fmt The C-style format string.
-         * @param ... Variable arguments.
-         */
-        virtual void fatal(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void log(log_level _level, std::format_string<Args...> fmt, Args &&...args) const {
+            log(_level, std::format(fmt, std::forward<Args>(args)...));
+        }
 
-        /**
-         * @brief Logs a message at the ERROR level.
-         * @param fmt The C-style format string.
-         * @param ... Variable arguments.
-         */
-        virtual void error(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void fatal(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::FATAL, fmt, std::forward<Args>(args)...);
+        }
 
-        /**
-         * @brief Logs a message at the WARN level.
-         * @param fmt The C-style format string.
-         * @param ... Variable arguments.
-         */
-        virtual void warn(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
+        void fatal(std::string_view msg) const {
+            log(log_level::FATAL, msg);
+        }
 
-        /**
-         * @brief Logs a message at the INFO level.
-         * @param fmt The C-style format string.
-         * @param ... Variable arguments.
-         */
-        virtual void info(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void error(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::ERROR, fmt, std::forward<Args>(args)...);
+        }
 
-        /**
-         * @brief Logs a message at the DEBUG level.
-         * @param fmt The C-style format string.
-         * @param ... Variable arguments.
-         */
-        virtual void debug(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
+        void error(std::string_view msg) const {
+            log(log_level::ERROR, msg);
+        }
 
-        /**
-         * @brief Logs a message at the TRACE level.
-         * @param fmt The C-style format string.
-         * @param ... Variable arguments.
-         */
-        virtual void trace(const char *__restrict fmt, ...) const __attribute__((format(printf, 2, 3))) = 0;
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void warn(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::WARN, fmt, std::forward<Args>(args)...);
+        }
+
+        void warn(std::string_view msg) const {
+            log(log_level::WARN, msg);
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void info(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::INFO, fmt, std::forward<Args>(args)...);
+        }
+
+        void info(std::string_view msg) const {
+            log(log_level::INFO, msg);
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void debug(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::DEBUG, fmt, std::forward<Args>(args)...);
+        }
+
+        void debug(std::string_view msg) const {
+            log(log_level::DEBUG, msg);
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void trace(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::TRACE, fmt, std::forward<Args>(args)...);
+        }
+
+        void trace(std::string_view msg) const {
+            log(log_level::TRACE, msg);
+        }
     };
 
     class logger_manager;
