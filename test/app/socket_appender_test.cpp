@@ -7,7 +7,7 @@
 #include <winsock2.h>
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__) || defined(__MACH__)
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
