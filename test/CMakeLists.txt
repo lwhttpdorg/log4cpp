@@ -31,6 +31,7 @@ endif ()
 
 # List of test targets
 set(TEST_TARGETS
+    located_logger_tests
     load_config_tests
     log_pattern_tests
     log_truncate_tests
@@ -45,6 +46,7 @@ if (NOT WIN32)
 endif ()
 
 # Map each test target to its source file
+set(located_logger_tests_SRC app/located_logger_test.cpp)
 set(load_config_tests_SRC app/load_config_test.cpp)
 set(log_pattern_tests_SRC app/log_pattern_test.cpp)
 set(log_truncate_tests_SRC app/log_truncate_test.cpp)
@@ -96,6 +98,10 @@ foreach (test_name IN LISTS TEST_TARGETS)
 
     # Link against GoogleTest, main library, and common includes
     target_link_libraries(${test_name} PRIVATE GTest::gtest_main log4cpp test_includes)
+
+    if (ENABLE_LOG4CPP_COVERAGE)
+        target_link_libraries(${test_name} PRIVATE code_coverage)
+    endif ()
 
     if (WIN32)
         target_link_libraries(${test_name} PRIVATE ws2_32)

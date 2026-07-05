@@ -46,6 +46,7 @@ int main() {
     std::thread child(thread_routine);
     log4cpp::set_thread_name("main");
     const auto log = log4cpp::logger_manager::get_logger("hello");
+    log->at().info("this log includes source file and line number");
 
     for (int i = 0; i < 10; ++i) {
         log->trace("this is a trace");

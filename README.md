@@ -168,6 +168,12 @@ Formatted log messages use C++20 `std::format` syntax:
 logger->info("user={}, cost={}ms", user_name, cost_ms);
 ```
 
+Use `at()` when a log message should include the source file and line number:
+
+```c++
+logger->at().info("user={}, cost={}ms", user_name, cost_ms);
+```
+
 The log level `log_level` is defined as follows:
 
 ```c++

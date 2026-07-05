@@ -110,6 +110,26 @@ classDiagram
         +set_level(level)
         +log(level, msg)
         +log(level, fmt, args...)
+        +at(location) located_logger
+        +fatal(fmt, args...)
+        +error(fmt, args...)
+        +warn(fmt, args...)
+        +info(fmt, args...)
+        +debug(fmt, args...)
+        +trace(fmt, args...)
+    }
+
+    class log_location {
+        +file: string_view
+        +function: string_view
+        +line: uint_least32_t
+    }
+
+    class located_logger {
+        -logger_: logger
+        -location_: log_location
+        +log(level, msg)
+        +log(level, fmt, args...)
         +fatal(fmt, args...)
         +error(fmt, args...)
         +warn(fmt, args...)
@@ -164,6 +184,9 @@ classDiagram
 
     logger <|-- logger_proxy : Implementation
     logger <|-- real_logger : Implementation
+    logger ..> located_logger : at()
+    located_logger o-- log_location : Has
+    located_logger --> logger : Delegates
     logger_proxy o-- logger : Delegates
     log_appender <|-- console_appender : Implementation
     log_appender <|-- file_appender : Implementation
@@ -179,6 +202,12 @@ classDiagram
 
 ```cpp
 // filepath: include/log4cpp/log4cpp.hpp
+struct log_location {
+    std::string_view file;
+    std::string_view function;
+    uint_least32_t line = 0;
+};
+
 class logger {
 public:
     virtual ~logger() = default;
@@ -191,34 +220,91 @@ public:
 
     virtual void log(log_level _level, std::string_view msg) const = 0;
 
+    [[nodiscard]] located_logger at(
+        const std::source_location &location = std::source_location::current()
+    ) const;
+
     template <class... Args>
+        requires(sizeof...(Args) > 0)
     void log(log_level _level, std::format_string<Args...> fmt, Args &&...args) const;
 
     template <class... Args>
+        requires(sizeof...(Args) > 0)
     void fatal(std::format_string<Args...> fmt, Args &&...args) const;
     void fatal(std::string_view msg) const;
 
     template <class... Args>
+        requires(sizeof...(Args) > 0)
     void error(std::format_string<Args...> fmt, Args &&...args) const;
     void error(std::string_view msg) const;
 
     template <class... Args>
+        requires(sizeof...(Args) > 0)
     void warn(std::format_string<Args...> fmt, Args &&...args) const;
     void warn(std::string_view msg) const;
 
     template <class... Args>
+        requires(sizeof...(Args) > 0)
     void info(std::format_string<Args...> fmt, Args &&...args) const;
     void info(std::string_view msg) const;
 
     template <class... Args>
+        requires(sizeof...(Args) > 0)
     void debug(std::format_string<Args...> fmt, Args &&...args) const;
     void debug(std::string_view msg) const;
 
     template <class... Args>
+        requires(sizeof...(Args) > 0)
+    void trace(std::format_string<Args...> fmt, Args &&...args) const;
+    void trace(std::string_view msg) const;
+};
+
+class located_logger {
+public:
+    located_logger(const logger &target, const std::source_location &location);
+    located_logger(const logger &target, log_location location);
+
+    void log(log_level _level, std::string_view msg) const;
+
+    template <class... Args>
+        requires(sizeof...(Args) > 0)
+    void log(log_level _level, std::format_string<Args...> fmt, Args &&...args) const;
+
+    template <class... Args>
+        requires(sizeof...(Args) > 0)
+    void fatal(std::format_string<Args...> fmt, Args &&...args) const;
+    void fatal(std::string_view msg) const;
+
+    template <class... Args>
+        requires(sizeof...(Args) > 0)
+    void error(std::format_string<Args...> fmt, Args &&...args) const;
+    void error(std::string_view msg) const;
+
+    template <class... Args>
+        requires(sizeof...(Args) > 0)
+    void warn(std::format_string<Args...> fmt, Args &&...args) const;
+    void warn(std::string_view msg) const;
+
+    template <class... Args>
+        requires(sizeof...(Args) > 0)
+    void info(std::format_string<Args...> fmt, Args &&...args) const;
+    void info(std::string_view msg) const;
+
+    template <class... Args>
+        requires(sizeof...(Args) > 0)
+    void debug(std::format_string<Args...> fmt, Args &&...args) const;
+    void debug(std::string_view msg) const;
+
+    template <class... Args>
+        requires(sizeof...(Args) > 0)
     void trace(std::format_string<Args...> fmt, Args &&...args) const;
     void trace(std::string_view msg) const;
 };
 ```
+
+`logger::at()` returns a lightweight `located_logger` wrapper that captures `std::source_location::current()` by
+default and prepends `[file:line] ` to the log message before delegating to the underlying `logger`. Users who do not
+want file and line information keep using the normal `logger` methods directly, for example `logger->info("message")`.
 
 #### 3.2.2. Logger Proxy (`logger_proxy`)
 
@@ -768,7 +854,7 @@ graph TB
 ### 10.1. Logging Data Flow
 
 ```mermaid
-flowchart TD
+flowchart LR
     A[User Code logger.info] --> B[logger_proxy]
     B --> C{Hot Reload In Progress?}
     C -->|No| D[real_logger]

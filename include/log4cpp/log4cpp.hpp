@@ -1,17 +1,19 @@
 #pragma once
 
+#include <cstdint> // for uint_least32_t
 #if defined(__APPLE__) && defined(__MACH__)
 #include <array> // for std::array
 #endif
-#include <format>        // for std::format, std::format_string
-#include <memory>        // for std::shared_ptr, std::unique_ptr
-#include <mutex>         // for std::once_flag
-#include <shared_mutex>  // for std::shared_mutex
-#include <string>        // for std::string
-#include <string_view>   // for std::string_view
-#include <thread>        // for std::thread
-#include <unordered_map> // for std::unordered_map
-#include <utility>       // for std::forward
+#include <format>          // for std::format, std::format_string
+#include <memory>          // for std::shared_ptr, std::unique_ptr
+#include <mutex>           // for std::once_flag
+#include <shared_mutex>    // for std::shared_mutex
+#include <source_location> // for std::source_location
+#include <string>          // for std::string
+#include <string_view>     // for std::string_view
+#include <thread>          // for std::thread
+#include <unordered_map>   // for std::unordered_map
+#include <utility>         // for std::forward
 #ifndef _WIN32
 #include <atomic>  // for std::atomic
 #include <csignal> // for SIGHUP
@@ -42,6 +44,15 @@ namespace log4cpp {
      * @brief Defines the severity levels for log messages.
      */
     enum class log_level : uint8_t { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
+
+    struct log_location {
+        std::string_view file;
+        std::string_view function;
+        uint_least32_t line = 0;
+    };
+
+    class logger;
+    class located_logger;
 
     /**
      * @brief Converts a log_level enum to its string representation.
@@ -98,6 +109,8 @@ namespace log4cpp {
         virtual void set_level(log_level level) = 0;
 
         virtual void log(log_level _level, std::string_view msg) const = 0;
+
+        [[nodiscard]] located_logger at(const std::source_location &location = std::source_location::current()) const;
 
         template<class... Args>
             requires(sizeof...(Args) > 0)
@@ -165,6 +178,94 @@ namespace log4cpp {
             log(log_level::TRACE, msg);
         }
     };
+
+    class located_logger {
+    public:
+        located_logger(const logger &target, const std::source_location &location) :
+            logger_(target), location_{location.file_name(), location.function_name(), location.line()} {
+        }
+
+        located_logger(const logger &target, log_location location) : logger_(target), location_(location) {
+        }
+
+        void log(log_level _level, std::string_view msg) const {
+            logger_.log(_level, std::format("[{}:{}] {}", location_.file, location_.line, msg));
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void log(log_level _level, std::format_string<Args...> fmt, Args &&...args) const {
+            log(_level, std::format(fmt, std::forward<Args>(args)...));
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void fatal(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::FATAL, fmt, std::forward<Args>(args)...);
+        }
+
+        void fatal(std::string_view msg) const {
+            log(log_level::FATAL, msg);
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void error(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::ERROR, fmt, std::forward<Args>(args)...);
+        }
+
+        void error(std::string_view msg) const {
+            log(log_level::ERROR, msg);
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void warn(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::WARN, fmt, std::forward<Args>(args)...);
+        }
+
+        void warn(std::string_view msg) const {
+            log(log_level::WARN, msg);
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void info(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::INFO, fmt, std::forward<Args>(args)...);
+        }
+
+        void info(std::string_view msg) const {
+            log(log_level::INFO, msg);
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void debug(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::DEBUG, fmt, std::forward<Args>(args)...);
+        }
+
+        void debug(std::string_view msg) const {
+            log(log_level::DEBUG, msg);
+        }
+
+        template<class... Args>
+            requires(sizeof...(Args) > 0)
+        void trace(std::format_string<Args...> fmt, Args &&...args) const {
+            log(log_level::TRACE, fmt, std::forward<Args>(args)...);
+        }
+
+        void trace(std::string_view msg) const {
+            log(log_level::TRACE, msg);
+        }
+
+    private:
+        const logger &logger_;
+        log_location location_;
+    };
+
+    inline located_logger logger::at(const std::source_location &location) const {
+        return {*this, location};
+    }
 
     class logger_manager;
     /**

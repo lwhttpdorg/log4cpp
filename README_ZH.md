@@ -166,6 +166,12 @@ template <class... Args> void log(log_level level, std::format_string<Args...> f
 logger->info("user={}, cost={}ms", user_name, cost_ms);
 ```
 
+如果希望日志消息中包含源码文件名和行号, 可以使用`at()`:
+
+```c++
+logger->at().info("user={}, cost={}ms", user_name, cost_ms);
+```
+
 其中log级别`log_level level`的定义如下:
 
 ```c++

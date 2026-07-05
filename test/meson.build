@@ -36,6 +36,7 @@ foreach config : test_configs
 endforeach
 
 test_targets = {
+    'located_logger_tests': 'app/located_logger_test.cpp',
     'load_config_tests': 'app/load_config_test.cpp',
     'log_pattern_tests': 'app/log_pattern_test.cpp',
     'log_truncate_tests': 'app/log_truncate_test.cpp',
