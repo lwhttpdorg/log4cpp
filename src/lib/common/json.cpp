@@ -1,7 +1,7 @@
-#include "common/json.hpp"
+#include <cstdio> // for EOF
+#include <limits> // for std::numeric_limits
 
-#include <cstdio>
-#include <limits>
+#include "common/json.hpp" // for json_value
 
 namespace log4cpp {
 

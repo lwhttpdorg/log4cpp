@@ -54,8 +54,21 @@ set(socket_appender_tests_SRC app/socket_appender_test.cpp)
 set(serialize_test_SRC app/serialize_test.cpp)
 set(config_hot_reload_tests_SRC app/config_hot_reload_test.cpp)
 
-# Collect JSON config files from test/config/
-file(GLOB TEST_CONFIG_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/config/*.json")
+# JSON config files used by tests
+set(TEST_CONFIG_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/test_hot_reload_v1.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/test_hot_reload_v2.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/test_console_stderr.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/test_console_stdout.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/test_file_appender.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/test_rolling_file_appender.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/log4cpp_config_1.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/log4cpp_config_2.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/log4cpp.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/test_serialize.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/test_tcp_socket.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/config/test_udp_socket.json"
+)
 
 # Define an INTERFACE library for common test includes
 add_library(test_includes INTERFACE)

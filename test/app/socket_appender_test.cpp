@@ -1,31 +1,33 @@
-#include <filesystem>
-#include <thread>
+#include <atomic>     // for std::atomic
+#include <cerrno>     // for errno
+#include <cstdio>     // for stderr
+#include <cstring>    // for strerror
+#include <filesystem> // for std::filesystem
+#include <string>     // for std::string
+#include <thread>     // for std::thread
 
 #ifdef _WIN32
-#include <WS2tcpip.h>
-#include <windows.h>
-#include <winsock2.h>
+#include <BaseTsd.h>  // for SSIZE_T
+#include <WS2tcpip.h> // for inet_pton
+#include <windows.h>  // for Windows API
+#include <winsock2.h> // for Windows socket API
 #endif
 
 #if defined(__linux__) || defined(__APPLE__) || defined(__MACH__)
-
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-
+#include <arpa/inet.h>  // for inet_pton
+#include <netinet/in.h> // for sockaddr_in
+#include <sys/socket.h> // for socket APIs
 #endif
 
 #ifdef _WIN32
-#include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
 #endif
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h> // for TEST_F, ASSERT_*, EXPECT_*
 
-#include "log4cpp/log4cpp.hpp"
-
-#include "common/log_net.hpp"
-#include "config/log4cpp.hpp"
+#include "common/log_net.hpp"  // for socket_fd
+#include "config/log4cpp.hpp"  // for log4cpp config
+#include "log4cpp/log4cpp.hpp" // for logger_manager
 
 struct server_status {
     enum class state { AWAITING_STARTUP, RUNNING, FINISHED, FAILED };

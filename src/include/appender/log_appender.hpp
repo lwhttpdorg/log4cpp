@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstddef>
+#include <cstddef> // for size_t
 
 namespace log4cpp::appender {
     class log_appender {

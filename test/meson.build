@@ -18,6 +18,7 @@ test_configs = [
     'test_console_stderr.json',
     'test_console_stdout.json',
     'test_file_appender.json',
+    'test_rolling_file_appender.json',
     'log4cpp_config_1.json',
     'log4cpp_config_2.json',
     'log4cpp.json',

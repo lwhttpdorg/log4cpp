@@ -1,9 +1,12 @@
-#include "log4cpp/log4cpp.hpp"
+#include <string>  // for std::string
+#include <utility> // for std::move
+#include <vector>  // for std::vector
 
-#include "config/appender.hpp"
-#include "config/log4cpp.hpp"
-#include "config/logger.hpp"
-#include "exception/config_exception.hpp"
+#include "config/appender.hpp"            // for APPENDER_TABLE
+#include "config/log4cpp.hpp"             // for appender_name_to_flag
+#include "config/logger.hpp"              // for logger config
+#include "exception/config_exception.hpp" // for invalid_config_exception
+#include "log4cpp/log4cpp.hpp"            // for to_string
 
 namespace log4cpp::config {
     void to_json(json_value &j, const logger &config) {

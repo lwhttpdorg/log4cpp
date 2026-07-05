@@ -1,14 +1,14 @@
 #pragma once
 
-#include <cstdint>
-#include <initializer_list>
-#include <memory>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include <vector>
+#include <cstdint>          // for int64_t, uint64_t
+#include <initializer_list> // for std::initializer_list
+#include <memory>           // for std::unique_ptr
+#include <sstream>          // for std::ostringstream
+#include <stdexcept>        // for std::runtime_error
+#include <string>           // for std::string
+#include <unordered_map>    // for std::unordered_map
+#include <utility>          // for std::move
+#include <vector>           // for std::vector
 
 namespace log4cpp {
 

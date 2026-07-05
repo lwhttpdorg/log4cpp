@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
+#include <cstring> // for std::strlen, std::strstr
+#include <string>  // for std::string
 
-#include <cstring>
-#include <string>
+#include <gtest/gtest.h> // for TEST, ASSERT_NE, EXPECT_*
 
-#include <log4cpp/log4cpp.hpp>
-#include "pattern/log_pattern.hpp"
+#include "log4cpp/log4cpp.hpp"     // for log_level, LOG_LINE_MAX
+#include "pattern/log_pattern.hpp" // for log_pattern
 
 TEST(log_truncate_tests, pattern_format_does_not_overflow_on_long_message) {
     char buf[2048];

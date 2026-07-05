@@ -1,15 +1,14 @@
-#include <filesystem>
+#include <cstddef> // for size_t
+#include <cstring> // for strcpy
+#include <ctime>   // for tm
+#include <string>  // for std::string
 
-#ifdef __GNUC__
+#include <gtest/gtest.h> // for TEST
 
-#endif
+#include "common/log_utils.hpp"    // for get_time_now, log4c_scnprintf
+#include "pattern/log_pattern.hpp" // for log_pattern
 
-#include <gtest/gtest.h>
-
-#include "common/log_utils.hpp"
-#include "pattern/log_pattern.hpp"
-
-#include "../include/log4cpp_test.h"
+#include "../include/log4cpp_test.h" // for LOG4C_EXPECT_STRN_EQ
 
 TEST(log_pattern_tests, full_format_test) {
     const std::string pattern = "${5NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}";

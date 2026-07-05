@@ -1,6 +1,8 @@
-#include <thread>
+#include <memory> // for std::shared_ptr
+#include <string> // for std::string
+#include <thread> // for std::thread
 
-#include <log4cpp/log4cpp.hpp>
+#include "log4cpp/log4cpp.hpp" // for logger, logger_manager
 
 class demo {
 public:

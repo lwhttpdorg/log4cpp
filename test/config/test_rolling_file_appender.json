@@ -1,0 +1,30 @@
+{
+	"log-pattern": "${12NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${msg}",
+	"appenders": {
+		"file": {
+			"file-path": "log/rolling_file_appender_test.log",
+			"rolling": {
+				"policy": "size",
+				"file-size": "256B",
+				"file-count": 2,
+				"max-history": "30d"
+			}
+		}
+	},
+	"loggers": [
+		{
+			"name": "rolling",
+			"level": "INFO",
+			"appenders": [
+				"file"
+			]
+		},
+		{
+			"name": "root",
+			"level": "INFO",
+			"appenders": [
+				"file"
+			]
+		}
+	]
+}

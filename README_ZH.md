@@ -50,6 +50,7 @@ log4cpp是一个C++日志库, 参照log4j实现
 * 通过JSON文件配置, 无需修改代码即可改变其行为
 * 支持输出日志到STDOUT和STDERR
 * 支持输出日志到指定文件
+* 支持文件日志按大小、时间、启动滚动, 并支持按数量和历史时间清理归档
 * 支持输出日志到日志服务器(TCP/UDP)
 * 单例模式
 * 线程安全
@@ -345,7 +346,7 @@ _注: 默认log-pattern为`"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}
 
 ##### 3.2.1.2. 输出器(Appender)
 
-输出器有四种类型: 控制台输出器(`console`), 文件输出器(`file`), Socket输出器(`socket`, 默认是TCP)
+输出器有三种类型: 控制台输出器(`console`), 文件输出器(`file`), Socket输出器(`socket`, 默认是TCP)
 
 一个简单的配置文件示例:
 
@@ -403,6 +404,43 @@ _注: 默认log-pattern为`"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}
 说明:
 
 * `file-path`: 输出文件名
+* `rolling`: 可选的滚动配置. 如果不配置, 文件输出器会一直追加写入`file-path`.
+
+滚动文件配置示例:
+
+```json
+{
+  "appenders": {
+    "file": {
+      "file-path": "log/log4cpp.log",
+      "rolling": {
+        "policy": "size-time",
+        "file-size": "10MB",
+        "interval": "day",
+        "file-count": 10,
+        "max-history": "30d"
+      }
+    }
+  }
+}
+```
+
+滚动配置字段:
+
+* `policy`: 滚动触发策略. 支持`none`, `size`, `time`, `on-start`, `size-time`.
+* `file-size`: `size`策略使用的当前日志文件大小阈值. 支持`B`, `KB`, `MB`, `GB`.
+* `interval`: `time`策略使用的时间间隔. 支持`hour`, `day`.
+* `file-count`: 最多保留的归档日志文件数量. 为`0`或不配置表示不按数量限制.
+* `max-history`: 归档日志最长保留时间. 支持`s`, `m`, `h`, `d`, `w`.
+
+`size-time`策略会按配置的时间`interval`对归档分组, 但滚动触发条件是`file-size`.
+例如按天分组时, 当前日期的活动文件达到大小阈值后才会创建新的归档文件.
+
+归档文件名由滚动策略决定:
+
+* `size`: `log4cpp.log.1`, `log4cpp.log.2`
+* `time`: 按天滚动为`log4cpp.log.20260705`, 按小时滚动为`log4cpp.log.2026070514`
+* `size-time`: `log4cpp.log.20260705.1`, `log4cpp.log.20260705.2`
 
 ##### 3.2.1.5. Socket输出器
 

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <array>   // for std::array
-#include <cstddef> // for size_t
-#include <string>  // for std::string
-#include <string_view>
+#include <array>       // for std::array
+#include <cstddef>     // for size_t
+#include <ctime>       // for tm
+#include <string>      // for std::string
+#include <string_view> // for std::string_view
 
 #include "log4cpp/log4cpp.hpp" // for log_level
 

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <stdexcept>
+#include <stdexcept> // for std::runtime_error
+#include <string>    // for std::string
 
 namespace log4cpp::config {
     class invalid_config_exception: public std::runtime_error {

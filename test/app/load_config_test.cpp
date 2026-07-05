@@ -1,22 +1,23 @@
-#include <gtest/gtest.h>
+#include <algorithm>  // for std::find
+#include <chrono>     // for std::chrono
+#include <cstdint>    // for uint64_t
+#include <filesystem> // for std::filesystem
+#include <fstream>    // for std::ifstream
+#include <string>     // for std::string
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include <windows.h> // for Windows API
 #endif
 
-#include <algorithm>
-#include <common/log_utils.hpp>
-#include <filesystem>
-#include <fstream>
+#include <gtest/gtest.h> // for TEST, EXPECT_*
 
-#include "common/json.hpp"
-
-#include "log4cpp/log4cpp.hpp"
-
-#include "common/log_net.hpp"
-#include "config/log4cpp.hpp"
-#include "exception/config_exception.hpp"
+#include "common/json.hpp"                // for json_value
+#include "common/log_net.hpp"             // for prefer_stack
+#include "common/log_utils.hpp"           // for to_lower
+#include "config/log4cpp.hpp"             // for log4cpp config
+#include "exception/config_exception.hpp" // for config exceptions
+#include "log4cpp/log4cpp.hpp"            // for supervisor
 
 using json = log4cpp::json_value;
 
@@ -33,6 +34,43 @@ void console_appender_check(const json &console_appender, const log4cpp::config:
 void file_appender_check(const json &file_appender, const log4cpp::config::file_appender &cfg) {
     const std::string expected = file_appender.at("file-path").get<std::string>();
     EXPECT_EQ(cfg.file_path, expected);
+
+    ASSERT_EQ(file_appender.contains("rolling"), cfg.rolling.has_value());
+    if (!cfg.rolling) {
+        return;
+    }
+
+    const json &rolling = file_appender.at("rolling");
+    const log4cpp::config::rolling_policy &rolling_cfg = cfg.rolling.value();
+
+    std::string expected_policy = rolling.at("policy").get<std::string>();
+    expected_policy = log4cpp::common::to_lower(expected_policy);
+    std::string actual_policy;
+    log4cpp::config::to_string(rolling_cfg.policy, actual_policy);
+    EXPECT_EQ(actual_policy, expected_policy);
+
+    if (rolling.contains("file-size")) {
+        const uint64_t expected_file_size =
+            log4cpp::config::file_appender::parse_file_size(rolling.at("file-size").get<std::string>());
+        EXPECT_EQ(rolling_cfg.file_size, expected_file_size);
+    }
+
+    if (rolling.contains("interval")) {
+        log4cpp::config::rolling_time_interval expected_interval;
+        log4cpp::config::from_string(rolling.at("interval").get<std::string>(), expected_interval);
+        EXPECT_EQ(rolling_cfg.interval, expected_interval);
+    }
+
+    if (rolling.contains("file-count")) {
+        const uint64_t expected_file_count = rolling.at("file-count").get<uint64_t>();
+        EXPECT_EQ(rolling_cfg.file_count, expected_file_count);
+    }
+
+    if (rolling.contains("max-history")) {
+        const std::chrono::seconds expected_max_history =
+            log4cpp::config::file_appender::parse_history(rolling.at("max-history").get<std::string>());
+        EXPECT_EQ(rolling_cfg.max_history, expected_max_history);
+    }
 }
 
 void socket_appender_check(const json &tcp_appender, const log4cpp::config::socket_appender &cfg) {
@@ -73,21 +111,27 @@ void appenders_check(const json &appenders_json, const log4cpp::config::log_appe
     const json &appenders = appenders_json.at("appenders");
     // Console Appender
     ASSERT_EQ(true == appenders.contains("console"), appenders_cfg.console.has_value());
-    const log4cpp::config::console_appender &console_appender_cfg = appenders_cfg.console.value();
-    const json &console_appender = appenders.at("console");
-    console_appender_check(console_appender, console_appender_cfg);
+    if (appenders_cfg.console) {
+        const log4cpp::config::console_appender &console_appender_cfg = appenders_cfg.console.value();
+        const json &console_appender = appenders.at("console");
+        console_appender_check(console_appender, console_appender_cfg);
+    }
 
     // File Appender
     ASSERT_EQ(true == appenders.contains("file"), appenders_cfg.file.has_value());
-    const log4cpp::config::file_appender &file_appender_cfg = appenders_cfg.file.value();
-    const json &file_appender = appenders.at("file");
-    file_appender_check(file_appender, file_appender_cfg);
+    if (appenders_cfg.file) {
+        const log4cpp::config::file_appender &file_appender_cfg = appenders_cfg.file.value();
+        const json &file_appender = appenders.at("file");
+        file_appender_check(file_appender, file_appender_cfg);
+    }
 
     // Socket Appender
     ASSERT_EQ(true == appenders.contains("socket"), appenders_cfg.socket.has_value());
-    const log4cpp::config::socket_appender &socket_appender_cfg = appenders_cfg.socket.value();
-    const json &socket_appender = appenders.at("socket");
-    socket_appender_check(socket_appender, socket_appender_cfg);
+    if (appenders_cfg.socket) {
+        const log4cpp::config::socket_appender &socket_appender_cfg = appenders_cfg.socket.value();
+        const json &socket_appender = appenders.at("socket");
+        socket_appender_check(socket_appender, socket_appender_cfg);
+    }
 }
 
 void from_json_logger(const json &j, log4cpp::config::logger &obj) {
@@ -192,6 +236,46 @@ TEST(load_config_test, load_config_test_2) {
     json expected_json;
     parse_json(config_file, expected_json);
     configuration_check(expected_json, config);
+}
+
+TEST(load_config_test, load_rolling_file_appender_config) {
+    const std::string config_file = "test_rolling_file_appender.json";
+    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
+    ASSERT_NO_THROW(log_mgr.load_config(config_file));
+    const log4cpp::config::log4cpp *config = log_mgr.get_config();
+    ASSERT_NE(nullptr, config);
+
+    json expected_json;
+    parse_json(config_file, expected_json);
+    configuration_check(expected_json, config);
+}
+
+TEST(load_config_test, rolling_policy_parse_all_policies) {
+    const json rolling_none = json::parse(R"({"policy":"none"})");
+    const json rolling_size = json::parse(R"({"policy":"size","file-size":"1KB"})");
+    const json rolling_time = json::parse(R"({"policy":"time","interval":"hour"})");
+    const json rolling_on_start = json::parse(R"({"policy":"on-start"})");
+    const json rolling_size_time = json::parse(R"({"policy":"size-time","file-size":"1KB","interval":"day"})");
+
+    log4cpp::config::rolling_policy cfg;
+    from_json(rolling_none, cfg);
+    EXPECT_EQ(cfg.policy, log4cpp::config::rolling_policy_type::NONE);
+
+    from_json(rolling_size, cfg);
+    EXPECT_EQ(cfg.policy, log4cpp::config::rolling_policy_type::SIZE);
+    EXPECT_EQ(cfg.file_size, 1024);
+
+    from_json(rolling_time, cfg);
+    EXPECT_EQ(cfg.policy, log4cpp::config::rolling_policy_type::TIME);
+    EXPECT_EQ(cfg.interval, log4cpp::config::rolling_time_interval::HOUR);
+
+    from_json(rolling_on_start, cfg);
+    EXPECT_EQ(cfg.policy, log4cpp::config::rolling_policy_type::ON_START);
+
+    from_json(rolling_size_time, cfg);
+    EXPECT_EQ(cfg.policy, log4cpp::config::rolling_policy_type::SIZE_TIME);
+    EXPECT_EQ(cfg.file_size, 1024);
+    EXPECT_EQ(cfg.interval, log4cpp::config::rolling_time_interval::DAY);
 }
 
 TEST(load_config_test, missing_appenders_field) {

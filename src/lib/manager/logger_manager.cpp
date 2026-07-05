@@ -1,13 +1,13 @@
-#include <cerrno>     // for errno
-#include <cstdio>     // for stdout, stderr
-#include <cstring>    // for std::strerror
-#include <filesystem> // for std::filesystem
-#include <fstream>    // for std::ifstream
-#include <utility>    // for std::move
+#include <cerrno>        // for errno
+#include <cstdio>        // for stdout, stderr
+#include <cstring>       // for std::strerror
+#include <filesystem>    // for std::filesystem
+#include <fstream>       // for std::ifstream
+#include <unordered_set> // for std::unordered_set
+#include <utility>       // for std::move
 
 #ifndef _WIN32
-#include <unistd.h>      // for read, write, close, pipe
-#include <unordered_set> // for std::unordered_set
+#include <unistd.h> // for read, write, close, pipe
 #ifdef __linux__
 #include <sys/eventfd.h> // for eventfd
 #endif
@@ -208,16 +208,10 @@ namespace log4cpp {
 
         this->config = std::make_unique<config::log4cpp>();
         this->config->log_pattern = DEFAULT_LOG_PATTERN;
-#if __cplusplus >= 202002L
         this->config->appenders.console = config::console_appender{.out_stream = "stdout"};
         const config::logger fallback_logger{.name = FALLBACK_LOGGER_NAME,
                                              .level = log_level::WARN,
                                              .appender = static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)};
-#else
-        this->config->appenders.console = config::console_appender{"stdout"};
-        const config::logger fallback_logger{FALLBACK_LOGGER_NAME, log_level::WARN,
-                                             static_cast<unsigned char>(config::APPENDER_TYPE::CONSOLE)};
-#endif
         this->config->loggers.emplace(fallback_logger.name, fallback_logger);
     }
 

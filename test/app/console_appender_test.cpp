@@ -1,9 +1,10 @@
-#include <filesystem>
-#include <thread>
+#include <memory> // for std::shared_ptr
+#include <string> // for std::string
+#include <thread> // for std::thread
 
-#include <gtest/gtest.h>
+#include <gtest/gtest.h> // for TEST, ASSERT_NO_THROW
 
-#include "log4cpp/log4cpp.hpp"
+#include "log4cpp/log4cpp.hpp" // for logger, logger_manager, supervisor
 
 void console_appender_logger() {
     const std::shared_ptr<log4cpp::logger> log = log4cpp::logger_manager::get_logger("hello");

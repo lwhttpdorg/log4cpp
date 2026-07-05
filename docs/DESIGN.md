@@ -59,6 +59,7 @@ with JSON-based configuration, multiple output appenders, and hot configuration 
 
 - JSON-based configuration (no code modification required)
 - Multiple appender types: Console, File, Socket (TCP/UDP)
+- Rolling file appender support with size, time, startup, count, and history retention policies
 - Singleton pattern for global access
 - Thread-safe implementation
 - Hot configuration reload without process restart (Linux only)
@@ -90,7 +91,7 @@ graph LR
 | `real_logger`      | Concrete logging implementation                         |
 | `log_pattern`      | Format log messages with patterns (per-logger instance) |
 | `console_appender` | Output to stdout/stderr                                 |
-| `file_appender`    | Output to file                                          |
+| `file_appender`    | Output to file, optionally with rolling and retention    |
 | `socket_appender`  | Output to remote log server                             |
 
 ---
@@ -278,6 +279,10 @@ classDiagram
     }
 
     class file_appender {
+        -file_path: string
+        -rolling: optional~rolling_policy~
+        -current_size: uint64_t
+        -opened_time_bucket: string
         -fd: int
         -lock: log_lock
         +log(msg, msg_len)
@@ -329,6 +334,10 @@ Writes log messages to a specified file:
 // filepath: src/include/appender/file_appender.hpp
 class file_appender : public log_appender {
 private:
+    std::string file_path;
+    std::optional<config::rolling_policy> rolling;
+    uint64_t current_size{0};
+    std::string opened_time_bucket;
     int fd{-1};
     common::log_lock lock;
 
@@ -338,6 +347,21 @@ public:
     ~file_appender() override;
 };
 ```
+
+The file appender supports optional rolling behavior configured by `config::rolling_policy`:
+
+- `size`: rotate before a write would make the active file exceed `file-size`.
+- `time`: rotate when the configured time bucket changes (`hour` or `day`).
+- `on-start`: rotate an existing non-empty active file when the appender is constructed.
+- `size-time`: group archives by time bucket, but rotate when the current bucket's active file reaches `file-size`.
+
+Archived file names depend on the rolling policy:
+
+- `size`: `app.log.1`, `app.log.2`
+- `time`: `app.log.20260705` for day rolling, or `app.log.2026070514` for hour rolling
+- `size-time`: `app.log.20260705.1`, `app.log.20260705.2`
+
+After each rotation, retention cleanup removes archived files exceeding `file-count` or `max-history`.
 
 #### 4.2.3. Socket Appender
 
@@ -399,6 +423,15 @@ classDiagram
 
     class file_appender {
         -file_path: string
+        -rolling: optional~rolling_policy~
+    }
+
+    class rolling_policy {
+        -policy: rolling_policy_type
+        -file_size: uint64_t
+        -interval: rolling_time_interval
+        -file_count: uint32_t
+        -max_history: chrono::seconds
     }
 
     class socket_appender {
@@ -412,6 +445,7 @@ classDiagram
     log4cpp --> logger
     log_appender --> console_appender
     log_appender --> file_appender
+    file_appender --> rolling_policy
     log_appender --> socket_appender
 ```
 
@@ -425,7 +459,14 @@ classDiagram
       "out-stream": "stdout"
     },
     "file": {
-      "file-path": "/var/log/myapp.log"
+      "file-path": "/var/log/myapp.log",
+      "rolling": {
+        "policy": "size-time",
+        "file-size": "10MB",
+        "interval": "day",
+        "file-count": 10,
+        "max-history": "30d"
+      }
     },
     "socket": {
       "host": "log-server.example.com",
@@ -460,6 +501,16 @@ classDiagram
 
 Each logger declares which appenders it uses via the `"appenders"` string array. Only appenders defined in the top-level
 `"appenders"` object may be referenced. Valid names are `console`, `file`, and `socket`.
+
+File appender rolling configuration is optional. Supported rolling fields:
+
+| Field         | Description                                                                           |
+|---------------|---------------------------------------------------------------------------------------|
+| `policy`      | `none`, `size`, `time`, `on-start`, or `size-time`                                     |
+| `file-size`   | Active file size threshold for `size` and `size-time`, with units `B`, `KB`, `MB`, `GB` |
+| `interval`    | Time bucket for `time` and `size-time`, either `hour` or `day`                         |
+| `file-count`  | Maximum archived file count; `0` or omitted means no count limit                       |
+| `max-history` | Maximum archived file age, with units `s`, `m`, `h`, `d`, or `w`                       |
 
 ---
 

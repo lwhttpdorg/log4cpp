@@ -1,6 +1,12 @@
-#include "logger/real_logger.hpp"
-#include "appender/log_appender.hpp"
-#include "pattern/log_pattern.hpp"
+#include <memory>       // for std::shared_ptr
+#include <mutex>        // for std::unique_lock
+#include <shared_mutex> // for std::shared_lock
+#include <string>       // for std::string
+#include <string_view>  // for std::string_view
+
+#include "appender/log_appender.hpp" // for log_appender
+#include "logger/real_logger.hpp"    // for real_logger
+#include "pattern/log_pattern.hpp"   // for log_pattern
 
 namespace log4cpp {
     real_logger::real_logger() {

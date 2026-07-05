@@ -1,10 +1,8 @@
-#if __cplusplus >= 202002L
-#include <format>
-#endif
+#include <format> // for std::format
 
-#include "config/appender.hpp"
-#include "config/log4cpp.hpp"
-#include "exception/config_exception.hpp"
+#include "config/appender.hpp"            // for APPENDER_TABLE
+#include "config/log4cpp.hpp"             // for log4cpp config
+#include "exception/config_exception.hpp" // for invalid_config_exception
 
 namespace log4cpp::config {
     // =========================================================
@@ -205,13 +203,8 @@ namespace log4cpp::config {
                     }
                 }
                 if (!exists) {
-#if __cplusplus >= 202002L
                     throw invalid_config_exception(
                         std::format("logger '{}' references undefined appender '{}'", name, ref));
-#else
-                    // NOLINTNEXTLINE(performance-inefficient-string-concatenation)
-                    throw invalid_config_exception("logger '" + name + "' references undefined appender '" + ref + "'");
-#endif
                 }
             }
         }

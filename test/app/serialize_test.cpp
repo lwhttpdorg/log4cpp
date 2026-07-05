@@ -1,26 +1,12 @@
-#include <filesystem>
-#include <fstream>
+#include <filesystem> // for std::filesystem
+#include <fstream>    // for std::ifstream, std::ofstream
+#include <string>     // for std::string
 
-#include "common/json.hpp"
+#include <gtest/gtest.h> // for TEST, ASSERT_*
 
-#include "log4cpp/log4cpp.hpp"
-
-#include <gtest/gtest.h>
-
-#include "config/log4cpp.hpp"
-
-namespace fs = std::filesystem;
-
-#if __cplusplus < 202002L
-#include <string_view>
-
-bool starts_with(const std::string &str, const std::string &prefix) {
-    if (str.length() < prefix.length()) {
-        return false;
-    }
-    return std::string_view(str.data(), prefix.length()) == prefix;
-}
-#endif
+#include "common/json.hpp"     // for json_value
+#include "config/log4cpp.hpp"  // for log4cpp config
+#include "log4cpp/log4cpp.hpp" // for supervisor
 
 void parse_json(const std::string &config_file, log4cpp::json_value &expected_json) {
     std::ifstream ifs(config_file);
@@ -32,18 +18,12 @@ void parse_json(const std::string &config_file, log4cpp::json_value &expected_js
 TEST(configuration_serialize_test, log4cpp_config_roundtrip_test) {
     auto &log_mgr = log4cpp::supervisor::get_logger_manager();
 
-    for (const auto &entry: fs::directory_iterator(fs::current_path())) {
+    for (const auto &entry: std::filesystem::directory_iterator(std::filesystem::current_path())) {
         if (entry.is_regular_file() && entry.path().extension() == ".json") {
             const std::string filename = entry.path().filename().string();
-#if __cplusplus >= 202002L
             if (!filename.starts_with("test_") && !filename.starts_with("log4cpp")) {
                 continue;
             }
-#else
-            if (!starts_with(filename, "test_") && !starts_with(filename, "log4cpp")) {
-                continue;
-            }
-#endif
 
             // Load original config
             ASSERT_NO_THROW(log_mgr.load_config(filename));
@@ -53,7 +33,7 @@ TEST(configuration_serialize_test, log4cpp_config_roundtrip_test) {
             const std::string json_str = log4cpp::config::log4cpp::serialize(original_config);
 
             // Write to a temporary file
-            const std::string tmpfile = (fs::temp_directory_path() / entry.path().filename()).string();
+            const std::string tmpfile = (std::filesystem::temp_directory_path() / entry.path().filename()).string();
             {
                 std::ofstream ofs(tmpfile);
                 ofs << json_str;

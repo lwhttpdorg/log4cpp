@@ -1,11 +1,13 @@
 #pragma once
 
-#include <array>
-#include <optional>
-#include <unordered_map>
+#include <array>         // for std::array
+#include <optional>      // for std::optional
+#include <string>        // for std::string
+#include <unordered_map> // for std::unordered_map
+#include <vector>        // for std::vector
 
-#include "appender.hpp"
-#include "logger.hpp"
+#include "appender.hpp" // for appender configs
+#include "logger.hpp"   // for logger config
 
 namespace log4cpp::config {
     // =========================================================

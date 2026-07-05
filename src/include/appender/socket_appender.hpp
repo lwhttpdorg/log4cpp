@@ -1,14 +1,18 @@
 #pragma once
 
-#include <atomic>
-#include <condition_variable>
-#include <mutex>
-#include <optional>
-#include <thread>
+#include <atomic>             // for std::atomic
+#include <chrono>             // for std::chrono
+#include <condition_variable> // for std::condition_variable
+#include <cstdint>            // for uint8_t
+#include <mutex>              // for std::mutex
+#include <optional>           // for std::optional
+#include <shared_mutex>       // for std::shared_mutex
+#include <string>             // for std::string
+#include <thread>             // for std::thread
 
-#include "appender/log_appender.hpp"
-#include "common/log_net.hpp"
-#include "config/appender.hpp"
+#include "appender/log_appender.hpp" // for log_appender
+#include "common/log_net.hpp"        // for net_addr, sock_addr, socket_fd
+#include "config/appender.hpp"       // for socket_appender config
 
 namespace log4cpp::appender {
     constexpr std::chrono::seconds send_timeout = std::chrono::seconds(1);

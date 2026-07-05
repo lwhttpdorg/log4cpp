@@ -1,20 +1,23 @@
-#include <atomic>
-#include <chrono>
-#include <csignal>
-#include <cstdio>
-#include <cstring>
-#include <filesystem>
-#include <fstream>
-#include <memory>
-#include <regex>
-#include <string>
-#include <thread>
-#include <unistd.h>
-#include <vector>
+#include <atomic>     // for std::atomic
+#include <chrono>     // for std::chrono
+#include <csignal>    // for raise, SIGUSR2
+#include <cstdio>     // for std::remove
+#include <cstring>    // for std::strcmp
+#include <filesystem> // for std::filesystem
+#include <fstream>    // for std::ofstream
+#include <memory>     // for std::shared_ptr
+#include <regex>      // for std::regex
+#include <string>     // for std::string
+#include <thread>     // for std::thread
+#include <vector>     // for std::vector
 
-#include <gtest/gtest.h>
+#ifndef _WIN32
+#include <unistd.h> // for usleep
+#endif
 
-#include "log4cpp/log4cpp.hpp"
+#include <gtest/gtest.h> // for TEST_F, EXPECT_*
+
+#include "log4cpp/log4cpp.hpp" // for logger_manager
 
 std::atomic config_epoch(0);
 
@@ -174,12 +177,8 @@ TEST_F(log4cpp_config_hot_reload_test, multi_thread_signal_hotloading) {
     log_file.clear();
     log_file.seekg(0, std::ios::beg);
     while (std::getline(log_file, line)) {
-// start with "aaa"
-#if __cplusplus >= 202002L
+        // start with "aaa"
         if (line.starts_with("aaa")) {
-#else
-        if (line.substr(0, 3) == "aaa") {
-#endif
             // regex_search for log level \\[(FATAL|ERROR|WARN|INFO|DEBUG|TRACE)\\s*\\]
             std::smatch match;
             std::regex level_pattern(R"(\[(FATAL|ERROR|WARN|INFO|DEBUG|TRACE)\s*\])");

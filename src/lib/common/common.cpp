@@ -1,7 +1,8 @@
-#include <stdexcept>
+#include <stdexcept> // for std::invalid_argument
+#include <string>    // for std::string
 
-#include "common/log_utils.hpp"
-#include "log4cpp/log4cpp.hpp"
+#include "common/log_utils.hpp" // for to_lower
+#include "log4cpp/log4cpp.hpp"  // for log_level
 
 namespace log4cpp {
     // String constants for each log level.

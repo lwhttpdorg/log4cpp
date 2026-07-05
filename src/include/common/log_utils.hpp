@@ -1,9 +1,12 @@
 #pragma once
 
-#include <cstddef>
-#include <string>
+#include <cstdarg> // for va_list
+#include <cstddef> // for size_t
+#include <cstdio>  // for FILE
+#include <ctime>   // for tm
+#include <string>  // for std::string
 
-#include "log4cpp/log4cpp.hpp"
+#include "log4cpp/log4cpp.hpp" // for log_level
 
 namespace log4cpp::common {
     /**

@@ -50,6 +50,7 @@ Features:
 * Configurable via JSON files, no code modification required
 * Supports logging to STDOUT and STDERR
 * Supports logging to specified files
+* Supports size/time/startup rolling for file logs, with count and history retention
 * Supports logging to log server (TCP/UDP)
 * Singleton pattern
 * Thread-safe
@@ -408,6 +409,43 @@ The File Appender outputs logs to a specified file. Typical configuration is as 
 Description:
 
 * `file-path`: Output file name
+* `rolling`: Optional rolling configuration. If omitted, the file appender keeps appending to `file-path`.
+
+Rolling file configuration example:
+
+```json
+{
+  "appenders": {
+    "file": {
+      "file-path": "log/log4cpp.log",
+      "rolling": {
+        "policy": "size-time",
+        "file-size": "10MB",
+        "interval": "day",
+        "file-count": 10,
+        "max-history": "30d"
+      }
+    }
+  }
+}
+```
+
+Rolling fields:
+
+* `policy`: Rolling trigger. Supported values are `none`, `size`, `time`, `on-start`, and `size-time`.
+* `file-size`: Maximum active log file size for `size` policy. Supports `B`, `KB`, `MB`, and `GB`.
+* `interval`: Time rolling interval for `time` policy. Supported values are `hour` and `day`.
+* `file-count`: Maximum number of archived log files to keep. `0` or omitted means no count limit.
+* `max-history`: Maximum age of archived log files. Supports `s`, `m`, `h`, `d`, and `w`.
+
+The `size-time` policy groups archives by the configured time `interval`, but rotation is triggered by `file-size`.
+For example, day-based `size-time` archives are created as the current day's active file reaches the size threshold.
+
+Archived file names depend on the rolling policy:
+
+* `size`: `log4cpp.log.1`, `log4cpp.log.2`
+* `time`: `log4cpp.log.20260705` for day rolling, or `log4cpp.log.2026070514` for hour rolling
+* `size-time`: `log4cpp.log.20260705.1`, `log4cpp.log.20260705.2`
 
 #### 3.2.2. Socket appender
 

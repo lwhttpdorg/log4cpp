@@ -1,9 +1,10 @@
 #pragma once
 
-#include <memory>
-#include <string>
+#include <memory>      // for std::shared_ptr
+#include <string>      // for std::string
+#include <string_view> // for std::string_view
 
-#include "log4cpp/log4cpp.hpp"
+#include "log4cpp/log4cpp.hpp" // for logger, logger_manager, log_level
 
 namespace log4cpp {
     /**
