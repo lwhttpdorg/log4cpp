@@ -133,26 +133,77 @@ meson test -C meson-build-debug -v
 Generating a coverage report requires GCC, gcov, and [gcovr](https://gcovr.com/). Run the tests before invoking gcovr
 so that the build directory contains coverage data.
 
-The following commands generate an HTML report with per-source-file details. Open `coverage.html` in a browser to view
-the result.
+gcovr can generate two kinds of HTML report:
+
+* `--html` creates a simple, single-file summary.
+* `--html-details` creates an index plus annotated source pages and supporting files. Write it to a dedicated directory
+  to keep these files together.
+
+Choose one report type. Both commands use `coverage/index.html` as the entry point and are not intended to be run
+together for the same report directory.
+
+The `negative_hits.warn_once_per_file` compatibility option handles negative branch counts that some gcov versions
+emit because of a known gcov issue, while still printing one warning for each affected source file.
 
 ### 4.1. CMake
 
 ```shell
-cmake -S . -B cmake-build-coverage -DCMAKE_BUILD_TYPE=Debug -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_LOG4CPP_COVERAGE=ON
-cmake --build cmake-build-coverage -j $(nproc)
-ctest --test-dir cmake-build-coverage --output-on-failure
-gcovr --root . --filter 'src/' --html-details coverage.html cmake-build-coverage
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_LOG4CPP_COVERAGE=ON
+cmake --build cmake-build-debug -j $(nproc)
+ctest --test-dir cmake-build-debug --output-on-failure
 ```
+
+Simple HTML report:
+
+```shell
+mkdir -p coverage
+gcovr --root . --filter 'src/' \
+  --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+  --html coverage/index.html cmake-build-debug
+```
+
+Open `coverage/index.html` in a browser.
+
+Detailed HTML report:
+
+```shell
+mkdir -p coverage
+gcovr --root . --filter 'src/' \
+  --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+  --html-details coverage/index.html cmake-build-debug
+```
+
+Open `coverage/index.html` in a browser. All files belonging to the detailed report are contained in `coverage`.
 
 ### 4.2. Meson
 
 ```shell
-meson setup meson-build-coverage -Dbuildtype=debug -Denable_tests=true -Denable_coverage=true
-meson compile -C meson-build-coverage -j $(nproc)
-meson test -C meson-build-coverage --print-errorlogs
-gcovr --root . --filter 'src/' --html-details coverage.html meson-build-coverage
+meson setup meson-build-debug -Dbuildtype=debug -Denable_tests=true -Denable_coverage=true
+meson compile -C meson-build-debug -j $(nproc)
+meson test -C meson-build-debug --print-errorlogs
 ```
+
+Simple HTML report:
+
+```shell
+mkdir -p coverage
+gcovr --root . --filter 'src/' \
+  --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+  --html coverage/index.html meson-build-debug
+```
+
+Open `coverage/index.html` in a browser.
+
+Detailed HTML report:
+
+```shell
+mkdir -p coverage
+gcovr --root . --filter 'src/' \
+  --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+  --html-details coverage/index.html meson-build-debug
+```
+
+Open `coverage/index.html` in a browser. All files belonging to the detailed report are contained in `coverage`.
 
 Use a clean, dedicated build directory when collecting coverage. Stale `.gcda` files from earlier test runs can make
 the report inaccurate.

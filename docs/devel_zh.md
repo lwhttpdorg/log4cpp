@@ -133,25 +133,75 @@ meson test -C meson-build-debug -v
 生成覆盖率报告需要GCC、gcov和[gcovr](https://gcovr.com/)。调用gcovr之前应先运行测试，使构建目录中
 生成覆盖率数据。
 
-下面的命令会生成包含各源码文件明细的HTML报告。完成后使用浏览器打开`coverage.html`即可查看。
+gcovr可以生成两种HTML报告:
+
+* `--html`生成简单的单文件汇总报告。
+* `--html-details`生成入口页面、带标注的源码页面及辅助文件。应将其输出到专用目录，以便集中保存。
+
+两种报告任选其一，均使用`coverage/index.html`作为入口，不应在同一报告目录中连续生成两种报告。
+
+部分gcov版本会因已知问题生成负数分支命中次数；`negative_hits.warn_once_per_file`兼容选项会忽略这些
+负数，同时为每个受影响的源码文件保留一条警告。
 
 ### 4.1. CMake
 
 ```shell
-cmake -S . -B cmake-build-coverage -DCMAKE_BUILD_TYPE=Debug -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_LOG4CPP_COVERAGE=ON
-cmake --build cmake-build-coverage -j $(nproc)
-ctest --test-dir cmake-build-coverage --output-on-failure
-gcovr --root . --filter 'src/' --html-details coverage.html cmake-build-coverage
+cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_LOG4CPP_COVERAGE=ON
+cmake --build cmake-build-debug -j $(nproc)
+ctest --test-dir cmake-build-debug --output-on-failure
 ```
+
+简单HTML报告:
+
+```shell
+mkdir -p coverage
+gcovr --root . --filter 'src/' \
+  --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+  --html coverage/index.html cmake-build-debug
+```
+
+使用浏览器打开`coverage/index.html`即可查看。
+
+详细HTML报告:
+
+```shell
+mkdir -p coverage
+gcovr --root . --filter 'src/' \
+  --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+  --html-details coverage/index.html cmake-build-debug
+```
+
+使用浏览器打开`coverage/index.html`即可查看。详细报告的所有文件均保存在`coverage`目录中。
 
 ### 4.2. Meson
 
 ```shell
-meson setup meson-build-coverage -Dbuildtype=debug -Denable_tests=true -Denable_coverage=true
-meson compile -C meson-build-coverage -j $(nproc)
-meson test -C meson-build-coverage --print-errorlogs
-gcovr --root . --filter 'src/' --html-details coverage.html meson-build-coverage
+meson setup meson-build-debug -Dbuildtype=debug -Denable_tests=true -Denable_coverage=true
+meson compile -C meson-build-debug -j $(nproc)
+meson test -C meson-build-debug --print-errorlogs
 ```
+
+简单HTML报告:
+
+```shell
+mkdir -p coverage
+gcovr --root . --filter 'src/' \
+  --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+  --html coverage/index.html meson-build-debug
+```
+
+使用浏览器打开`coverage/index.html`即可查看。
+
+详细HTML报告:
+
+```shell
+mkdir -p coverage
+gcovr --root . --filter 'src/' \
+  --gcov-ignore-parse-errors negative_hits.warn_once_per_file \
+  --html-details coverage/index.html meson-build-debug
+```
+
+使用浏览器打开`coverage/index.html`即可查看。详细报告的所有文件均保存在`coverage`目录中。
 
 收集覆盖率时建议使用干净的专用构建目录。之前测试遗留的`.gcda`文件可能导致报告结果不准确。
 

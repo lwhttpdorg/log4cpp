@@ -32,6 +32,9 @@ endif ()
 # List of test targets
 set(TEST_TARGETS
     located_logger_tests
+    logger_core_tests
+    json_value_tests
+    log_net_tests
     load_config_tests
     log_pattern_tests
     log_truncate_tests
@@ -47,6 +50,9 @@ endif ()
 
 # Map each test target to its source file
 set(located_logger_tests_SRC app/located_logger_test.cpp)
+set(logger_core_tests_SRC app/logger_core_test.cpp)
+set(json_value_tests_SRC app/json_value_test.cpp)
+set(log_net_tests_SRC app/log_net_test.cpp)
 set(load_config_tests_SRC app/load_config_test.cpp)
 set(log_pattern_tests_SRC app/log_pattern_test.cpp)
 set(log_truncate_tests_SRC app/log_truncate_test.cpp)

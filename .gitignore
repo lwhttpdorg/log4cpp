@@ -43,6 +43,9 @@ cmake-build/
 cmake-lint/
 build/
 
+# Coverage reports
+/coverage/
+
 # pkg
 obj-*
 

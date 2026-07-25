@@ -37,6 +37,9 @@ endforeach
 
 test_targets = {
     'located_logger_tests': 'app/located_logger_test.cpp',
+    'logger_core_tests': 'app/logger_core_test.cpp',
+    'json_value_tests': 'app/json_value_test.cpp',
+    'log_net_tests': 'app/log_net_test.cpp',
     'load_config_tests': 'app/load_config_test.cpp',
     'log_pattern_tests': 'app/log_pattern_test.cpp',
     'log_truncate_tests': 'app/log_truncate_test.cpp',
