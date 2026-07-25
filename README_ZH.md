@@ -20,7 +20,7 @@
 <!-- /TOC -->
 
 ---
-中文版 | [English Version](README.md) | [用户指南](user_guide_zh.md) | [开发者指南](devel_zh.md)
+中文版 | [English Version](README.md) | [用户指南](docs/user_guide_zh.md) | [开发者指南](docs/devel_zh.md)
 ---
 
 ## 1. Log4cpp是什么?
@@ -416,7 +416,7 @@ cd build-meson
 在Windows上运行生成的`demo.exe`。使用支持多配置的CMake生成器时，通过`--config Release`构建，并在
 `build`目录中运行`Release\demo.exe`。
 
-配置格式、输出器、滚动策略、logger继承及配置热加载请参阅[用户指南](user_guide_zh.md)。
+配置格式、输出器、滚动策略、logger继承及配置热加载请参阅[用户指南](docs/user_guide_zh.md)。
 
 ## 4. 许可
 

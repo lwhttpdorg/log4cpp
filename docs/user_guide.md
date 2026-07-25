@@ -25,7 +25,7 @@
 <!-- /TOC -->
 
 ---
-[中文版](user_guide_zh.md) | English Version | [Quick Start](README.md) | [Developer Guide](devel.md)
+[中文版](docs/user_guide_zh.md) | English Version | [Quick Start](README.md) | [Developer Guide](docs/devel.md)
 ---
 
 

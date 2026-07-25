@@ -20,7 +20,7 @@
 <!-- /TOC -->
 
 ---
-[中文版](README_ZH.md) | English Version | [User Guide](user_guide.md) | [Developer Guide](devel.md)
+[中文版](README_ZH.md) | English Version | [User Guide](docs/user_guide.md) | [Developer Guide](docs/devel.md)
 ---
 
 ## 1. What is log4cpp?
@@ -420,7 +420,7 @@ On Windows, run the generated `demo.exe`. When using a multi-configuration CMake
 `--config Release` and run `Release\demo.exe` from the `build` directory.
 
 For configuration patterns, appenders, rolling policies, logger inheritance, and hot configuration reload, see the
-[User Guide](user_guide.md).
+[User Guide](docs/user_guide.md).
 
 ## 4. License
 

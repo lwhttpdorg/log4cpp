@@ -19,7 +19,7 @@
 <!-- /TOC -->
 
 ---
-中文版 | [English Version](devel.md) | [快速入门](README_ZH.md) | [用户指南](user_guide_zh.md)
+中文版 | [English Version](docs/devel.md) | [快速入门](README_ZH.md) | [用户指南](docs/user_guide_zh.md)
 ---
 
 ## 1. 配置构建

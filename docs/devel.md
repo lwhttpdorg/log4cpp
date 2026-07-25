@@ -19,7 +19,7 @@
 <!-- /TOC -->
 
 ---
-[中文版](devel_zh.md) | English Version | [Quick Start](README.md) | [User Guide](user_guide.md)
+[中文版](docs/devel_zh.md) | English Version | [Quick Start](README.md) | [User Guide](docs/user_guide.md)
 ---
 
 ## 1. Configuring the Build
