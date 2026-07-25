@@ -5,41 +5,23 @@
 - [2. 要求](#2-%E8%A6%81%E6%B1%82)
 - [3. 使用](#3-%E4%BD%BF%E7%94%A8)
   - [3.1. 快速入门](#31-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8)
-    - [3.1.1. 创建CMake项目](#311-%E5%88%9B%E5%BB%BAcmake%E9%A1%B9%E7%9B%AE)
+    - [3.1.1. 创建项目](#311-%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE)
+      - [3.1.1.1. CMake](#3111-cmake)
+      - [3.1.1.2. Meson](#3112-meson)
     - [3.1.2. 引入头文件](#312-%E5%BC%95%E5%85%A5%E5%A4%B4%E6%96%87%E4%BB%B6)
     - [3.1.3. 加载配置文件(可选)](#313-%E5%8A%A0%E8%BD%BD%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%8F%AF%E9%80%89)
     - [3.1.4. 获取logger](#314-%E8%8E%B7%E5%8F%96logger)
     - [3.1.5. 输出log](#315-%E8%BE%93%E5%87%BAlog)
     - [3.1.6. 在类中使用](#316-%E5%9C%A8%E7%B1%BB%E4%B8%AD%E4%BD%BF%E7%94%A8)
     - [3.1.7. 完整示例](#317-%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B)
-  - [3.2. 进阶用法](#32-%E8%BF%9B%E9%98%B6%E7%94%A8%E6%B3%95)
-    - [3.2.1. 配置文件](#321-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6)
-      - [3.2.1.1. 输出格式](#3211-%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F)
-      - [3.2.1.2. 输出器(Appender)](#3212-%E8%BE%93%E5%87%BA%E5%99%A8appender)
-      - [3.2.1.3. 控制台输出器](#3213-%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA%E5%99%A8)
-      - [3.2.1.4. 文件输出器](#3214-%E6%96%87%E4%BB%B6%E8%BE%93%E5%87%BA%E5%99%A8)
-      - [3.2.1.5. Socket输出器](#3215-socket%E8%BE%93%E5%87%BA%E5%99%A8)
-      - [3.2.1.6. logger](#3216-logger)
-  - [3.3. 配置热加载](#33-%E9%85%8D%E7%BD%AE%E7%83%AD%E5%8A%A0%E8%BD%BD)
-- [4. 构建](#4-%E6%9E%84%E5%BB%BA)
-  - [4.1. 配置](#41-%E9%85%8D%E7%BD%AE)
-    - [4.1.1. CMake](#411-cmake)
-      - [4.1.1.1. Windows](#4111-windows)
-      - [4.1.1.2. Linux](#4112-linux)
-    - [4.1.2. Meson](#412-meson)
-  - [4.2. 构建](#42-%E6%9E%84%E5%BB%BA)
-  - [4.3. 测试](#43-%E6%B5%8B%E8%AF%95)
-  - [4.4. 构建RPM/DEB](#44-%E6%9E%84%E5%BB%BArpmdeb)
-    - [4.4.1. 手动构建](#441-%E6%89%8B%E5%8A%A8%E6%9E%84%E5%BB%BA)
-    - [4.4.2. 使用构建脚本](#442-%E4%BD%BF%E7%94%A8%E6%9E%84%E5%BB%BA%E8%84%9A%E6%9C%AC)
-  - [4.5. ASAN](#45-asan)
-- [5. 许可](#5-%E8%AE%B8%E5%8F%AF)
+    - [3.1.8. 配置文件](#318-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6)
+    - [3.1.9. 构建并运行](#319-%E6%9E%84%E5%BB%BA%E5%B9%B6%E8%BF%90%E8%A1%8C)
+- [4. 许可](#4-%E8%AE%B8%E5%8F%AF)
 <!-- /TOC -->
 
 ---
-中文版本 | [English Version](README.md)
+中文版 | [English Version](README.md) | [用户指南](user_guide_zh.md) | [开发者指南](devel_zh.md)
 ---
-
 
 ## 1. Log4cpp是什么?
 
@@ -66,21 +48,46 @@ log4cpp是一个C++日志库, 参照log4j实现
 
 ### 3.1. 快速入门
 
-#### 3.1.1. 创建CMake项目
+创建下面的项目:
+
+```text
+log4cpp-demo/
+├── CMakeLists.txt
+├── meson.build
+├── subprojects/
+│   └── log4cpp.wrap
+├── demo.cpp
+└── log4cpp.json（可选）
+```
+
+两种构建系统共用同一份`demo.cpp`和可选的`log4cpp.json`。项目可以只保留其中一种构建定义，也可以
+同时支持CMake和Meson。
+
+#### 3.1.1. 创建项目
+
+##### 3.1.1.1. CMake
 
 使用`FetchContent`:
 
 ```cmake
 cmake_minimum_required(VERSION 3.11)
 
-project(log4cpp-demo)
+project(log4cpp-demo LANGUAGES CXX)
 
-add_executable(demo main.cpp)
+add_executable(demo demo.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.6)
+FetchContent_Declare(
+    log4cpp
+    GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git
+    GIT_TAG v5.0.0
+)
 FetchContent_MakeAvailable(log4cpp)
-target_link_libraries(demo log4cpp)
+target_link_libraries(demo PRIVATE log4cpp)
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/log4cpp.json")
+    configure_file(log4cpp.json log4cpp.json COPYONLY)
+endif()
 ```
 
 或者使用`pkg-config`(已经安装了log4cpp的deb/rpm包):
@@ -88,13 +95,52 @@ target_link_libraries(demo log4cpp)
 ```cmake
 cmake_minimum_required(VERSION 3.11)
 
-project(log4cpp-demo)
+project(log4cpp-demo LANGUAGES CXX)
 
-add_executable(log4cpp-demo main.cpp)
+add_executable(demo demo.cpp)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(LOG4CPP REQUIRED log4cpp)
-target_link_libraries(log4cpp-demo PRIVATE ${LOG4CPP_LIBRARIES})
+pkg_check_modules(LOG4CPP REQUIRED IMPORTED_TARGET log4cpp)
+target_link_libraries(demo PRIVATE PkgConfig::LOG4CPP)
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/log4cpp.json")
+    configure_file(log4cpp.json log4cpp.json COPYONLY)
+endif()
+```
+
+##### 3.1.1.2. Meson
+
+将下面的内容保存为`meson.build`:
+
+```meson
+project(
+    'log4cpp-demo',
+    'cpp',
+    default_options: ['cpp_std=c++20'],
+    meson_version: '>=1.1.0',
+)
+
+log4cpp_dep = dependency(
+    'log4cpp',
+    fallback: ['log4cpp', 'log4cpp_dep'],
+)
+
+executable('demo', 'demo.cpp', dependencies: log4cpp_dep)
+
+fs = import('fs')
+if fs.exists('log4cpp.json')
+    configure_file(input: 'log4cpp.json', output: 'log4cpp.json', copy: true)
+endif
+```
+
+如果尚未安装log4cpp，创建`subprojects/log4cpp.wrap`，Meson即可自动拉取源码:
+
+```ini
+[wrap-git]
+directory = log4cpp
+url = https://github.com/lwhttpdorg/log4cpp.git
+revision = v5.0.0
+depth = 1
 ```
 
 #### 3.1.2. 引入头文件
@@ -111,7 +157,7 @@ target_link_libraries(log4cpp-demo PRIVATE ${LOG4CPP_LIBRARIES})
 
 1. 如果当前路径下存在`log4cpp.json`, 会自动加载此配置文件
 2. 如果配置文件不在当前路径下, 或者文件名不是`log4cpp.json`, 需要手动加载配置文件
-3. 如果下存在`log4cpp.json`, 也没有手动加载, 会使用内置的默认配置
+3. 如果不存在`log4cpp.json`, 也没有手动加载其他配置, 会使用内置默认配置
 
 ```c++
 const std::string config_file = "demo.json";
@@ -225,6 +271,8 @@ demo: 2025-11-29 20:06:47:652 [main  ] [INFO ] -- destructor
 #### 3.1.7. 完整示例
 
 ```c++
+#include <memory>
+#include <string>
 #include <thread>
 
 #include <log4cpp/log4cpp.hpp>
@@ -265,12 +313,10 @@ int main() {
 #ifndef _WIN32
     log4cpp::supervisor::enable_config_hot_loading();
 #endif
-    const std::string config_file = "demo.json";
-    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    log_mgr.load_config(config_file);
     std::thread child(thread_routine);
     log4cpp::set_thread_name("main");
     const auto log = log4cpp::logger_manager::get_logger("hello");
+    log->at().info("this log includes source file and line number");
 
     for (int i = 0; i < 10; ++i) {
         log->trace("this is a trace");
@@ -289,7 +335,7 @@ int main() {
 }
 ```
 
-输出log示例:
+使用下方可选配置时的log输出示例:
 
 ```shell
 root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
@@ -305,188 +351,25 @@ hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 ```
 
-配置文件实例:
+#### 3.1.8. 配置文件
 
-[参考配置文件demo/demo.json](demo/demo.json)
+配置文件是可选的。没有配置文件时，log4cpp会使用内置日志格式、输出到`stdout`，并使用日志级别为
+`WARN`的`root` logger。
 
-### 3.2. 进阶用法
-
-#### 3.2.1. 配置文件
-
-##### 3.2.1.1. 输出格式
+如需自定义，将下面的内容保存为`log4cpp.json`。log4cpp会自动从当前工作目录加载此文件；该配置包含
+控制台和文件输出、日志格式及具名logger:
 
 ```json
 {
-  "log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}"
-}
-```
-
-说明:
-
-* `${<n>NM}`: logger名称, 如`${8NM}`. `<n>`为logger名长度, 左对齐, 默认是6, 最大为64
-* `${yy}`: 2位数表示的年份. 如99, 03
-* `${yyyy}`: 完整的年份, 至少4位数, 用'-'表示公元前. 如-0055, 0787, 1999, 2003, 10191
-* `${M}`: 数字表示的月份, 无补0. 从1到12
-* `${MM}`: 数字表示的月份, 有补0的两位数. 从01到12
-* `${MMM}`: 月份的缩写, 3个字母. 从Jan到Dec
-* `${d}`: 月份中的第几天, 无补0. 从1到31
-* `${dd}`: 月份中的第几天, 有补0的两位数. 从01到31
-* `${h}`: 12小时制不补0的小时, AM和PM分别表示上午和下午. 从0到12
-* `${hh}`: 12小时制补0的小时. 从00到12
-* `${H}`: 24小时制不补0的小时. 从0到23
-* `${HH}`: 24小时制补0的小时. 从00到23
-* `${m}`: 无补0的分钟. 从1到59
-* `${mm}`: 有补0的分钟. 从01到59
-* `${s}`: 无补0的秒. 从1到59
-* `${ss}`: 有补0的秒. 从01到59
-* `${ms}`: 有补0的毫米. 从001到999
-* `${<n>TN}`: 线程名, 如`${8TN}`. `<n>`为线程名长度, 左对齐, 默认是16, 最大为16. 如果线程名为空, 使用"T+线程ID"代替, 如"
-  main", "T12345"
-* `${<n>TH}`: 线程ID, 如`${8TH}`. `<n>`为线程ID位数, 左补0, 默认是8, 最大为8. 如"T12345"
-* `${L}`: 日志级别, 取值FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-* `${msg}`: 日志消息, 如"hello world!"
-
-_注意: 某些系统无法设置线程名, 只能通过线程ID区分多线程_
-
-_注: 默认log-pattern为`"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}] -- ${msg}"`_
-
-##### 3.2.1.2. 输出器(Appender)
-
-输出器有三种类型: 控制台输出器(`console`), 文件输出器(`file`), Socket输出器(`socket`, 默认是TCP)
-
-一个简单的配置文件示例:
-
-```json
-{
+  "log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${msg}",
   "appenders": {
     "console": {
       "out-stream": "stdout"
     },
     "file": {
       "file-path": "log/log4cpp.log"
-    },
-    "socket": {
-      "host": "10.0.0.1",
-      "port": 9443,
-      "protocol": "tcp",
-      "prefer-stack": "auto"
     }
-  }
-}
-```
-
-##### 3.2.1.3. 控制台输出器
-
-控制台输出器的作用是将日志输出到STDOUT或STDERR. 典型配置如下:
-
-```json
-{
-  "appenders": {
-    "console": {
-      "out-stream": "stdout"
-    }
-  }
-}
-```
-
-说明:
-
-* `out-stream`: 输出流, 可以是`stdout`或`stderr`
-
-##### 3.2.1.4. 文件输出器
-
-文件输出器的作用是将日志输出到指定文件. 典型配置如下:
-
-```json
-{
-  "appenders": {
-    "file": {
-      "file-path": "log/log4cpp.log"
-    }
-  }
-}
-```
-
-说明:
-
-* `file-path`: 输出文件名
-* `rolling`: 可选的滚动配置. 如果不配置, 文件输出器会一直追加写入`file-path`.
-
-滚动文件配置示例:
-
-```json
-{
-  "appenders": {
-    "file": {
-      "file-path": "log/log4cpp.log",
-      "rolling": {
-        "policy": "size-time",
-        "file-size": "10MB",
-        "interval": "day",
-        "file-count": 10,
-        "max-history": "30d"
-      }
-    }
-  }
-}
-```
-
-滚动配置字段:
-
-* `policy`: 滚动触发策略. 支持`none`, `size`, `time`, `on-start`, `size-time`.
-* `file-size`: `size`策略使用的当前日志文件大小阈值. 支持`B`, `KB`, `MB`, `GB`.
-* `interval`: `time`策略使用的时间间隔. 支持`hour`, `day`.
-* `file-count`: 最多保留的归档日志文件数量. 为`0`或不配置表示不按数量限制.
-* `max-history`: 归档日志最长保留时间. 支持`s`, `m`, `h`, `d`, `w`.
-
-`size-time`策略会按配置的时间`interval`对归档分组, 但滚动触发条件是`file-size`.
-例如按天分组时, 当前日期的活动文件达到大小阈值后才会创建新的归档文件.
-
-归档文件名由滚动策略决定:
-
-* `size`: `log4cpp.log.1`, `log4cpp.log.2`
-* `time`: 按天滚动为`log4cpp.log.20260705`, 按小时滚动为`log4cpp.log.2026070514`
-* `size-time`: `log4cpp.log.20260705.1`, `log4cpp.log.20260705.2`
-
-##### 3.2.1.5. Socket输出器
-
-Socket输出器支持TCP和UDP两种协议, 通过`protocol`字段区分, 如果不配置`protocol`, 则默认是TCP
-
-```json
-{
-  "appenders": {
-    "socket": {
-      "host": "10.0.0.1",
-      "port": 9443,
-      "protocol": "tcp",
-      "prefer-stack": "auto"
-    }
-  }
-}
-```
-
-说明:
-
-* `host`: 远端日志服务器hostname
-* `port`: 远端日志服务器端口
-* `protocol`: 协议, 可以是`tcp`或`udp`, 默认是`tcp`
-* `prefer-stack`: 优选地址栈, 可以是`IPv4`, `IPv6`, 或者`auto`, 默认是`auto`
-
-_注意: TCP日志服务器如果连接失败, 会采取指数退避重试连接, 直到连接成功_
-
-##### 3.2.1.6. logger
-
-`loggers`是一个数组, 每个logger配置包括:
-
-* `name`: logger名称, 用于获取logger, 不能重复. `root`为默认logger
-* `level`: log级别, 只有大于等于此级别的log才会输出, 非`root`可以省略(自动继承`root`)
-* `appenders`: 输出器, 只有配置的输出器才会输出. 输出器可以是`console`, `file`, `socket`. 非`root`可以省略(自动继承
-  `root`)
-
-__注: 必须定义`name`为`root`默认logger__
-
-```json
-{
+  },
   "loggers": [
     {
       "name": "root",
@@ -501,13 +384,6 @@ __注: 必须定义`name`为`root`默认logger__
       "level": "INFO",
       "appenders": [
         "console",
-        "socket"
-      ]
-    },
-    {
-      "name": "aaa",
-      "level": "WARN",
-      "appenders": [
         "file"
       ]
     }
@@ -515,207 +391,33 @@ __注: 必须定义`name`为`root`默认logger__
 }
 ```
 
-### 3.3. 配置热加载
+仓库中的[demo配置](demo/demo.json)还包含Socket输出器，可作为更完整的参考。
 
-配置热加载可以实现修改配置文件后，不重启进程就能使配置生效(仅支持Linux系统)
-
-_注: 配置文件路径和名称不能变化，使用启动时的路径和名称加载_
-
-首先需要使能配置热加载:
-
-```c++
-log4cpp::supervisor::enable_config_hot_loading(int sig = SIGHUP);
-```
-
-修改配置文件后，向你的进程发送信号(默认是`SIGHUP`):
-
-```shell
-kill -SIGHUP <PID>
-```
-
-此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。先前已经通过
-`log4cpp::logger_manager::get_logger()`获得的`std::shared_ptr<log4cpp::logger>`
-并不会立即失效并且可继续使用
-此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件。由于内部采用了代理模式，您之前通过 `get_logger()` 获取的
-`std::shared_ptr` 依然有效且可以继续使用，它会自动将日志记录请求转发到新的、基于新配置的内部实现上。
-
-_注: `log4cpp::logger_manager::get_logger()`返回的`std::shared_ptr`可能不会发生变化，即使其内部代理对象已经改变_
-
-## 4. 构建
-
-### 4.1. 配置
-
-#### 4.1.1. CMake
-
-##### 4.1.1.1. Windows
-
-MingW64:
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
-```
-
-MSVC:
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
-```
-
-##### 4.1.1.2. Linux
-
-原生构建:
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_ASAN=ON
-```
-
-交叉编译(以ARM64为例):
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
-```
-
-CMake选项:
-
-* `-DCMAKE_BUILD_TYPE=Debug`: 构建类型，可选 `Debug` 或 `Release`，默认 `Release`
-* `-DBUILD_LOG4CPP_DEMO=ON`: 编译 demo，默认 `OFF`
-* `-DENABLE_LOG4CPP_UNIT_TEST=ON`: 编译测试程序，默认 `OFF`
-* `-DENABLE_ASAN=ON`: 启用 AddressSanitizer，默认 `OFF`
-* `-DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake`: 指定交叉编译所使用的 toolchain 文件
-
-#### 4.1.2. Meson
-
-原生构建:
-
-```shell
-meson setup meson-build-debug -Dbuild_demo=true -Denable_tests=true -Db_sanitize=address,undefined
-```
-
-交叉编译(以ARM64为例):
-
-```shell
-meson setup meson-build-debug --cross-file cross/aarch64-linux-gnu.ini
-```
-
-Meson选项:
-
-* `--cross-file cross/aarch64-linux-gnu.ini`: 指定交叉编译所使用的文件
-* `-Dbuild_demo=true`: 编译 demo，默认 `false`
-* `-Denable_tests=true`: 编译测试程序，默认 `false`
-* `-Db_sanitize=address,undefined`: 通过 Meson 内置选项启用 AddressSanitizer 和 UBSan
-* `-Denable_coverage=true`: 启用代码覆盖率 (仅GNU)，默认 `false`
-
-### 4.2. 构建
+#### 3.1.9. 构建并运行
 
 CMake:
 
 ```shell
-cmake --build cmake-build-debug -j $(nproc)
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+cd build
+./demo
 ```
 
 Meson:
 
 ```shell
-meson compile -C meson-build-debug -j $(nproc)
+meson setup build-meson --buildtype=release
+meson compile -C build-meson
+cd build-meson
+./demo
 ```
 
-### 4.3. 测试
+在Windows上运行生成的`demo.exe`。使用支持多配置的CMake生成器时，通过`--config Release`构建，并在
+`build`目录中运行`Release\demo.exe`。
 
-本项目使用Google Test进行单元测试, 测试代码在[test](test)目录下, 欢迎补充测试用例
+配置格式、输出器、滚动策略、logger继承及配置热加载请参阅[用户指南](user_guide_zh.md)。
 
-如果你的代码修改了现有功能, 请确保测试用例覆盖到你的修改
-
-CMake:
-
-```shell
-ctest -C Debug --test-dir cmake-build-debug --output-on-failure
-```
-
-或者输出详细信息:
-
-```shell
-ctest -C Debug --test-dir cmake-build-debug --verbose -j $(nproc)
-```
-
-Meson:
-
-```shell
-meson test -C meson-build-debug --print-errorlogs
-```
-
-或者输出详细信息:
-
-```shell
-meson test -C meson-build-debug -v
-```
-
-### 4.4. 构建RPM/DEB
-
-#### 4.4.1. 手动构建
-
-构建DEB:
-
-```shell
-fakeroot debian/rules clean
-DEB_BUILD_OPTIONS="noddebs" dpkg-buildpackage -us -uc -b -j$(nproc)
-```
-
-构建RPM:
-
-```shell
-rpmdev-setuptree
-VERSION=$(sed -n 's/^project(log4cpp VERSION \([0-9.]*\).*/\1/p' log4cpp/CMakeLists.txt)
-tar -czf ~/rpmbuild/SOURCES/liblog4cpp-${VERSION}.tar.gz log4cpp/
-sed "s/@VERSION@/${VERSION}/g" log4cpp/liblog4cpp.spec.in > ~/rpmbuild/SPECS/liblog4cpp.spec
-rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
-```
-
-源码包与 spec 中的版本由 `liblog4cpp.spec.in` 经 `@VERSION@` 替换得到，应与 `CMakeLists.txt` 中
-`project(log4cpp VERSION …)` 一致（亦可直接用 `build-rpm.sh`）。
-
-#### 4.4.2. 使用构建脚本
-
-本项目提供了构建脚本`build-rpm.sh`和`build-deb.sh`, 用于构建 RPM 和 DEB 软件包
-
-基于Debian的发行版:
-
-```shell
-# build DEB
-./build-deb.sh
-# clean
-./build-deb.sh clean
-```
-
-基于RPM的发行版:
-
-```shell
-# build RPM
-./build-rpm.sh
-# clean
-./build-rpm.sh clean
-```
-
-选项:
-
-- `clean`: 清理构建产物，包括生成的tar包、spec文件和构建的包
-- `-a, --arch <ARCH>`: 指定包的目标架构，如`amd64`、`arm64`，默认为主机架构
-
-### 4.5. ASAN
-
-如果你的代码修改了现有功能, 请确保ASAN检测通过, 未经ASAN检测通过的代码不会合并
-
-CMake:
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON -DENABLE_LOG4CPP_UNIT_TEST=ON
-```
-
-Meson (使用内置 `b_sanitize` 选项):
-
-```shell
-meson setup meson-build-debug -Denable_tests=true -Db_sanitize=address,undefined
-```
-
-## 5. 许可
+## 4. 许可
 
 本项目使用[LGPLv3](LICENSE)许可

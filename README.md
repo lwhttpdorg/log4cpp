@@ -5,41 +5,23 @@
 - [2. Requirements](#2-requirements)
 - [3. Usage](#3-usage)
   - [3.1. Quick Start](#31-quick-start)
-    - [3.1.1. Create a CMake Project](#311-create-a-cmake-project)
+    - [3.1.1. Create the Project](#311-create-the-project)
+      - [3.1.1.1. CMake](#3111-cmake)
+      - [3.1.1.2. Meson](#3112-meson)
     - [3.1.2. Include Header File](#312-include-header-file)
     - [3.1.3. Load Configuration File (Optional)](#313-load-configuration-file-optional)
     - [3.1.4. Get Logger](#314-get-logger)
     - [3.1.5. Output Log](#315-output-log)
     - [3.1.6. Use in a Class](#316-use-in-a-class)
     - [3.1.7. Complete Example](#317-complete-example)
-  - [3.2. Advanced Usage](#32-advanced-usage)
-    - [3.2.1. Configuration File](#321-configuration-file)
-      - [3.2.1.1. Log pattern](#3211-log-pattern)
-      - [3.2.1.2. Appender](#3212-appender)
-        - [3.2.1.2.1. Console Appender](#32121-console-appender)
-        - [3.2.1.2.2. File Appender](#32122-file-appender)
-    - [3.2.2. Socket appender](#322-socket-appender)
-    - [3.2.3. Logger](#323-logger)
-  - [3.3. Hot Configuration Reload](#33-hot-configuration-reload)
-- [4. Building](#4-building)
-  - [4.1. Configuration](#41-configuration)
-    - [4.1.1. CMake](#411-cmake)
-      - [4.1.1.1. Windows](#4111-windows)
-      - [4.1.1.2. Linux](#4112-linux)
-    - [4.1.2. Meson](#412-meson)
-  - [4.2. Build](#42-build)
-  - [4.3. Testing](#43-testing)
-  - [4.4. Build RPM/DEB](#44-build-rpmdeb)
-    - [4.4.1. Manual Build](#441-manual-build)
-    - [4.4.2. Using build script](#442-using-build-script)
-  - [4.5. ASAN](#45-asan)
-- [5. License](#5-license)
+    - [3.1.8. Configuration File](#318-configuration-file)
+    - [3.1.9. Build and Run](#319-build-and-run)
+- [4. License](#4-license)
 <!-- /TOC -->
 
 ---
-[中文版本](README_ZH.md) | English Version
+[中文版](README_ZH.md) | English Version | [User Guide](user_guide.md) | [Developer Guide](devel.md)
 ---
-
 
 ## 1. What is log4cpp?
 
@@ -66,21 +48,46 @@ Features:
 
 ### 3.1. Quick Start
 
-#### 3.1.1. Create a CMake Project
+Create the following project:
+
+```text
+log4cpp-demo/
+├── CMakeLists.txt
+├── meson.build
+├── subprojects/
+│   └── log4cpp.wrap
+├── demo.cpp
+└── log4cpp.json (optional)
+```
+
+The same `demo.cpp` and optional `log4cpp.json` are used by both build systems. Keep either build definition, or both
+if the project should support CMake and Meson.
+
+#### 3.1.1. Create the Project
+
+##### 3.1.1.1. CMake
 
 Using `FetchContent`:
 
 ```cmake
 cmake_minimum_required(VERSION 3.11)
 
-project(log4cpp-demo)
+project(log4cpp-demo LANGUAGES CXX)
 
-add_executable(demo main.cpp)
+add_executable(demo demo.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v4.0.6)
+FetchContent_Declare(
+    log4cpp
+    GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git
+    GIT_TAG v5.0.0
+)
 FetchContent_MakeAvailable(log4cpp)
-target_link_libraries(demo log4cpp)
+target_link_libraries(demo PRIVATE log4cpp)
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/log4cpp.json")
+    configure_file(log4cpp.json log4cpp.json COPYONLY)
+endif()
 ```
 
 Or using `pkg-config` (the log4cpp deb/rpm package has already been installed):
@@ -88,13 +95,52 @@ Or using `pkg-config` (the log4cpp deb/rpm package has already been installed):
 ```cmake
 cmake_minimum_required(VERSION 3.11)
 
-project(log4cpp-demo)
+project(log4cpp-demo LANGUAGES CXX)
 
-add_executable(log4cpp-demo main.cpp)
+add_executable(demo demo.cpp)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(LOG4CPP REQUIRED log4cpp)
-target_link_libraries(log4cpp-demo PRIVATE ${LOG4CPP_LIBRARIES})
+pkg_check_modules(LOG4CPP REQUIRED IMPORTED_TARGET log4cpp)
+target_link_libraries(demo PRIVATE PkgConfig::LOG4CPP)
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/log4cpp.json")
+    configure_file(log4cpp.json log4cpp.json COPYONLY)
+endif()
+```
+
+##### 3.1.1.2. Meson
+
+Save the following as `meson.build`:
+
+```meson
+project(
+    'log4cpp-demo',
+    'cpp',
+    default_options: ['cpp_std=c++20'],
+    meson_version: '>=1.1.0',
+)
+
+log4cpp_dep = dependency(
+    'log4cpp',
+    fallback: ['log4cpp', 'log4cpp_dep'],
+)
+
+executable('demo', 'demo.cpp', dependencies: log4cpp_dep)
+
+fs = import('fs')
+if fs.exists('log4cpp.json')
+    configure_file(input: 'log4cpp.json', output: 'log4cpp.json', copy: true)
+endif
+```
+
+If log4cpp is not installed, create `subprojects/log4cpp.wrap` so Meson can fetch it automatically:
+
+```ini
+[wrap-git]
+directory = log4cpp
+url = https://github.com/lwhttpdorg/log4cpp.git
+revision = v5.0.0
+depth = 1
 ```
 
 #### 3.1.2. Include Header File
@@ -228,6 +274,8 @@ demo: 2025-11-29 20:06:47:652 [main  ] [INFO ] -- destructor
 #### 3.1.7. Complete Example
 
 ```c++
+#include <memory>
+#include <string>
 #include <thread>
 
 #include <log4cpp/log4cpp.hpp>
@@ -268,12 +316,10 @@ int main() {
 #ifndef _WIN32
     log4cpp::supervisor::enable_config_hot_loading();
 #endif
-    const std::string config_file = "demo.json";
-    auto &log_mgr = log4cpp::supervisor::get_logger_manager();
-    log_mgr.load_config(config_file);
     std::thread child(thread_routine);
     log4cpp::set_thread_name("main");
     const auto log = log4cpp::logger_manager::get_logger("hello");
+    log->at().info("this log includes source file and line number");
 
     for (int i = 0; i < 10; ++i) {
         log->trace("this is a trace");
@@ -292,7 +338,7 @@ int main() {
 }
 ```
 
-Example Log Output:
+Example log output when using the optional configuration below:
 
 ```shell
 root   : 2025-11-13 23:32:02:475 [child   ] [ERROR] -- this is an error
@@ -308,193 +354,25 @@ hello  : 2025-11-13 23:32:02:475 [main  ] [ERROR] -- this is an error
 root   : 2025-11-13 23:32:02:475 [child   ] [FATAL] -- this is a fatal
 ```
 
-Configuration File Example:
+#### 3.1.8. Configuration File
 
-Reference configuration file [demo/demo.json](demo/demo.json)
+The configuration file is optional. Without one, log4cpp uses its built-in log pattern, writes to `stdout`, and uses a
+`WARN`-level `root` logger.
 
-### 3.2. Advanced Usage
-
-#### 3.2.1. Configuration File
-
-##### 3.2.1.1. Log pattern
+To customize the defaults, save the following as `log4cpp.json`. log4cpp loads this filename automatically from the
+current working directory; it configures console and file output, a log pattern, and named loggers:
 
 ```json
 {
-  "log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TH}] [${L}] -- ${msg}"
-}
-```
-
-Placeholders:
-
-* `${<n>NM}`: Logger name, e.g. `${8NM}`. `<n>` is the logger name length, left-aligned, default is 6, max is 64
-* `${yy}`: Year represented by 2 digits. e.g. 99 or 03
-* `${yyyy}`: Full year, at least 4 digits, using '-' for BC e.g. -0055, 0787, 1999, 2003, 10191
-* `${M}`: Month in number, without leading zero. From 1 to 12
-* `${MM}`: Month in number, two digits with leading zero. From 01 to 12
-* `${MMM}`: Abbreviated month name, 3 letters. From Jan to Dec
-* `${d}`: Day of the month, without leading zero. From 1 to 31
-* `${dd}`: Day of the month, two digits with leading zero. From 01 to 31
-* `${h}`: Hour in 12-hour clock without leading zero. AM and PM for morning and afternoon. From 0 to 12
-* `${hh}`: Hour in 12-hour clock with leading zero. AM and PM for morning and afternoon. From 00 to 12
-* `${H}`: Hour in 24-hour clock without leading zero. From 0 to 23
-* `${HH}`: Hour in 24-hour clock with leading zero. From 00 to 23
-* `${m}`: Minute without leading zero. From 1 to 59
-* `${mm}`: Minute with leading zero. From 01 to 59
-* `${s}`: Second without leading zero. From 1 to 59
-* `${ss}`: Second with leading zero. From 01 to 59
-* `${ms}`: Millisecond with leading zero. From 001 to 999
-* `${<n>TN}`: is the thread name length, left-aligned, default is 16, max is 16. If the thread name is empty, "T+$
-  {Thread ID}" is used instead, e.g., "main", "T12345"
-* `${<n>TH}`: Thread id, e.g. `${8TH}`. `<n>` is the number of digits for the Thread ID, left-padded with 0, default is
-  8, max is 8. e.g. "T12345"
-* `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
-* `${msg}`: Log message body, e.g. hello world!
-
-_Note: Some systems cannot set thread names, and multiple threads can only be distinguished by Thread ID_
-
-Note: The default log-pattern is `"${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss} [${8TN}] [${L}] -- ${msg}"`
-
-##### 3.2.1.2. Appender
-
-There are three types of appenders: Console Appender (`console`), File Appender (`file`), Socket Appender (`socket`,
-default is TCP)
-
-A simple configuration file example:
-
-```json
-{
+  "log-pattern": "${NM}: ${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}:${ms} [${8TN}] [${L}] -- ${msg}",
   "appenders": {
     "console": {
       "out-stream": "stdout"
     },
     "file": {
       "file-path": "log/log4cpp.log"
-    },
-    "socket": {
-      "host": "10.0.0.1",
-      "port": 9443,
-      "protocol": "tcp",
-      "prefer-stack": "auto"
     }
-  }
-}
-```
-
-###### 3.2.1.2.1. Console Appender
-
-The Console Appender's function is to output logs to `STDOUT` or `STDERR`. Typical configuration is as follows:
-
-```json
-{
-  "appenders": {
-    "console": {
-      "out-stream": "stdout"
-    }
-  }
-}
-```
-
-Description:
-
-* `out-stream`: Output stream, can be "stdout" or "stderr"
-
-###### 3.2.1.2.2. File Appender
-
-The File Appender outputs logs to a specified file. Typical configuration is as follows:
-
-```json
-{
-  "appenders": {
-    "file": {
-      "file-path": "log/log4cpp.log"
-    }
-  }
-}
-```
-
-Description:
-
-* `file-path`: Output file name
-* `rolling`: Optional rolling configuration. If omitted, the file appender keeps appending to `file-path`.
-
-Rolling file configuration example:
-
-```json
-{
-  "appenders": {
-    "file": {
-      "file-path": "log/log4cpp.log",
-      "rolling": {
-        "policy": "size-time",
-        "file-size": "10MB",
-        "interval": "day",
-        "file-count": 10,
-        "max-history": "30d"
-      }
-    }
-  }
-}
-```
-
-Rolling fields:
-
-* `policy`: Rolling trigger. Supported values are `none`, `size`, `time`, `on-start`, and `size-time`.
-* `file-size`: Maximum active log file size for `size` policy. Supports `B`, `KB`, `MB`, and `GB`.
-* `interval`: Time rolling interval for `time` policy. Supported values are `hour` and `day`.
-* `file-count`: Maximum number of archived log files to keep. `0` or omitted means no count limit.
-* `max-history`: Maximum age of archived log files. Supports `s`, `m`, `h`, `d`, and `w`.
-
-The `size-time` policy groups archives by the configured time `interval`, but rotation is triggered by `file-size`.
-For example, day-based `size-time` archives are created as the current day's active file reaches the size threshold.
-
-Archived file names depend on the rolling policy:
-
-* `size`: `log4cpp.log.1`, `log4cpp.log.2`
-* `time`: `log4cpp.log.20260705` for day rolling, or `log4cpp.log.2026070514` for hour rolling
-* `size-time`: `log4cpp.log.20260705.1`, `log4cpp.log.20260705.2`
-
-#### 3.2.2. Socket appender
-
-The Socket Appender supports both TCP and UDP protocols, distinguished by the `protocol` field. If `protocol` is not
-configured, it defaults to `TCP`
-
-```json
-{
-  "appenders": {
-    "socket": {
-      "host": "10.0.0.1",
-      "port": 9443,
-      "protocol": "tcp",
-      "prefer-stack": "auto"
-    }
-  }
-}
-```
-
-Description:
-
-* `host`: Remote log server hostname
-* `port`: Remote log server port
-* `protocol`: Protocol, can be "tcp" or "udp", default is "tcp"
-* `prefer-stack`: Preferred address stack, can be "IPv4", "IPv6", or "auto", default is "AUTO"
-
-_Notes: For TCP-type socket appender, if the connection to the remote logging server fails, it will attempt to reconnect
-with exponential backoff until the connection succeeds_
-
-#### 3.2.3. Logger
-
-`loggers` is an array. Each logger configuration includes:
-
-* `name`: Logger name, used to retrieve the logger, must be unique. `root` is the default logger
-* `level`: Log level. Only logs greater than or equal to this level will be output. Can be omitted for non-`root`
-  loggers (automatically inherits from `root`)
-* `appenders`: Appenders. Only configured appenders will output logs. Appenders can be `console`, `file`, `socket`. Can
-  be omitted for non-`root` loggers (automatically inherits from `root`)
-
-__The default logger must be defined with name `root`__
-
-```json
-{
+  },
   "loggers": [
     {
       "name": "root",
@@ -509,13 +387,6 @@ __The default logger must be defined with name `root`__
       "level": "INFO",
       "appenders": [
         "console",
-        "socket"
-      ]
-    },
-    {
-      "name": "aaa",
-      "level": "WARN",
-      "appenders": [
         "file"
       ]
     }
@@ -523,207 +394,34 @@ __The default logger must be defined with name `root`__
 }
 ```
 
-### 3.3. Hot Configuration Reload
+The repository contains a more complete [demo configuration](demo/demo.json), including a socket appender.
 
-Configuration hot reloading allows changes to the configuration file to take effect without restarting the process (
-Linux only)
-
-_Note: The configuration file path and name cannot be changed; the path and name used at startup will be reloaded._
-
-First, you need to enable configuration hot loading:
-
-```c++
-log4cpp::supervisor::enable_config_hot_loading(int sig = SIGHUP);
-```
-
-After modifying the configuration file, send a signal to your process (default is SIGHUP):
-
-```shell
-kill -SIGHUP <PID>
-```
-
-The `SIGHUP` signal triggers log4cpp to reload the configuration file using the cached path and filename, and recreate
-internal objects. The `std::shared_ptr<log4cpp::logger>` previously obtained via `log4cpp::logger_manager::get_logger()`
-will not become invalid and can continue to be used.
-
-_Note: The `std::shared_ptr` returned by `log4cpp::logger_manager::get_logger()` may not change, even if its internal
-proxy object has changed._
-
-## 4. Building
-
-### 4.1. Configuration
-
-#### 4.1.1. CMake
-
-##### 4.1.1.1. Windows
-
-MingW64:
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
-```
-
-MSVC:
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="D:/OpenCode/nlohmann_json"
-```
-
-##### 4.1.1.2. Linux
-
-Native Build:
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_LOG4CPP_DEMO=ON -DENABLE_LOG4CPP_UNIT_TEST=ON -DENABLE_ASAN=ON
-```
-
-Cross-compilation configuration (e.g., for ARM64):
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake
-```
-
-CMake Options:
-
-* `-DCMAKE_TOOLCHAIN_FILE=cross/aarch64-linux-gnu.cmake`: Use the specified toolchain file for cross-compilation
-* `-DCMAKE_BUILD_TYPE=Debug`: Build type, can be Debug or Release, default is `Release`
-* `-DBUILD_LOG4CPP_DEMO=ON`: Build demo, default `OFF` (not built)
-* `-DENABLE_LOG4CPP_UNIT_TEST=ON`: Build test programs, default `OFF` (not built)
-* `-DENABLE_ASAN=ON`: Enable AddressSanitizer, default `OFF` (not enabled)
-
-#### 4.1.2. Meson
-
-Native Build:
-
-```shell
-meson setup meson-build-debug -Dbuild_demo=true -Denable_tests=true -Db_sanitize=address,undefined
-```
-
-Cross-compilation configuration (e.g., for ARM64):
-
-```shell
-meson setup meson-build-debug --cross-file cross/aarch64-linux-gnu.ini
-```
-
-Meson Options:
-
-* `--cross-file cross/aarch64-linux-gnu.ini`: Use the specified cross-compilation file
-* `-Dbuild_demo=true`: Build demo, default `false` (not built)
-* `-Denable_tests=true`: Build test programs, default `false` (not built)
-* `-Db_sanitize=address,undefined`: Enable AddressSanitizer and UBSan via Meson's built-in option
-* `-Denable_coverage=true`: Enable code coverage (GNU only), default `false` (not enabled)
-
-### 4.2. Build
+#### 3.1.9. Build and Run
 
 CMake:
 
 ```shell
-cmake --build cmake-build-debug -j $(nproc)
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+cd build
+./demo
 ```
 
 Meson:
 
 ```shell
-meson compile -C meson-build-debug -j $(nproc)
+meson setup build-meson --buildtype=release
+meson compile -C build-meson
+cd build-meson
+./demo
 ```
 
-### 4.3. Testing
+On Windows, run the generated `demo.exe`. When using a multi-configuration CMake generator, build with
+`--config Release` and run `Release\demo.exe` from the `build` directory.
 
-This project uses [Google Test](https://github.com/google/googletest) for unit testing.
+For configuration patterns, appenders, rolling policies, logger inheritance, and hot configuration reload, see the
+[User Guide](user_guide.md).
 
-CMake:
-
-```shell
-ctest -C Debug --test-dir cmake-build-debug --output-on-failure
-```
-
-Or enable more verbose output from tests:
-
-```shell
-ctest -C Debug --test-dir cmake-build-debug --verbose -j $(nproc)
-```
-
-Meson:
-
-```shell
-meson test -C meson-build-debug --print-errorlogs
-```
-
-Or enable more verbose output from tests:
-
-```shell
-meson test -C meson-build-debug -v
-```
-
-### 4.4. Build RPM/DEB
-
-#### 4.4.1. Manual Build
-
-Build DEB:
-
-```shell
-fakeroot debian/rules clean
-DEB_BUILD_OPTIONS="noddebs" dpkg-buildpackage -us -uc -b -j$(nproc)
-```
-
-Build RPM:
-
-```shell
-rpmdev-setuptree
-VERSION=$(sed -n 's/^project(log4cpp VERSION \([0-9.]*\).*/\1/p' log4cpp/CMakeLists.txt)
-tar -czf ~/rpmbuild/SOURCES/liblog4cpp-${VERSION}.tar.gz log4cpp/
-sed "s/@VERSION@/${VERSION}/g" log4cpp/liblog4cpp.spec.in > ~/rpmbuild/SPECS/liblog4cpp.spec
-rpmbuild -ba ~/rpmbuild/SPECS/liblog4cpp.spec
-```
-
-The tarball name and spec `Version` come from `liblog4cpp.spec.in` after substituting `@VERSION@`; that value should
-match `project(log4cpp VERSION …)` in `CMakeLists.txt` (see `build-rpm.sh`).
-
-#### 4.4.2. Using build script
-
-This project provides build scripts `build-rpm.sh` and `build-deb.sh` to build RPM and DEB packages.
-
-For Debian-based systems:
-
-```shell
-# build DEB
-./build-deb.sh
-# clean
-./build-deb.sh clean
-```
-
-For RPM-based systems:
-
-```shell
-# build RPM
-./build-rpm.sh
-# clean
-./build-rpm.sh clean
-```
-
-Options:
-
-* `clean`: Clean build artifacts, including generated tarball, spec file, and built packages
-* `-a, --arch <ARCH>`: Specify the target architecture for the package, e.g., `amd64`, `arm64`; default is the host
-  architecture
-
-### 4.5. ASAN
-
-If your code modifies existing functionality, please ensure that ASAN detection passes. Code that has not passed ASAN
-detection will not be merged.
-
-CMake:
-
-```shell
-cmake -S . -B cmake-build-debug -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON -DENABLE_LOG4CPP_UNIT_TEST=ON
-```
-
-Meson (uses the built-in `b_sanitize` option):
-
-```shell
-meson setup meson-build-debug -Denable_tests=true -Db_sanitize=address,undefined
-```
-
-## 5. License
+## 4. License
 
 This project is licensed under [LGPLv3](LICENSE)
