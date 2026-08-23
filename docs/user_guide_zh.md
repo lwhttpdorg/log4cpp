@@ -66,7 +66,7 @@ project(log4cpp-demo)
 add_executable(demo main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v5.0.0)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG main)
 FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(demo log4cpp)
 ```
@@ -99,7 +99,7 @@ target_link_libraries(log4cpp-demo PRIVATE ${LOG4CPP_LIBRARIES})
 
 1. 如果当前路径下存在`log4cpp.json`, 会自动加载此配置文件
 2. 如果配置文件不在当前路径下, 或者文件名不是`log4cpp.json`, 需要手动加载配置文件
-3. 如果下存在`log4cpp.json`, 也没有手动加载, 会使用内置的默认配置
+3. 如果不存在`log4cpp.json`, 也没有手动加载, 会使用内置的默认配置
 
 ```c++
 const std::string config_file = "demo.json";
@@ -521,11 +521,9 @@ log4cpp::supervisor::enable_config_hot_loading(int sig = SIGHUP);
 kill -SIGHUP <PID>
 ```
 
-此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。先前已经通过
-`log4cpp::logger_manager::get_logger()`获得的`std::shared_ptr<log4cpp::logger>`
-并不会立即失效并且可继续使用
-此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件。由于内部采用了代理模式，您之前通过 `get_logger()` 获取的
-`std::shared_ptr` 依然有效且可以继续使用，它会自动将日志记录请求转发到新的、基于新配置的内部实现上。
+此操作会触发`log4cpp`使用之前缓存的路径和文件名重新加载配置文件，重新创建内部对象。由于内部采用了代理模式，
+先前已经通过`log4cpp::logger_manager::get_logger()`获得的`std::shared_ptr<log4cpp::logger>`并不会立即失效，
+仍可继续使用，它会自动将日志记录请求转发到新的、基于新配置的内部实现上。
 
 _注: `log4cpp::logger_manager::get_logger()`返回的`std::shared_ptr`可能不会发生变化，即使其内部代理对象已经改变_
 

@@ -80,7 +80,7 @@ include(FetchContent)
 FetchContent_Declare(
     log4cpp
     GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git
-    GIT_TAG v5.0.0
+    GIT_TAG main
 )
 FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(demo PRIVATE log4cpp)
@@ -139,7 +139,7 @@ endif
 [wrap-git]
 directory = log4cpp
 url = https://github.com/lwhttpdorg/log4cpp.git
-revision = v5.0.0
+revision = main
 depth = 1
 ```
 

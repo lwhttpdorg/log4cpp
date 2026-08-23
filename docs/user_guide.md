@@ -66,7 +66,7 @@ project(log4cpp-demo)
 add_executable(demo main.cpp)
 
 include(FetchContent)
-FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG v5.0.0)
+FetchContent_Declare(log4cpp GIT_REPOSITORY https://github.com/lwhttpdorg/log4cpp.git GIT_TAG main)
 FetchContent_MakeAvailable(log4cpp)
 target_link_libraries(demo log4cpp)
 ```
@@ -333,8 +333,7 @@ Placeholders:
 * `${ms}`: Millisecond with leading zero. From 001 to 999
 * `${<n>TN}`: is the thread name length, left-aligned, default is 16, max is 16. If the thread name is empty, "T+$
   {Thread ID}" is used instead, e.g., "main", "T12345"
-* `${<n>TH}`: Thread id, e.g. `${8TH}`. `<n>` is the number of digits for the Thread ID, left-padded with 0, default is
-  8, max is 8. e.g. "T12345"
+* `${<n>TH}`: Thread id, e.g. `${8TH}`. `<n>` is the number of digits for the Thread ID, left-padded with 0, default is 8, max is 8. e.g. "T12345"
 * `${L}`: Log level, Value range: FATAL, ERROR, WARN, INFO, DEBUG, TRACE
 * `${msg}`: Log message body, e.g. hello world!
 
