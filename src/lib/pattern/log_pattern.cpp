@@ -196,6 +196,10 @@ namespace log4cpp::pattern {
                 common::log4c_scnprintf(time_str + tm_len, sizeof(time_str) - tm_len, " PM");
             }
         }
+        // Patterns are allowed to contain no time placeholders at all.
+        if (std::string::npos == pattern_start || std::string::npos == pattern_end) {
+            return;
+        }
         size_t placeholder_len = pattern_end - pattern_start;
         char placeholder[32];
         strncpy(placeholder, pattern.c_str() + pattern_start, placeholder_len);

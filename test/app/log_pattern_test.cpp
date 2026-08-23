@@ -37,6 +37,17 @@ TEST(log_pattern_tests, full_format_test) {
     LOG4C_EXPECT_STRN_EQ(expected, actual, datetime_str_len, "Datetime part mismatch");
 }
 
+TEST(log_pattern_tests, pattern_without_time_placeholders_is_unchanged) {
+    const std::string pattern = "${NM}|${L}|${msg}";
+    char actual[64];
+    tm now_tm{};
+
+    strcpy(actual, pattern.c_str());
+    log4cpp::pattern::format_time(actual, sizeof(actual), pattern, now_tm, 0);
+
+    EXPECT_STREQ(actual, pattern.c_str());
+}
+
 TEST(log_pattern_tests, year_format_test) {
     tm now_tm{};
     unsigned short ms;
