@@ -5,8 +5,4 @@ demo_exe = executable(
     install: false,
 )
 
-configure_file(
-    input: 'demo.json',
-    output: 'demo.json',
-    copy: true,
-)
+configure_file(input: 'demo.json', output: 'demo.json', copy: true)

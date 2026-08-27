@@ -2,11 +2,7 @@ project(
     'log4cpp',
     'cpp',
     version: files('VERSION'),
-    default_options: [
-        'cpp_std=c++20',
-        'buildtype=release',
-        'warning_level=0',
-    ],
+    default_options: ['cpp_std=c++20', 'buildtype=release', 'warning_level=0'],
     meson_version: '>=1.1.0',
 )
 
@@ -26,11 +22,15 @@ asan_extra_args = []
 if sanitize_opt != 'none'
     cpp_id = meson.get_compiler('cpp').get_id()
     if cpp_id in ['gcc', 'clang']
-        if get_option('buildtype') == 'debug' and sanitize_opt.contains('address')
+        if get_option('buildtype') == 'debug' and sanitize_opt.contains(
+            'address',
+        )
             asan_extra_args += '-fno-omit-frame-pointer'
         endif
     elif host_machine.system() == 'windows'
-        warning('MSVC AddressSanitizer is not fully supported in this configuration.')
+        warning(
+            'MSVC AddressSanitizer is not fully supported in this configuration.',
+        )
     endif
 endif
 
@@ -42,7 +42,9 @@ if enable_coverage
         cov_compile_args = ['--coverage', '-O0', '-g']
         cov_link_args = ['--coverage']
     else
-        warning('Code coverage is only supported with GCC; enable_coverage is ignored.')
+        warning(
+            'Code coverage is only supported with GCC; enable_coverage is ignored.',
+        )
     endif
 endif
 
@@ -58,7 +60,11 @@ if enable_tests
 endif
 
 # Install headers
-install_subdir('include', install_dir: get_option('includedir'), strip_directory: true)
+install_subdir(
+    'include',
+    install_dir: get_option('includedir'),
+    strip_directory: true,
+)
 
 # pkg-config file
 pkg.generate(

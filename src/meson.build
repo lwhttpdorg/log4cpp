@@ -37,7 +37,14 @@ if host_machine.system() == 'windows'
     endif
     ws2_32 = cpp.find_library('ws2_32', required: true)
     deps += ws2_32
-elif host_machine.system() in ['linux', 'darwin', 'freebsd', 'netbsd', 'openbsd', 'sunos']
+elif host_machine.system() in [
+    'linux',
+    'darwin',
+    'freebsd',
+    'netbsd',
+    'openbsd',
+    'sunos',
+]
     thread_dep = dependency('threads', required: true)
     deps += thread_dep
 endif
@@ -45,10 +52,20 @@ endif
 # GNU warnings
 if cpp.get_id() == 'gcc'
     compile_args += [
-        '-Wall', '-Wold-style-cast', '-Wextra', '-Wshadow', '-Wpointer-arith',
-        '-Wwrite-strings', '-Woverloaded-virtual', '-Wstringop-overflow',
-        '-Wno-pessimizing-move', '-Wno-uninitialized', '-Wno-unused-parameter',
-        '-Wno-unused-function', '-Wno-unused-variable', '-Wno-unused-value',
+        '-Wall',
+        '-Wold-style-cast',
+        '-Wextra',
+        '-Wshadow',
+        '-Wpointer-arith',
+        '-Wwrite-strings',
+        '-Woverloaded-virtual',
+        '-Wstringop-overflow',
+        '-Wno-pessimizing-move',
+        '-Wno-uninitialized',
+        '-Wno-unused-parameter',
+        '-Wno-unused-function',
+        '-Wno-unused-variable',
+        '-Wno-unused-value',
         '-pipe',
     ]
 endif
