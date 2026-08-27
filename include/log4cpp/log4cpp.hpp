@@ -115,7 +115,9 @@ namespace log4cpp {
         template<class... Args>
             requires(sizeof...(Args) > 0)
         void log(log_level _level, std::format_string<Args...> fmt, Args &&...args) const {
-            log(_level, std::format(fmt, std::forward<Args>(args)...));
+            if (get_level() >= _level) {
+                log(_level, std::format(fmt, std::forward<Args>(args)...));
+            }
         }
 
         template<class... Args>
@@ -189,13 +191,17 @@ namespace log4cpp {
         }
 
         void log(log_level _level, std::string_view msg) const {
-            logger_.log(_level, std::format("[{}:{}] {}", location_.file, location_.line, msg));
+            if (logger_.get_level() >= _level) {
+                logger_.log(_level, std::format("[{}:{}] {}", location_.file, location_.line, msg));
+            }
         }
 
         template<class... Args>
             requires(sizeof...(Args) > 0)
         void log(log_level _level, std::format_string<Args...> fmt, Args &&...args) const {
-            log(_level, std::format(fmt, std::forward<Args>(args)...));
+            if (logger_.get_level() >= _level) {
+                log(_level, std::format(fmt, std::forward<Args>(args)...));
+            }
         }
 
         template<class... Args>
