@@ -28,11 +28,7 @@ test_configs = [
 ]
 
 foreach config : test_configs
-    configure_file(
-        input: 'config' / config,
-        output: config,
-        copy: true,
-    )
+    configure_file(input: 'config' / config, output: config, copy: true)
 endforeach
 
 test_targets = {
@@ -49,7 +45,9 @@ test_targets = {
 }
 
 if host_machine.system() != 'windows'
-    test_targets += {'config_hot_reload_tests': 'app/config_hot_reload_test.cpp'}
+    test_targets += {
+        'config_hot_reload_tests': 'app/config_hot_reload_test.cpp',
+    }
 endif
 
 foreach name, src : test_targets
@@ -64,7 +62,42 @@ foreach name, src : test_targets
         cpp_args: asan_extra_args + cov_compile_args,
         link_args: cov_link_args,
     )
-    test(name, exe, timeout: 30, workdir: meson.current_build_dir(), protocol: 'gtest')
+    test(
+        name,
+        exe,
+        timeout: 30,
+        workdir: meson.current_build_dir(),
+        protocol: 'gtest',
+    )
+endforeach
+
+# file_appender_integration_tests rely on process-local logger_manager state, so split each
+# GTest case into a separate Meson test just like CMake's gtest_discover_tests.
+file_appender_integration_exe = executable(
+    'file_appender_integration_tests',
+    'app/file_appender_integration_test.cpp',
+    include_directories: [test_includes, include_directories('../src/include')],
+    dependencies: [gtest_dep, log4cpp_dep] + test_deps,
+    cpp_args: asan_extra_args + cov_compile_args,
+    link_args: cov_link_args,
+)
+
+file_appender_integration_test_names = [
+    'single_thread_test',
+    'multithread_test',
+    'size_rolling_test',
+]
+
+foreach test_name : file_appender_integration_test_names
+    full_test_name = 'file_appender_integration_test.' + test_name
+    test(
+        full_test_name,
+        file_appender_integration_exe,
+        args: ['--gtest_filter=' + full_test_name],
+        timeout: 30,
+        workdir: meson.current_build_dir(),
+        protocol: 'gtest',
+    )
 endforeach
 
 # socket_appender_tests: split into individual gtest cases to avoid
@@ -72,23 +105,24 @@ endforeach
 socket_appender_exe = executable(
     'socket_appender_tests',
     'app/socket_appender_test.cpp',
-    include_directories: [
-        test_includes,
-        include_directories('../src/include'),
-    ],
+    include_directories: [test_includes, include_directories('../src/include')],
     dependencies: [gtest_dep, log4cpp_dep] + test_deps,
     cpp_args: asan_extra_args + cov_compile_args,
     link_args: cov_link_args,
 )
 
-test('socket_appender_test.tcp_socket_appender_test', socket_appender_exe,
+test(
+    'socket_appender_test.tcp_socket_appender_test',
+    socket_appender_exe,
     args: ['--gtest_filter=socket_appender_test.tcp_socket_appender_test'],
     timeout: 30,
     workdir: meson.current_build_dir(),
     protocol: 'gtest',
 )
 
-test('socket_appender_test.udp_socket_appender_test', socket_appender_exe,
+test(
+    'socket_appender_test.udp_socket_appender_test',
+    socket_appender_exe,
     args: ['--gtest_filter=socket_appender_test.udp_socket_appender_test'],
     timeout: 30,
     workdir: meson.current_build_dir(),
